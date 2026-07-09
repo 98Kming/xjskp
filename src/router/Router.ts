@@ -38,12 +38,20 @@ export class Router {
     var replanLeft = 2
     var targetName = (targetClass as any).name
     var lastNoPathPage: string | null = null  // 检测回退循环：连续两次同页无路径
+    var pageLog: string[] = []                // 页面轨迹，用于最终打印完整链路
+
+    function trackPage(name: string) {
+      if (pageLog.length === 0 || pageLog[pageLog.length - 1] !== name) {
+        pageLog.push(name)
+      }
+    }
 
     while (totalBacks < maxBacks && unknownBacks < maxUnknownBacks) {
       var img = screen()
       var current = this.detectCurrentPage(img)
 
       if (!current) {
+        trackPage('未知')
         log('[导航] 无法识别当前页面，尝试关闭弹窗')
         tryCloseModals()
         sleep(1500)
@@ -60,20 +68,22 @@ export class Router {
       }
       // 回到已知页面，重置未知回退计数
       unknownBacks = 0
+      trackPage(current.name)
 
       if (current.constructor === targetClass) {
-        log('[导航] 已到达:', current.name)
+        log('[导航] 链路: ' + pageLog.join(' → '))
         return true
       }
 
       if (totalBacks === 0) {
-        log('\n[导航] 任务: ' + current.name + ' → ' + targetName)
+        log('\n[导航] 前往: ' + targetName)
       }
       var path = this.findPath(current, targetClass)
       var ok
 
       if (!path || path.length === 0) {
         if (lastNoPathPage === current.name) {
+          log('[导航] 链路: ' + pageLog.join(' → '))
           throw new NavigationError('回退循环：从"' + current.name + '"无法到达"' + targetName + '"')
         }
         lastNoPathPage = current.name
@@ -92,7 +102,8 @@ export class Router {
       var execResult = this.executePath(path)
 
       if (execResult === true) {
-        log('[导航] 到达目标:', targetName)
+        trackPage(targetName)
+        log('[导航] 链路: ' + pageLog.join(' → '))
         return true
       }
 
@@ -101,6 +112,7 @@ export class Router {
         var nullImg = screen()
         var nullPage = this.detectCurrentPage(nullImg)
         if (nullPage && current && nullPage === current) {
+          log('[导航] 链路: ' + pageLog.join(' → '))
           throw new NavigationError('按钮不存在，无法到达' + targetName + '，入口可能未开放')
         }
         // 页面变了（过渡动画残留），回退重试
@@ -121,7 +133,8 @@ export class Router {
         sleep(3000)
         var retry2 = this.detectCurrentPage(screen())
         if (retry2 && retry2.constructor === targetClass) {
-          log('[导航] 已到达:', targetName)
+          trackPage(retry2.name)
+          log('[导航] 链路: ' + pageLog.join(' → '))
           return true
         }
         totalBacks++
@@ -131,7 +144,8 @@ export class Router {
 
       // 已到达目标
       if (retryCurrent.constructor === targetClass) {
-        log('[导航] 已到达:', targetName)
+        trackPage(retryCurrent.name)
+        log('[导航] 链路: ' + pageLog.join(' → '))
         return true
       }
 
@@ -147,6 +161,7 @@ export class Router {
 
       // 超时后页面未变 → 路由配置或按钮匹配有问题，回退无意义
       if (current && retryCurrent === current) {
+        log('[导航] 链路: ' + pageLog.join(' → '))
         throw new NavigationError('页面未变化，无法到达' + targetName + '，按钮匹配可能有问题')
       }
 
@@ -158,8 +173,10 @@ export class Router {
     }
 
     if (unknownBacks >= maxUnknownBacks) {
+      log('[导航] 链路: ' + pageLog.join(' → '))
       throw new NavigationError('未知页面回退' + maxUnknownBacks + '次后仍无法识别，无法到达' + targetName)
     }
+    log('[导航] 链路: ' + pageLog.join(' → '))
     throw new NavigationError('已达最大回退次数(' + maxBacks + ')，无法到达' + targetName)
   }
 

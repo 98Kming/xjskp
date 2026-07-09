@@ -10,7 +10,6 @@ function getTemplate(filePath: string): ImageWrapper {
   var template = templateCache.get(filePath)
   if (!template) {
     template = images.read("向僵尸开炮/"+filePath)
-    log(filePath, '模板尺寸:', template.width, template.height)
     templateCache.put(filePath, template)
   }
   return template
