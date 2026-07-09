@@ -58,17 +58,10 @@ npx webpack --watch  # 开发模式，监听文件变化自动重新构建
 3. 覆盖正常、空、异常、边界。写完请告诉我:如果我故意把代码改错,哪些测试会因此失败?
 
 #### 导航测试（test-navigation.ts）约定
-- 测试链之间记录前置结果，依赖测试用 `if (前置条件)` 守卫：
-  ```
-  var ok_幸运锦鲤 = testGo(幸运锦鲤, '⑤ ...')
-  if (ok_幸运锦鲤) {
-    testGo(幸运锦鲤免费福利, '⑥ ...')  // 只在⑤成功后执行
-  } else {
-    testSkip('幸运锦鲤不可达，跳过⑥')    // 前置失败时输出原因
-  }
-  ```
-- 跳过的测试用 `testSkip(reason)` 输出原因，不计入 `totalTests`，防止通过率虚低
-- 测试统计 `passedTests/totalTests`：跳过的测试不计入 total
+- 每个测试独立调用 `testGo(目标页)`，Router 自动处理多跳路由和回退，不手工写"回X"步骤
+- 仅子页面（需从父页面进入）保留跳过：父页面不可达时，子页面测试跳过
+- `testSkip(reason)` 跳过时不计入 `totalTests`，防止通过率虚低
+- `testGo` 不打印 "→ label"，Router 的 `[导航 前往]` 替代了分隔和声明作用
 
 ## Router 路由引擎设计
 
@@ -82,21 +75,26 @@ npx webpack --watch  # 开发模式，监听文件变化自动重新构建
 ### go() 导航主流程
 
 ```
-① 截图 → detectCurrentPage → 若 null → tryCloseModals → 仍 null → performBack(null)
-② 已到目标 → return true
-③ findPath BFS → 无路径 → lastNoPathPage 循环检测 → performBack(current) 回退重试
-④ executePath 逐跳执行 → 成功 return true
-⑤ execResult 处理：
-   null(按钮未找到) + 页面未变 → 抛 NavigationError（回退无意义）
-   null(按钮未找到) + 页面变了 → performBack 回退重试
-   false(超时/偏离) → retryCurrent 检测：
-     - null → 加载过渡 → sleep 3s 延等 → 不死循环不回退
-     - targetClass → return true
-     - ≠ current → replan 重规划（最多 2 次）
-     - == current → 抛 NavigationError（按钮匹配有问题）
-     - 其他 → performBack 回退重试
-⑥ 任何回退 → totalBacks++ → 最多 3 次 → 超限抛 NavigationError
+while (totalBacks < 3 && unknownBacks < 6):
+  ① 截图 → detectCurrentPage
+     若 null → tryCloseModals → 仍 null → performBack(null) → unknownBacks++
+     若已知 → unknownBacks = 0
+  ② 已到目标 → 打印 [导航 链路] → return true
+  ③ findPath BFS → 无路径 → lastNoPathPage 循环检测 → performBack(current) → totalBacks++
+  ④ 打印 [导航 前往: 目标] + [导航 路径: A→B] + executePath 逐跳执行
+  ⑤ execResult 处理：
+     null(按钮未找到) + 页面未变 → 打印链路 → 抛 NavigationError
+     null(按钮未找到) + 页面变了 → performBack → totalBacks++
+     false(超时/偏离) → retryCurrent 检测：
+       - null → [导航 页面加载过渡中] → sleep 3s 再检
+       - targetClass → 打印链路 → return true
+       - ≠ current → replan 重规划（最多 2 次）
+       - == current → 打印链路 → 抛 NavigationError
+       - 其他 → performBack → totalBacks++
+  ⑥ 循环出口 → 打印 [导航 链路] → 抛对应的 NavigationError
 ```
+
+每一步结束后打印 `[导航] 链路: 页面A → 页面B → ...`，展示从起点到终点的完整路径（含"未知"页）。导航开始打印 `[导航] 前往: 目标页`，不预设起点。
 
 ### 计数器隔离
 
