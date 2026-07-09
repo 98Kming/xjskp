@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "outDir": "./dist/",
+    "noImplicitAny": true,
+    "module": "es6",
+    "lib": ["dom", "es5", "es2015.promise", "es2015", "es2017"],
+    "typeRoots": [
+      "./types",
+      "./declarations"
+    ],
+    "allowJs": true,
+    "strict": true,
+    "ignoreDeprecations": "6.0",
+    "resolveJsonModule": true,
+    // 开启装饰器
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  }
+}
