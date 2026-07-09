@@ -10,7 +10,7 @@ export class 军团 extends BasePage {
   routes(): Route[] {
     return [
       { target: 战斗, action: createRouteAction('images/$战斗-未选中_0_0.9_504_2328_575_2370.png'), imagePath: 'images/$战斗-未选中_0_0.9_504_2328_575_2370.png' },
-      { target: 基地, action: createRouteAction('images/$基地-未选中_0_0.8_658_2331_724_2367.png'), imagePath: 'images/$基地-未选中_0_0.8_658_2331_724_2367.png' },
+      { target: 基地, action: createRouteAction('images/$基地-未选中_0_0.8_658_2331_1080_2367.png'), imagePath: 'images/$基地-未选中_0_0.8_658_2331_1080_2367.png' },
     ]
   }
 }

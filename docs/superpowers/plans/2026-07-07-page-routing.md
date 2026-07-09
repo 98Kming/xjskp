@@ -434,7 +434,7 @@ export class 战斗 extends BasePage {
 ```typescript
 export class 基地 extends BasePage {
   name = '基地'
-  is = createPageDetector('images/基地_0_0.9_647_2329_735_2370.png')
+  is = createPageDetector('images/基地_0_0.9_647_2329_1080_2370.png')
 
   routes(): Route[] {
     return [

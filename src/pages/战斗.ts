@@ -17,8 +17,8 @@ export class 战斗 extends BasePage {
 
   routes(): Route[] {
     return [
-      { target: 基地, action: createRouteAction('images/$基地-未选中_0_0.8_658_2331_724_2367.png'), imagePath: 'images/$基地-未选中_0_0.8_658_2331_724_2367.png' },
-      { target: 军团, action: createRouteAction('images/$军团-未选中_0_0.8_807_2335_873_2367.png'), imagePath: 'images/$军团-未选中_0_0.8_807_2335_873_2367.png' },
+      { target: 基地, action: createRouteAction('images/$基地-未选中_0_0.8_658_2331_1080_2367.png'), imagePath: 'images/$基地-未选中_0_0.8_658_2331_1080_2367.png' },
+      { target: 军团, action: createRouteAction('images/$军团-未选中_0_0.8_807_2335_1080_2367.png'), imagePath: 'images/$军团-未选中_0_0.8_807_2335_1080_2367.png' },
       { target: 幸运锦鲤, action: createRouteAction('images/战斗$幸运锦鲤_0_0.7_30_542_118_617.png'), imagePath: 'images/战斗$幸运锦鲤_0_0.7_30_542_118_617.png' },
       { target: 侧栏, action: createRouteAction('images/战斗$侧栏_1_0.9_974_378_1040_447.png'), imagePath: 'images/战斗$侧栏_1_0.9_974_378_1040_447.png' },
       { target: 巡逻车, action: createRouteAction('images/战斗$巡逻车_1_0.7_58_1917_169_1955.png'), imagePath: 'images/战斗$巡逻车_1_0.7_58_1917_169_1955.png' },

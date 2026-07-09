@@ -130,30 +130,47 @@ console.log('===== Phase 2: 导航覆盖 =====')
 
 var ok_基地 = testGo(基地, '① 导航到基地（起点）')
 
-if (!ok_基地) {
-  testSkip('基地不可达，Phase 2 全部导航测试跳过（历练大厅、食堂等）')
-} else {
-  testPageDetected('基地')
+// ——— 战斗链：②-⑬ 只依赖战斗，独立于基地 ———
+var ok_战斗 = false
 
-  // ——— ②-④ 基地 → 战斗 → 军团（回头路） ———
-  var ok_战斗 = testGo(战斗, '② 基地 → 战斗')
-  if (ok_战斗) {
+if (ok_基地) {
+  testPageDetected('基地')
+  ok_战斗 = testGo(战斗, '② 基地 → 战斗')
+} else {
+  // ① 失败时检测当前页，可能已在战斗
+  var pageNow = router.detectCurrentPage(screen())
+  if (pageNow && pageNow.name === '战斗') {
+    ok_战斗 = true
     testPageDetected('战斗')
-    testAction(function() { return 战斗Page.click_七日突围() }, '战斗 七日突围')
-    ok_战斗 = testGo(军团, '③ 战斗 → 军团')
-    if (ok_战斗) {
-      testPageDetected('军团')
-    }
-    if (ok_战斗) {
-      ok_战斗 = testGo(战斗, '④ 军团 → 战斗（回头路）')
-      if (ok_战斗) testPageDetected('战斗')
-    }
+  } else {
+    ok_战斗 = testGo(战斗, '② 导航到战斗')
+    if (ok_战斗) testPageDetected('战斗')
+  }
+}
+
+if (!ok_战斗) {
+  testSkip('战斗不可达，跳过③-⑬')
+} else {
+  if (ok_基地) {
+    testPageDetected('战斗')
+  }
+
+  testAction(function() { return 战斗Page.click_七日突围() }, '战斗 七日突围')
+
+  // ——— ③-④ 战斗 → 军团（回头路） ———
+  var onBattle = testGo(军团, '③ 战斗 → 军团')
+  if (onBattle) {
+    testPageDetected('军团')
+    onBattle = testGo(战斗, '④ 军团 → 战斗（回头路）')
+    if (onBattle) testPageDetected('战斗')
+  }
+  if (!onBattle) {
+    onBattle = testGo(战斗, '→ 返回战斗')
   }
 
   // ——— ⑤-⑧ 战斗 → 幸运锦鲤 → 幸运锦鲤-免费福利 → 战斗 ———
-  var ok_幸运锦鲤 = false
-  if (ok_战斗) {
-    ok_幸运锦鲤 = testGo(幸运锦鲤, '⑤ 战斗 → 幸运锦鲤')
+  if (onBattle) {
+    var ok_幸运锦鲤 = testGo(幸运锦鲤, '⑤ 战斗 → 幸运锦鲤')
     if (ok_幸运锦鲤) {
       testPageDetected('幸运锦鲤')
       var ok_幸运锦鲤免费福利 = testGo(幸运锦鲤免费福利, '⑥ 幸运锦鲤 → 幸运锦鲤-免费福利')
@@ -164,22 +181,24 @@ if (!ok_基地) {
       } else {
         testSkip('幸运锦鲤-免费福利不可达，跳过领取和回退测试')
       }
-      // ⑧ 回到战斗
-      ok_战斗 = testGo(战斗, '⑧ 幸运锦鲤 → 战斗（回退）')
+      onBattle = testGo(战斗, '⑧ 幸运锦鲤 → 战斗（回退）')
     } else {
       testSkip('幸运锦鲤不可达，跳过⑥⑦⑧')
     }
   }
+  if (!onBattle) {
+    onBattle = testGo(战斗, '→ 返回战斗')
+  }
 
   // ——— ⑨-⑪ 战斗 → 侧栏 → 邮件 → 战斗 ———
-  if (ok_战斗) {
+  if (onBattle) {
     var ok_侧栏 = testGo(侧栏, '⑨ 战斗 → 侧栏')
     if (ok_侧栏) {
       testPageDetected('侧栏')
       var ok_邮件 = testGo(邮件, '⑩ 侧栏 → 邮件')
       if (ok_邮件) {
         testPageDetected('邮件')
-        ok_战斗 = testGo(战斗, '⑪ 邮件 → 战斗（回退）')
+        onBattle = testGo(战斗, '⑪ 邮件 → 战斗（回退）')
       } else {
         testSkip('邮件不可达，跳过⑪')
       }
@@ -187,9 +206,12 @@ if (!ok_基地) {
       testSkip('侧栏不可达，跳过⑩⑪')
     }
   }
+  if (!onBattle) {
+    onBattle = testGo(战斗, '→ 返回战斗')
+  }
 
   // ——— ⑫-⑬ 战斗 → 巡逻车 → 基地 ———
-  if (ok_战斗) {
+  if (onBattle) {
     var ok_巡逻车 = testGo(巡逻车, '⑫ 战斗 → 巡逻车')
     if (ok_巡逻车) {
       testPageDetected('巡逻车')
@@ -199,26 +221,26 @@ if (!ok_基地) {
       testSkip('巡逻车不可达，跳过领取和回退测试')
     }
   }
+}
 
+// ——— 基地链：⑭-⑳ 依赖基地 ———
+if (!ok_基地 && ok_战斗) {
+  ok_基地 = testGo(基地, '→ 返回基地')
+}
+
+if (ok_基地) {
   // ——— ⑭-⑱ 基地 → 历练大厅 → 寰球救援 → 玩法商店 → 基地 ———
-  // 若之前未回到基地（⑬失败），尝试导航到基地
-  if (!ok_基地 && ok_战斗) {
-    ok_基地 = testGo(基地, '→ 返回基地')
-  }
-
-  if (ok_基地) {
-    var ok_历练大厅 = testGo(历练大厅, '⑭ 基地 → 历练大厅')
-    if (ok_历练大厅) {
-      testPageDetected('历练大厅')
-      testGo(寰球救援, '⑮ 历练大厅 → 寰球救援')
-      testGo(历练大厅, '⑯ 返回历练大厅')
-      var ok_玩法商店 = testGo(玩法商店, '⑰ 历练大厅 → 玩法商店')
-      if (ok_玩法商店) {
-        testPageDetected('玩法商店')
-        ok_基地 = testGo(基地, '⑱ 玩法商店 → 基地（回退）')
-      } else {
-        testSkip('玩法商店不可达，跳过⑱')
-      }
+  var ok_历练大厅 = testGo(历练大厅, '⑭ 基地 → 历练大厅')
+  if (ok_历练大厅) {
+    testPageDetected('历练大厅')
+    testGo(寰球救援, '⑮ 历练大厅 → 寰球救援')
+    testGo(历练大厅, '⑯ 返回历练大厅')
+    var ok_玩法商店 = testGo(玩法商店, '⑰ 历练大厅 → 玩法商店')
+    if (ok_玩法商店) {
+      testPageDetected('玩法商店')
+      ok_基地 = testGo(基地, '⑱ 玩法商店 → 基地（回退）')
+    } else {
+      testSkip('玩法商店不可达，跳过⑱')
     }
   }
 
@@ -235,6 +257,8 @@ if (!ok_基地) {
       testSkip('食堂不可达，跳过⑳')
     }
   }
+} else {
+  testSkip('基地不可达，跳过⑭-⑳')
 }
 
 // ===============================================================
