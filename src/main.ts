@@ -12,6 +12,8 @@ import { 侧栏 } from './pages/侧栏'
 import { 巡逻车 } from './pages/巡逻车'
 import { 食堂 } from './pages/食堂'
 import { 邮件 } from './pages/邮件'
+import { 个人信息 } from './pages/个人信息'
+import { 服务器选择 } from './pages/服务器选择'
 
 var router = Router.getInstance()
 
@@ -29,6 +31,7 @@ new 玩法商店()
 new 巡逻车()
 new 食堂()
 new 邮件()
-
+new 个人信息()
+new 服务器选择()
 
 router.go(基地)

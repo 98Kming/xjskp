@@ -24,6 +24,8 @@ import { 侧栏 } from './pages/侧栏'
 import { 巡逻车 } from './pages/巡逻车'
 import { 食堂 } from './pages/食堂'
 import { 邮件 } from './pages/邮件'
+import { 个人信息 } from './pages/个人信息'
+import { 服务器选择 } from './pages/服务器选择'
 
 var router = Router.getInstance()
 
@@ -40,6 +42,8 @@ new 玩法商店()
 var 巡逻车Page = new 巡逻车()
 new 食堂()
 new 邮件()
+new 个人信息()
+new 服务器选择()
 
 var totalTests = 0
 var passedTests = 0
@@ -184,14 +188,28 @@ if (ok_历练大厅) {
 testGo(食堂, '⑫ 食堂')
 testPageDetected('食堂')
 
+// 个人信息 → 服务器选择
+var ok_个人信息 = testGo(个人信息, '⑬ 个人信息')
+if (ok_个人信息) {
+  testPageDetected('个人信息')
+  var ok_服务器选择 = testGo(服务器选择, '⑭ 服务器选择')
+  if (ok_服务器选择) {
+    testPageDetected('服务器选择')
+  } else {
+    testSkip('服务器选择不可达')
+  }
+} else {
+  testSkip('个人信息不可达，跳过服务器选择')
+}
+
 // ===============================================================
 // Phase 3: 特殊场景
 // ===============================================================
 console.log('')
 console.log('===== Phase 3: 特殊场景 =====')
 
-testGo(基地, '⑬ 重复导航')
-testGo(选择技能, '⑭ 不可达（选择技能）', false)
+testGo(基地, '⑮ 重复导航')
+testGo(选择技能, '⑯ 不可达（选择技能）', false)
 
 // ===============================================================
 console.log('')

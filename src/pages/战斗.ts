@@ -5,6 +5,7 @@ import { 军团 } from './军团'
 import { 幸运锦鲤 } from './幸运锦鲤'
 import { 侧栏 } from './侧栏'
 import { 巡逻车 } from './巡逻车'
+import { 个人信息 } from './个人信息'
 
 export class 战斗 extends BasePage {
   name = '战斗'
@@ -22,6 +23,7 @@ export class 战斗 extends BasePage {
       { target: 幸运锦鲤, action: createRouteAction('images/战斗$幸运锦鲤_0_0.7_30_542_118_617.png'), imagePath: 'images/战斗$幸运锦鲤_0_0.7_30_542_118_617.png' },
       { target: 侧栏, action: createRouteAction('images/战斗$侧栏_1_0.9_974_378_1040_447.png'), imagePath: 'images/战斗$侧栏_1_0.9_974_378_1040_447.png' },
       { target: 巡逻车, action: createRouteAction('images/战斗$巡逻车_1_0.7_58_1917_169_1955.png'), imagePath: 'images/战斗$巡逻车_1_0.7_58_1917_169_1955.png' },
+      { target: 个人信息, action: function(): boolean { click(100, 200); return true } },
     ]
   }
 }
