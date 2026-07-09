@@ -46,8 +46,6 @@ var passedTests = 0
 
 function testGo(target: any, label: string, expectSuccess: boolean = true): boolean {
   totalTests++
-  console.log('')
-  console.log('  → ' + label)
   var start = Date.now()
   try {
     var ok = router.go(target)
@@ -92,7 +90,6 @@ function testAction(action: () => boolean, label: string): boolean {
 }
 
 function testSkip(reason: string) {
-  console.log('')
   console.log('  ⏭️ 跳过: ' + reason)
 }
 
@@ -121,81 +118,71 @@ console.log('当前识别为: ' + (initPage ? initPage.name : '未知'))
 console.log('')
 console.log('===== Phase 2: 导航覆盖 =====')
 
-// ①-② 锚点到基地 → 战斗
+// 每个 testGo 独立，Router 自动处理多跳路由和回退，不需要手工"回X"步骤
 testGo(基地, '① 基地')
 testPageDetected('基地')
 testGo(战斗, '② 战斗')
 testPageDetected('战斗')
 testAction(function() { return 战斗Page.click_七日突围() }, '战斗 七日突围')
 
-// ③-④ 军团（回头路）
+// 军团
 testGo(军团, '③ 军团')
 testPageDetected('军团')
-testGo(战斗, '④ 回战斗')
 
-// ⑤-⑧ 幸运锦鲤 → 免费福利
-var ok_幸运锦鲤 = testGo(幸运锦鲤, '⑤ 幸运锦鲤')
+// 幸运锦鲤 → 免费福利
+var ok_幸运锦鲤 = testGo(幸运锦鲤, '④ 幸运锦鲤')
 if (ok_幸运锦鲤) {
   testPageDetected('幸运锦鲤')
-  var ok_免费福利 = testGo(幸运锦鲤免费福利, '⑥ 幸运锦鲤-免费福利')
+  var ok_免费福利 = testGo(幸运锦鲤免费福利, '⑤ 免费福利')
   if (ok_免费福利) {
     testPageDetected('幸运锦鲤-免费福利')
     testAction(function() { return 幸运锦鲤免费福利Page.领取奖励() }, '免费福利 领取奖励')
-    testGo(幸运锦鲤, '⑦ 回幸运锦鲤')
   } else {
-    testSkip('幸运锦鲤-免费福利不可达，跳过⑦')
+    testSkip('幸运锦鲤-免费福利不可达')
   }
-  testGo(战斗, '⑧ 回战斗')
 } else {
-  testSkip('幸运锦鲤不可达，跳过⑥⑦⑧')
+  testSkip('幸运锦鲤不可达，跳过免费福利')
 }
 
-// ⑨-⑪ 侧栏 → 邮件
-var ok_侧栏 = testGo(侧栏, '⑨ 侧栏')
+// 侧栏 → 邮件
+var ok_侧栏 = testGo(侧栏, '⑥ 侧栏')
 if (ok_侧栏) {
   testPageDetected('侧栏')
-  var ok_邮件 = testGo(邮件, '⑩ 邮件')
+  var ok_邮件 = testGo(邮件, '⑦ 邮件')
   if (ok_邮件) {
     testPageDetected('邮件')
   } else {
-    testSkip('邮件不可达，跳过⑪')
+    testSkip('邮件不可达')
   }
-  testGo(战斗, '⑪ 回战斗')
 } else {
-  testSkip('侧栏不可达，跳过⑩⑪')
+  testSkip('侧栏不可达，跳过邮件')
 }
 
-// ⑫-⑬ 巡逻车
-var ok_巡逻车 = testGo(巡逻车, '⑫ 巡逻车')
+// 巡逻车
+var ok_巡逻车 = testGo(巡逻车, '⑧ 巡逻车')
 if (ok_巡逻车) {
   testPageDetected('巡逻车')
   testAction(function() { return 巡逻车Page.领取() }, '巡逻车 领取')
 } else {
   testSkip('巡逻车不可达，跳过领取')
 }
-testGo(基地, '⑬ 回基地')
 
-// ⑭-⑱ 历练大厅 → 寰球救援 → 玩法商店
-var ok_历练大厅 = testGo(历练大厅, '⑭ 历练大厅')
+// 历练大厅 → 寰球救援 → 玩法商店
+var ok_历练大厅 = testGo(历练大厅, '⑨ 历练大厅')
 if (ok_历练大厅) {
   testPageDetected('历练大厅')
-  testGo(寰球救援, '⑮ 寰球救援')
-  testGo(历练大厅, '⑯ 回历练大厅')
-  var ok_玩法商店 = testGo(玩法商店, '⑰ 玩法商店')
+  testGo(寰球救援, '⑩ 寰球救援')
+  var ok_玩法商店 = testGo(玩法商店, '⑪ 玩法商店')
   if (ok_玩法商店) {
     testPageDetected('玩法商店')
   } else {
-    testSkip('玩法商店不可达，跳过⑱')
+    testSkip('玩法商店不可达')
   }
 }
-testGo(基地, '⑱ 回基地')
 
-// ⑲-⑳ 食堂
-var ok_食堂 = testGo(食堂, '⑲ 食堂')
-if (ok_食堂) {
-  testPageDetected('食堂')
-}
-testGo(基地, '⑳ 回基地')
+// 食堂
+testGo(食堂, '⑫ 食堂')
+testPageDetected('食堂')
 
 // ===============================================================
 // Phase 3: 特殊场景
@@ -203,8 +190,8 @@ testGo(基地, '⑳ 回基地')
 console.log('')
 console.log('===== Phase 3: 特殊场景 =====')
 
-testGo(基地, '㉑ 重复导航（已在基地）')
-testGo(选择技能, '㉒ 不可达（选择技能）', false)
+testGo(基地, '⑬ 重复导航')
+testGo(选择技能, '⑭ 不可达（选择技能）', false)
 
 // ===============================================================
 console.log('')
