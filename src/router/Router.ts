@@ -45,9 +45,12 @@ export class Router {
       }
     }
 
+    var current: BasePage | null = null
     while (totalBacks < maxBacks && unknownBacks < maxUnknownBacks) {
-      var img = screen()
-      var current = this.detectCurrentPage(img)
+      if (!current) {
+        var img = screen()
+        current = this.detectCurrentPage(img)
+      }
 
       if (!current) {
         trackPage('未知')
@@ -58,9 +61,11 @@ export class Router {
         current = this.detectCurrentPage(img2)
         if (!current) {
           log('[导航] 未知页面逐层回退(' + (unknownBacks + 1) + '/' + maxUnknownBacks + ')')
-          this.performBack(null)
-          unknownBacks++
-          replanLeft = 2
+          current = this.performBack(null)
+          if (!current) {
+            unknownBacks++
+            replanLeft = 2
+          }
           continue
         }
         log('[导航] 弹窗关闭成功，识别到:', current.name)
@@ -78,19 +83,23 @@ export class Router {
         log('\n[导航] 前往: ' + targetName)
       }
       var path = this.findPath(current, targetClass)
-      var ok
 
       if (!path || path.length === 0) {
         log('[导航] 从"' + current.name + '"无法到达"' + targetName + '"，回退重试(' + (totalBacks + 1) + '/' + maxBacks + ')')
-        ok = this.performBack(current)
-        if (!ok) log('[导航] 建议检查 ' + current.name + ' 的页面识别或路由配置')
+        var backResult = this.performBack(current)
+        if (!backResult) {
+          log('[导航] 建议检查 ' + current.name + ' 的页面识别或路由配置')
+          current = null
+        } else {
+          current = backResult
+        }
         totalBacks++
         replanLeft = 2
         continue
       }
 
       this.logPath(current, path)
-      var execResult = this.executePath(path)
+      var execResult = this.executePath(path, current.name)
 
       if (execResult === true) {
         trackPage(targetName)
@@ -108,7 +117,7 @@ export class Router {
         }
         // 页面变了（过渡动画残留），回退重试
         log('[导航] 按钮不可达，回退重试(' + (totalBacks + 1) + '/' + maxBacks + ')')
-        this.performBack(current)
+        current = this.performBack(current)
         totalBacks++
         replanLeft = 2
         continue
@@ -130,6 +139,7 @@ export class Router {
         }
         totalBacks++
         replanLeft = 2
+        current = null
         continue
       }
 
@@ -145,6 +155,7 @@ export class Router {
         var retryPath = this.findPath(retryCurrent, targetClass)
         if (retryPath && retryPath.length > 0) {
           replanLeft--
+          current = retryCurrent
           log('[导航] 从 "' + retryCurrent.name + '" 重试路径，剩余 ' + replanLeft + ' 次')
           continue
         }
@@ -157,8 +168,8 @@ export class Router {
       }
 
       log('[导航] 路径执行失败，页面:' + retryCurrent.name + '，回退重试(' + (totalBacks + 1) + '/' + maxBacks + ')')
-      ok = this.performBack(current)
-      if (!ok) log('[导航] 建议检查目标页面入口是否存在')
+      current = this.performBack(retryCurrent)
+      if (!current) log('[导航] 建议检查目标页面入口是否存在')
       totalBacks++
       replanLeft = 2
     }
@@ -185,10 +196,8 @@ export class Router {
    * 每跳：点击按钮 → 等待页面切换。
    * 返回 false 时已执行弹窗关闭，调用方处理回退重试。
    */
-  private executePath(path: Route[]): boolean | null {
+  private executePath(path: Route[], startName: string): boolean | null {
     var totalHops = path.length
-    var startPage = this.detectCurrentPage(screen())
-    var startName = startPage ? startPage.name : ''
 
     for (var i = 0; i < totalHops; i++) {
       var route = path[i]
@@ -199,33 +208,7 @@ export class Router {
       var actionOk = route.action()
 
       if (!actionOk) {
-        // action() 失败可能源自上一次尝试的点击已在后台生效，短轮询确认页面是否已切换
-        var recovered = false
-        for (var ri = 0; ri < 3; ri++) {
-          sleep(800)
-          var retryFrame = screen()
-          var retryPage = this.detectCurrentPage(retryFrame)
-          if (retryPage && retryPage.constructor === route.target) {
-            log('[导航] 第' + (i + 1) + '跳: 按钮未找到但页面已跳转')
-            recovered = true
-            break
-          }
-        }
-        if (recovered) {
-          startName = targetName
-          continue
-        }
-
-        var failInfo = '第' + (i + 1) + '跳失败: 按钮未找到 [' + startName + ' → ' + targetName + ']，入口可能未开放'
-        if (route.imagePath) {
-          try {
-            var parsed = imageNameParser(route.imagePath)
-            failInfo += ' | ' + route.imagePath + ' [' + parsed.x1 + ',' + parsed.y1 + '-' + parsed.x2 + ',' + parsed.y2 + ']'
-          } catch (e) {
-            failInfo += ' | ' + route.imagePath
-          }
-        }
-        log('[导航] ' + failInfo)
+        log('[导航] 第' + (i + 1) + '跳失败: 按钮未找到 [' + startName + ' → ' + targetName + ']，入口可能未开放')
         return null
       }
 
@@ -324,9 +307,9 @@ export class Router {
    *   2. is() 识别 → 页面变了 → 成功
    *   3. is() 识别失败 → pageChange() 比对截图 → 变了 → 成功（回退生效但新页未知）
    *   4. is() 识别但页面未变 → 关闭弹窗 + 备选点击 → 再试
-   *   5. 仍不变 → 返回 false
+   *   5. 仍不变 → 返回 null
    */
-  private performBack(page: BasePage | null): boolean {
+  private performBack(page: BasePage | null): BasePage | null {
     var beforeImg = screen(0, false)
     var before = page || this.detectCurrentPage(beforeImg)
     var beforeName = before ? before.name : 'unknown'
@@ -336,7 +319,6 @@ export class Router {
     if (page) {
       if (!page.back()) {
         log('[导航] page.back()未找到按钮')
-        sleep(500)
       } else {
         sleep(1500)
       }
@@ -352,17 +334,16 @@ export class Router {
 
     if (after && after.name !== beforeName) {
       beforeImg.recycle()
-      return true
+      return after
     }
 
     if (!after) {
-      // pageChange 内部调用 screen() 会覆盖缓存使 afterImg 成为孤引用，提前回收
       afterImg.recycle()
       if (pageChange(beforeImg)) {
         log('[导航] is()未识别但截图已变化，回退生效')
-        this.verifyAfterChange()
+        var landed = this.verifyAfterChange()
         beforeImg.recycle()
-        return true
+        return landed
       }
       log('[导航] 回退无效（截图未变化），尝试级联恢复')
     }
@@ -377,15 +358,15 @@ export class Router {
       after = this.detectCurrentPage(afterImg)
       if (after && after.name !== beforeName) {
         beforeImg.recycle()
-        return true
+        return after
       }
       if (!after) {
         afterImg.recycle()
         if (pageChange(beforeImg)) {
           log('[导航] 关闭弹窗后截图变化，回退生效')
-          this.verifyAfterChange()
+          var landed2 = this.verifyAfterChange()
           beforeImg.recycle()
-          return true
+          return landed2
         }
       }
     }
@@ -398,31 +379,31 @@ export class Router {
     after = this.detectCurrentPage(afterImg)
     if (after && after.name !== beforeName) {
       beforeImg.recycle()
-      return true
+      return after
     }
     if (!after) {
       afterImg.recycle()
       if (pageChange(beforeImg)) {
         log('[导航] 备选回退后截图变化，回退生效')
-        this.verifyAfterChange()
+        var landed3 = this.verifyAfterChange()
         beforeImg.recycle()
-        return true
+        return landed3
       }
     }
 
     log('[导航] 所有回退尝试均无效')
     beforeImg.recycle()
-    return false
+    return null
   }
 
-  /** pageChange 判定后二次确认页面身份 */
-  private verifyAfterChange(): void {
-    sleep(1500)
-    var vImg = screen()
-    var vPage = this.detectCurrentPage(vImg)
+  /** pageChange 判定后二次确认页面身份，返回检测到的页面（可能 null） */
+  private verifyAfterChange(): BasePage | null {
+    sleep(300)
+    var vPage = this.detectCurrentPage(screen())
     if (vPage) {
       log('[导航] 页面识别为: ' + vPage.name)
     }
+    return vPage
   }
 
   public detectCurrentPage(img: ImageWrapper): BasePage | null {

@@ -126,7 +126,7 @@ export function createPageDetector(filePath: string): (img: ImageWrapper) => boo
     }
     // 计算亮度下降百分比
     let percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100;
-    log('[亮度] 模板:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5),percentDiff, filePath)
+    percentDiff < 50 &&log('[亮度] 模板:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5),percentDiff, filePath)
     return percentDiff < 50;
   }
 }

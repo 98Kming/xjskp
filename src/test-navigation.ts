@@ -39,7 +39,7 @@ var 战斗Page = new 战斗()
 new 基地()
 new 历练大厅()
 new 选择技能()
-new 寰球救援()
+var 寰球救援Page = new 寰球救援()
 new 军团()
 var 幸运锦鲤免费福利Page = new 幸运锦鲤免费福利()
 new 幸运锦鲤()
@@ -221,7 +221,10 @@ if (ok_巡逻车) {
 var ok_历练大厅 = testGo(历练大厅, '⑨ 历练大厅')
 if (ok_历练大厅) {
   testPageDetected('历练大厅')
-  testGo(寰球救援, '⑩ 寰球救援')
+  var ok_寰球救援 = testGo(寰球救援, '⑩ 寰球救援')
+  if (ok_寰球救援) {
+    testActionOptional(function() { return 寰球救援Page.免费() }, '寰球救援 免费')
+  }
   var ok_玩法商店 = testGo(玩法商店, '⑪ 玩法商店')
   if (ok_玩法商店) {
     testPageDetected('玩法商店')
