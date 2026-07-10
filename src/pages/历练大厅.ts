@@ -2,6 +2,7 @@ import { BasePage, Route } from './BasePage'
 import { createAnchoredAction, createPageDetector, createRouteAction } from '../utils/img'
 import { 玩法商店 } from './玩法商店'
 import { 寰球救援 } from './寰球救援'
+import { 终末危机 } from './终末危机'
 
 export class 历练大厅 extends BasePage {
   name = '历练大厅'
@@ -13,6 +14,10 @@ export class 历练大厅 extends BasePage {
       { target: 玩法商店, action: createRouteAction('images/历练大厅$玩法商店_1_0.9_940_391_1005_435.png'), imagePath: 'images/历练大厅$玩法商店_1_0.9_940_391_1005_435.png' },
       { target: 寰球救援, action: createAnchoredAction(
         'images/历练大厅_救援_1_0.9_181_938_274_988.png',
+        'images/$挑战_0_0.9.png'
+      ) },
+      { target: 终末危机, action: createAnchoredAction(
+        'images/历练大厅_终末危机_1_0.9_88_1733_275_1782.png',
         'images/$挑战_0_0.9.png'
       ) },
     ]

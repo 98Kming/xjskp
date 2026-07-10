@@ -31,6 +31,7 @@ import { 异域挑战军团奖励 } from './pages/异域挑战-军团奖励'
 import { 异域挑战个人奖励 } from './pages/异域挑战-个人奖励'
 import { 先锋宝藏 } from './pages/先锋宝藏'
 import { 每日一刀 } from './pages/每日一刀'
+import { 终末危机 } from './pages/终末危机'
 
 var router = Router.getInstance()
 
@@ -45,7 +46,7 @@ var 幸运锦鲤免费福利Page = new 幸运锦鲤免费福利()
 new 幸运锦鲤()
 new 玩法商店()
 var 巡逻车Page = new 巡逻车()
-new 食堂()
+var 食堂Page = new 食堂()
 var 邮件Page = new 邮件()
 new 个人信息()
 new 服务器选择()
@@ -54,6 +55,7 @@ var 异域挑战军团奖励Page = new 异域挑战军团奖励()
 var 异域挑战个人奖励Page = new 异域挑战个人奖励()
 var 先锋宝藏Page = new 先锋宝藏()
 var 每日一刀Page = new 每日一刀()
+var 终末危机Page = new 终末危机()
 
 var totalTests = 0
 var passedTests = 0
@@ -217,7 +219,7 @@ if (ok_巡逻车) {
   testSkip('巡逻车不可达，跳过领取')
 }
 
-// 历练大厅 → 寰球救援 → 玩法商店
+// 历练大厅 → 寰球救援 → 玩法商店 → 终末危机
 var ok_历练大厅 = testGo(历练大厅, '⑨ 历练大厅')
 if (ok_历练大厅) {
   testPageDetected('历练大厅')
@@ -228,13 +230,19 @@ if (ok_历练大厅) {
   } else {
     testSkip('玩法商店不可达')
   }
+  var ok_终末危机 = testGo(终末危机, '终末危机')
+  if (ok_终末危机) {
+    testPageDetected('终末危机')
+    testAction(function() { return 终末危机Page.扫荡() }, '终末危机 扫荡')
+  } else {
+    testSkip('终末危机不可达')
+  }
 }
 
 // 先锋宝藏
 var ok_先锋宝藏 = testGo(先锋宝藏, '⑳ 先锋宝藏')
 if (ok_先锋宝藏) {
   testPageDetected('先锋宝藏')
-  testActionOptional(function() { return 先锋宝藏Page.免费() }, '先锋宝藏 免费')
 } else {
   testSkip('先锋宝藏不可达')
 }
@@ -242,6 +250,7 @@ if (ok_先锋宝藏) {
 // 食堂
 testGo(食堂, '⑫ 食堂')
 testPageDetected('食堂')
+testActionOptional(function() { return 食堂Page.领取() }, '食堂 一键领取')
 
 // 个人信息 → 服务器选择
 var ok_个人信息 = testGo(个人信息, '⑬ 个人信息')
