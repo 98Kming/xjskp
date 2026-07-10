@@ -1,6 +1,6 @@
 /**
  * 导航功能测试 — 在真机上运行，验证路由系统各功能
- * 覆盖全部 13 个页面的 is() 检测和路由可达性
+ * 覆盖全部 18 个页面的 is() 检测和路由可达性
  *
  * 构建产物：dist/test-navigation.js
  *
@@ -26,6 +26,11 @@ import { 食堂 } from './pages/食堂'
 import { 邮件 } from './pages/邮件'
 import { 个人信息 } from './pages/个人信息'
 import { 服务器选择 } from './pages/服务器选择'
+import { 异域挑战 } from './pages/异域挑战'
+import { 异域挑战军团奖励 } from './pages/异域挑战-军团奖励'
+import { 异域挑战个人奖励 } from './pages/异域挑战-个人奖励'
+import { 先锋宝藏 } from './pages/先锋宝藏'
+import { 每日一刀 } from './pages/每日一刀'
 
 var router = Router.getInstance()
 
@@ -41,9 +46,14 @@ new 幸运锦鲤()
 new 玩法商店()
 var 巡逻车Page = new 巡逻车()
 new 食堂()
-new 邮件()
+var 邮件Page = new 邮件()
 new 个人信息()
 new 服务器选择()
+var 异域挑战Page = new 异域挑战()
+var 异域挑战军团奖励Page = new 异域挑战军团奖励()
+var 异域挑战个人奖励Page = new 异域挑战个人奖励()
+var 先锋宝藏Page = new 先锋宝藏()
+var 每日一刀Page = new 每日一刀()
 
 var totalTests = 0
 var passedTests = 0
@@ -93,6 +103,13 @@ function testAction(action: () => boolean, label: string): boolean {
   return ok
 }
 
+function testActionOptional(action: () => boolean, label: string): boolean {
+  var ok = action()
+  // 不增减 totalTests/passedTests，可选操作找不到不视为失败
+  console.log('  ' + (ok ? '✅' : '⏭️') + ' 按钮: ' + label + (ok ? '' : ' （无可操作项）'))
+  return ok
+}
+
 function testSkip(reason: string) {
   console.log('  ⏭️ 跳过: ' + reason)
 }
@@ -133,6 +150,34 @@ testAction(function() { return 战斗Page.click_七日突围() }, '战斗 七日
 testGo(军团, '③ 军团')
 testPageDetected('军团')
 
+// 每日一刀（从军团进入）
+testGo(每日一刀, '㉑ 每日一刀')
+testPageDetected('每日一刀')
+testActionOptional(function() { return 每日一刀Page.砍一刀() }, '每日一刀 砍一刀')
+
+// 异域挑战 → 军团奖励 → 个人奖励
+var ok_异域挑战 = testGo(异域挑战, '⑰ 异域挑战')
+if (ok_异域挑战) {
+  testPageDetected('异域挑战')
+  testAction(function() { return 异域挑战Page.扫荡() }, '异域挑战 扫荡')
+  var ok_军团奖励 = testGo(异域挑战军团奖励, '⑱ 异域挑战-军团奖励')
+  if (ok_军团奖励) {
+    testPageDetected('异域挑战-军团奖励')
+    testActionOptional(function() { return 异域挑战军团奖励Page.领取() }, '军团奖励 领取')
+    var ok_个人奖励 = testGo(异域挑战个人奖励, '⑲ 异域挑战-个人奖励')
+    if (ok_个人奖励) {
+      testPageDetected('异域挑战-个人奖励')
+        testActionOptional(function() { return 异域挑战个人奖励Page.领取() }, '个人奖励 领取')
+    } else {
+      testSkip('异域挑战-个人奖励不可达')
+    }
+  } else {
+    testSkip('异域挑战-军团奖励不可达，跳过个人奖励')
+  }
+} else {
+  testSkip('异域挑战不可达，跳过军团奖励和个人奖励')
+}
+
 // 幸运锦鲤 → 免费福利
 var ok_幸运锦鲤 = testGo(幸运锦鲤, '④ 幸运锦鲤')
 if (ok_幸运锦鲤) {
@@ -155,6 +200,7 @@ if (ok_侧栏) {
   var ok_邮件 = testGo(邮件, '⑦ 邮件')
   if (ok_邮件) {
     testPageDetected('邮件')
+    testActionOptional(function() { return 邮件Page.一键领取() }, '邮件 一键领取')
   } else {
     testSkip('邮件不可达')
   }
@@ -166,7 +212,7 @@ if (ok_侧栏) {
 var ok_巡逻车 = testGo(巡逻车, '⑧ 巡逻车')
 if (ok_巡逻车) {
   testPageDetected('巡逻车')
-  testAction(function() { return 巡逻车Page.领取() }, '巡逻车 领取')
+  testActionOptional(function() { return 巡逻车Page.领取() }, '巡逻车 领取')
 } else {
   testSkip('巡逻车不可达，跳过领取')
 }
@@ -182,6 +228,15 @@ if (ok_历练大厅) {
   } else {
     testSkip('玩法商店不可达')
   }
+}
+
+// 先锋宝藏
+var ok_先锋宝藏 = testGo(先锋宝藏, '⑳ 先锋宝藏')
+if (ok_先锋宝藏) {
+  testPageDetected('先锋宝藏')
+  testActionOptional(function() { return 先锋宝藏Page.免费() }, '先锋宝藏 免费')
+} else {
+  testSkip('先锋宝藏不可达')
 }
 
 // 食堂

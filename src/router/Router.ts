@@ -31,13 +31,12 @@ export class Router {
    * 统一策略：未知页面 → back → 重识别 → BFS 重规划，直至到达目标或达到回退上限。
    */
   go(targetClass: { new(...args: any[]): BasePage }): boolean {
-    var maxBacks = 3
+    var maxBacks = 5
     var totalBacks = 0
     var maxUnknownBacks = 6    // 未知页面逐层回退，允许更多步数
     var unknownBacks = 0
     var replanLeft = 2
     var targetName = (targetClass as any).name
-    var lastNoPathPage: string | null = null  // 检测回退循环：连续两次同页无路径
     var pageLog: string[] = []                // 页面轨迹，用于最终打印完整链路
 
     function trackPage(name: string) {
@@ -82,11 +81,6 @@ export class Router {
       var ok
 
       if (!path || path.length === 0) {
-        if (lastNoPathPage === current.name) {
-          log('[导航] 链路: ' + pageLog.join(' → '))
-          throw new NavigationError('回退循环：从"' + current.name + '"无法到达"' + targetName + '"')
-        }
-        lastNoPathPage = current.name
         log('[导航] 从"' + current.name + '"无法到达"' + targetName + '"，回退重试(' + (totalBacks + 1) + '/' + maxBacks + ')')
         ok = this.performBack(current)
         if (!ok) log('[导航] 建议检查 ' + current.name + ' 的页面识别或路由配置')
@@ -94,9 +88,6 @@ export class Router {
         replanLeft = 2
         continue
       }
-
-      // 找到有效路径，重置循环检测
-      lastNoPathPage = null
 
       this.logPath(current, path)
       var execResult = this.executePath(path)
@@ -196,20 +187,8 @@ export class Router {
    */
   private executePath(path: Route[]): boolean | null {
     var totalHops = path.length
-
-    var img = screen()
-    var startPage = this.detectCurrentPage(img)
-    if (!startPage) {
-      log('[导航] 路径执行前无法识别页面，尝试关闭弹窗')
-      tryCloseModals()
-      sleep(1500)
-      startPage = this.detectCurrentPage(screen())
-      if (!startPage) {
-        log('[导航] 关闭弹窗后仍无法识别，放弃本次路径执行')
-        return false
-      }
-    }
-    var startName = startPage.name
+    var startPage = this.detectCurrentPage(screen())
+    var startName = startPage ? startPage.name : ''
 
     for (var i = 0; i < totalHops; i++) {
       var route = path[i]
@@ -281,6 +260,12 @@ export class Router {
           sleep(1500)
           // 继续轮询剩余次数，确认目标页不可达后再判负
           continue
+        }
+
+        // 页面持续未变：可能弹窗遮挡了目标按钮，首次点击已关弹窗，重试点击
+        if (attempt === 3) {
+          log('[导航] 页面未变化，尝试重试点击（attempt=' + attempt + '）')
+          route.action()
         }
       }
 

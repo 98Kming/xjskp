@@ -14,6 +14,11 @@ import { 食堂 } from './pages/食堂'
 import { 邮件 } from './pages/邮件'
 import { 个人信息 } from './pages/个人信息'
 import { 服务器选择 } from './pages/服务器选择'
+import { 异域挑战 } from './pages/异域挑战'
+import { 异域挑战军团奖励 } from './pages/异域挑战-军团奖励'
+import { 异域挑战个人奖励 } from './pages/异域挑战-个人奖励'
+import { 先锋宝藏 } from './pages/先锋宝藏'
+import { 每日一刀 } from './pages/每日一刀'
 
 var router = Router.getInstance()
 
@@ -33,5 +38,10 @@ new 食堂()
 new 邮件()
 new 个人信息()
 new 服务器选择()
+new 异域挑战()
+new 异域挑战军团奖励()
+new 异域挑战个人奖励()
+new 先锋宝藏()
+new 每日一刀()
 
 router.go(基地)
