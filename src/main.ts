@@ -19,6 +19,9 @@ import { 异域挑战军团奖励 } from './pages/异域挑战-军团奖励'
 import { 异域挑战个人奖励 } from './pages/异域挑战-个人奖励'
 import { 先锋宝藏 } from './pages/先锋宝藏'
 import { 每日一刀 } from './pages/每日一刀'
+import { 武装降临 } from './pages/武装降临'
+import { 武装降临任务 } from './pages/武装降临-任务'
+import { 随机事件 } from './pages/随机事件'
 
 var router = Router.getInstance()
 
@@ -43,5 +46,8 @@ new 异域挑战军团奖励()
 new 异域挑战个人奖励()
 new 先锋宝藏()
 new 每日一刀()
+new 武装降临()
+new 武装降临任务()
+new 随机事件()
 
 router.go(基地)

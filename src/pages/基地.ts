@@ -4,6 +4,7 @@ import { 历练大厅 } from './历练大厅'
 import { 食堂 } from './食堂'
 import { 战斗 } from './战斗'
 import { 军团 } from './军团'
+import { 随机事件 } from './随机事件'
 
 export class 基地 extends BasePage {
   name = '基地'
@@ -15,6 +16,7 @@ export class 基地 extends BasePage {
       { target: 食堂, action: createRouteAction('images/基地$食堂_1_0.9_726_1023_821_1074.png'), imagePath: 'images/基地$食堂_1_0.9_726_1023_821_1074.png' },
       { target: 战斗, action: createRouteAction('images/$战斗-未选中_0_0.9_504_2328_575_2370.png'), imagePath: 'images/$战斗-未选中_0_0.9_504_2328_575_2370.png' },
       { target: 军团, action: createRouteAction('images/$军团-未选中_0_0.8_807_2335_1080_2367.png'), imagePath: 'images/$军团-未选中_0_0.8_807_2335_1080_2367.png' },
+      { target: 随机事件, action: createRouteAction('images/基地$随机事件_0_0.6_69_1484_126_1546.png'), imagePath: 'images/基地$随机事件_0_0.8_69_1484_126_1546.png' },
     ]
   }
 }
