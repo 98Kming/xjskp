@@ -16,6 +16,7 @@ import { 基地 } from './pages/基地'
 import { 历练大厅 } from './pages/历练大厅'
 import { 选择技能 } from './pages/选择技能'
 import { 寰球救援 } from './pages/寰球救援'
+import { 寰球远征 } from './pages/寰球远征'
 import { 军团 } from './pages/军团'
 import { 幸运锦鲤 } from './pages/幸运锦鲤'
 import { 幸运锦鲤免费福利 } from './pages/幸运锦鲤-免费福利'
@@ -40,6 +41,7 @@ new 基地()
 new 历练大厅()
 new 选择技能()
 var 寰球救援Page = new 寰球救援()
+var 寰球远征Page = new 寰球远征()
 new 军团()
 var 幸运锦鲤免费福利Page = new 幸运锦鲤免费福利()
 new 幸运锦鲤()
@@ -217,13 +219,17 @@ if (ok_巡逻车) {
   testSkip('巡逻车不可达，跳过领取')
 }
 
-// 历练大厅 → 寰球救援 → 玩法商店
+// 历练大厅 → 寰球救援 / 寰球远征 / 玩法商店
 var ok_历练大厅 = testGo(历练大厅, '⑨ 历练大厅')
 if (ok_历练大厅) {
   testPageDetected('历练大厅')
   var ok_寰球救援 = testGo(寰球救援, '⑩ 寰球救援')
   if (ok_寰球救援) {
     testActionOptional(function() { return 寰球救援Page.免费() }, '寰球救援 免费')
+  }
+  var ok_寰球远征 = testGo(寰球远征, '㉒ 寰球远征')
+  if (ok_寰球远征) {
+    testActionOptional(function() { return 寰球远征Page.免费() }, '寰球远征 免费')
   }
   var ok_玩法商店 = testGo(玩法商店, '⑪ 玩法商店')
   if (ok_玩法商店) {

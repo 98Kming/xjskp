@@ -19,6 +19,7 @@ import { 异域挑战军团奖励 } from './pages/异域挑战-军团奖励'
 import { 异域挑战个人奖励 } from './pages/异域挑战-个人奖励'
 import { 先锋宝藏 } from './pages/先锋宝藏'
 import { 每日一刀 } from './pages/每日一刀'
+import { 寰球远征 } from './pages/寰球远征'
 
 var router = Router.getInstance()
 
@@ -28,6 +29,7 @@ new 基地()
 new 历练大厅()
 new 选择技能()
 new 寰球救援()
+new 寰球远征()
 new 军团()
 // 幸运锦鲤免费福利 需要在幸运锦鲤前实例化
 new 幸运锦鲤免费福利()
