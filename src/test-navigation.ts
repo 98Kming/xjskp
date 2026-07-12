@@ -31,6 +31,9 @@ import { 异域挑战军团奖励 } from './pages/异域挑战-军团奖励'
 import { 异域挑战个人奖励 } from './pages/异域挑战-个人奖励'
 import { 先锋宝藏 } from './pages/先锋宝藏'
 import { 每日一刀 } from './pages/每日一刀'
+import { 武装降临 } from './pages/武装降临'
+import { 武装降临任务 } from './pages/武装降临-任务'
+import { 随机事件 } from './pages/随机事件'
 import { 终末危机 } from './pages/终末危机'
 
 var router = Router.getInstance()
@@ -55,7 +58,10 @@ var 异域挑战军团奖励Page = new 异域挑战军团奖励()
 var 异域挑战个人奖励Page = new 异域挑战个人奖励()
 var 先锋宝藏Page = new 先锋宝藏()
 var 每日一刀Page = new 每日一刀()
-var 终末危机Page = new 终末危机()
+	var 武装降临Page = new 武装降临()
+	var 武装降临任务Page = new 武装降临任务()
+	var 随机事件Page = new 随机事件()
+	var 终末危机Page = new 终末危机()
 
 var totalTests = 0
 var passedTests = 0
@@ -144,6 +150,7 @@ console.log('===== Phase 2: 导航覆盖 =====')
 // 每个 testGo 独立，Router 自动处理多跳路由和回退，不需要手工"回X"步骤
 testGo(基地, '① 基地')
 testPageDetected('基地')
+testActionOptional(function() { return 随机事件Page.领取() }, '基地 随机事件')
 testGo(战斗, '② 战斗')
 testPageDetected('战斗')
 testAction(function() { return 战斗Page.click_七日突围() }, '战斗 七日突围')
@@ -156,6 +163,21 @@ testPageDetected('军团')
 testGo(每日一刀, '㉑ 每日一刀')
 testPageDetected('每日一刀')
 testActionOptional(function() { return 每日一刀Page.砍一刀() }, '每日一刀 砍一刀')
+
+// 武装降临 → 武装降临-任务
+var ok_武装降临 = testGo(武装降临, '㉓ 武装降临')
+if (ok_武装降临) {
+  testPageDetected('武装降临')
+  var ok_武装降临任务 = testGo(武装降临任务, '㉔ 武装降临-任务')
+  if (ok_武装降临任务) {
+    testPageDetected('武装降临-任务')
+    testActionOptional(function() { return 武装降临任务Page.领取() }, '武装降临-任务 领取')
+  } else {
+    testSkip('武装降临-任务不可达')
+  }
+} else {
+  testSkip('武装降临不可达')
+}
 
 // 异域挑战 → 军团奖励 → 个人奖励
 var ok_异域挑战 = testGo(异域挑战, '⑰ 异域挑战')
