@@ -203,6 +203,48 @@ export function createAnchoredAction(anchorPath: string, targetPath: string): ()
   }
 }
 
+/**
+ * 镜像坐标点击：找图后点击 device.width - 图片.x, 图片.y + 图片.height / 2
+ * 入场券类按钮专用：图片在屏幕左侧匹配，点击右侧对应位置。
+ * 支持 cache=1 坐标缓存。
+ */
+export function createMirroredAction(filePath: string): () => boolean {
+  var parsed = imageNameParser(filePath)
+  var template = getTemplate(filePath)
+  var rw = parsed.x2 - parsed.x1
+  var rh = parsed.y2 - parsed.y1
+
+  if (parsed.cache === 1) {
+    return function (): boolean {
+      var cached = pointCache.get(filePath)
+      if (cached) {
+        click(cached.x, cached.y)
+        return true
+      }
+      var img = screen()
+      var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+      if (!point) return false
+      var cx = device.width - point.x - template.width / 2
+      var cy = point.y + template.height / 2
+      pointCache.put(filePath, { x: cx, y: cy })
+      log('镜像点击:', filePath, `坐标(${cx}, ${cy})`)
+      click(cx, cy)
+      return true
+    }
+  }
+
+  return function (): boolean {
+    var img = screen()
+    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    if (!point) return false
+    var cx = device.width - point.x
+    var cy = point.y + template.height / 2
+    log('镜像点击:', filePath, `坐标(${cx}, ${cy})`)
+    click(cx, cy)
+    return true
+  }
+}
+
 var closeButtons: (() => boolean)[] = [
   createRouteAction('images/$关闭1_0_0.8_800_400_1020_600.png'),
   createRouteAction('images/$关闭2_0_0.8_800_400_1020_600.png'),
@@ -240,4 +282,27 @@ export function pageChange(beforeImg: ImageWrapper): boolean {
   }
 
   return (mismatches / total) > 0.03
+}
+
+export function scrollFind(filePath: string):[number, number] | null {
+  var parsed = imageNameParser(filePath)
+  var rw = parsed.x2 - parsed.x1
+  var rh = parsed.y2 - parsed.y1
+  var template = getTemplate(filePath)
+  
+  for (var i = 0; i < 20; i++) {
+    var img = screen()
+    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    if (point) {
+      var cx = point.x + template.width + 60
+      var cy = point.y + template.height + 10
+      console.log('[服务器选择] 找到选中标识 坐标:(' + point.x + ',' + point.y + ') 点击:(' + cx + ',' + cy + ')')
+      return [cx, cy]
+    }
+    // 向上滚动：从屏幕下方滑到上方
+    swipe(width / 2, height * 0.7, width / 2, height * 0.3, 300)
+    swipe(width / 2, height * 0.3, width / 3, height * 0.3, 300)
+    sleep(600)
+  }
+  return null
 }
