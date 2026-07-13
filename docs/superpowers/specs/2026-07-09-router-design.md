@@ -365,3 +365,31 @@ detectCurrentPage(screen())
 
 - `src/router/Router.ts` — go() 主循环 + executePath() 轮询
 - `src/utils/img.ts` — pageChange()（已有，无需修改）
+
+## 2026-07-13: route.action 首次调用加重试，支持延迟入口按钮
+
+### 背景
+
+导航测试发现 `基地 → 随机事件` 的入口按钮（`基地$随机事件`）有延迟出现（动画/弹窗加载），但 `executePath()` 中 `route.action()` 只调一次，按钮未出现就直接判负返回 null，导致导航失败。
+
+### 改动位置
+
+`executePath()` 首次 action 调用处（`src/router/Router.ts:254`）
+
+### 实现
+
+在首次 `route.action()` 调用前加 for 循环，最多重试 3 次，每次间隔 800ms（最长等 ~1.6s）：
+
+```
+之前: action() → false → return null
+之后: action() → false → 800ms → action() → false → 800ms → action() → true → 继续
+```
+
+不修改后续的页面跳转确认轮询（原有 `maxAttempts=4` × `interval=800ms` 逻辑不变）。
+
+### 设计考量
+
+- **只加在 executePath 层**：不改 `createRouteAction`（避免影响纯点击场景的语义）
+- **最多 3 次**：平衡等入口延迟和失败快速反馈
+- **日志区分**：重试时打印 `[导航] 第i跳: 按钮未找到，800ms后重试`，最终失败打印原 failInfo
+- **找图次数影响**：延迟出现的入口平均多 ~1-2 次找图，可接受

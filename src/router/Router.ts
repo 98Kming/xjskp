@@ -251,7 +251,17 @@ export class Router {
 
       log('[导航] 第' + (i + 1) + '/' + totalHops + '跳: ' + startName + ' → ' + targetName)
 
-      var actionOk = route.action()
+      // 部分入口按钮有延迟出现（如随机事件），重试等按钮出现
+      var actionOk = false
+      var maxActionAttempts = 3
+      for (var actionAttempt = 0; actionAttempt < maxActionAttempts; actionAttempt++) {
+        actionOk = route.action()
+        if (actionOk) break
+        if (actionAttempt < maxActionAttempts - 1) {
+          log('[导航] 第' + (i + 1) + '跳: 按钮未找到，' + ((actionAttempt + 1) * 800) + 'ms后重试')
+          sleep(800)
+        }
+      }
 
       if (!actionOk) {
         var failInfo = '第' + (i + 1) + '跳失败: 按钮未找到 [' + startName + ' → ' + targetName + ']'
