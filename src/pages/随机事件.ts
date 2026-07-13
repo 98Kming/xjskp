@@ -14,17 +14,28 @@ export class 随机事件 extends BasePage {
   ]
 
   /**
-   * 尝试领取随机事件：依次查找 n 个领取按钮，找到则点击，然后点确定
+   * 尝试领取随机事件：可多次领取，直到 6 秒内无新按钮
    */
   领取(): boolean {
-    for (var i = 0; i < this.领取列表.length; i++) {
-      if (this.领取列表[i]()) {
-        sleep(1000)
-        tryCloseModals()
-        return true
+    var deadline = Date.now() + 6000
+    var claimed = false
+    while (Date.now() < deadline) {
+      var found = false
+      for (var i = 0; i < this.领取列表.length; i++) {
+        if (this.领取列表[i]()) {
+          sleep(1000)
+          tryCloseModals()
+          claimed = true
+          found = true
+          break  // 扫到就点，下一轮从头再扫
+        }
+      }
+      if (!found) {
+        if (claimed) break  // 领过且本轮无新按钮 → 结束
+        sleep(800)          // 还没出现过，等入口
       }
     }
-    return false
+    return claimed
   }
 
   routes(): Route[] {
