@@ -35,7 +35,8 @@ export class Router {
    * 统一策略：未知页面 → back → 重识别 → BFS 重规划，直至到达目标或达到回退上限。
    */
   go(targetClass: { new(...args: any[]): BasePage }): boolean {
-    // 每次 go() 调用重置死循环计数器，防止跨调用泄漏
+    // 每次 go() 调用重置死循环计数器和致命未知标记，防止跨调用泄漏
+    this._fatalUnknown = false
     this.clearBackDeadLoop()
     var targetName = (targetClass as any).name
     var pageLog: string[] = []                // 页面轨迹，用于最终打印完整链路
@@ -46,7 +47,6 @@ export class Router {
       }
     }
 
-    // 致命未知标记：前一次导航完全无法识别页面，跳过后续所有导航
     if (this._fatalUnknown) {
       trackPage('致命未知')
       log('[导航] 链路: ' + pageLog.join(' → '))
