@@ -206,9 +206,19 @@ export function createAnchoredAction(anchorPath: string, targetPath: string): ()
     var searchH = height - searchY
     if (searchH <= 0) return false
 
-    // 在标识下方区域找目标按钮
-    var targetPoint = images.findImageInRegion(img, targetTemplate,
-      0, searchY, width, searchH, targetParsed.threshold)
+    // 在标识下方区域找目标按钮，取最上方的一个
+    var targetResult = images.matchTemplate(img, targetTemplate, {
+      region: [0, searchY, width, searchH],
+      threshold: targetParsed.threshold,
+    })
+    if (!targetResult || !targetResult.matches || targetResult.matches.length === 0) return false
+    var topMatch = targetResult.matches[0]
+    for (var mi = 1; mi < targetResult.matches.length; mi++) {
+      if (targetResult.matches[mi].point.y < topMatch.point.y) {
+        topMatch = targetResult.matches[mi]
+      }
+    }
+    var targetPoint = topMatch.point
     if (!targetPoint) return false
 
     click(targetPoint.x + targetTemplate.width / 2, targetPoint.y + targetTemplate.height / 2)
@@ -253,6 +263,41 @@ export function createMirroredAction(filePath: string): () => boolean {
     var cx = device.width - point.x
     var cy = point.y + template.height / 2
     log('镜像点击:', filePath, `坐标(${cx}, ${cy})`)
+    click(cx, cy)
+    return true
+  }
+}
+
+/**
+ * 入场券镜像点击（含已售罄检测）：
+ * 找入场券图片，若找到则在入场券右侧区域查找已售罄，
+ * 已售罄则返回 false（跳过），否则执行镜像坐标点击。
+ * ticketPath 按标准图片命名解析；soldOutPath 用 images.read 直接加载。
+ */
+export function createTicketAction(ticketPath: string, soldOutPath: string): () => boolean {
+  var parsed = imageNameParser(ticketPath)
+  var template = getTemplate(ticketPath)
+  var rw = parsed.x2 - parsed.x1
+  var rh = parsed.y2 - parsed.y1
+  var soldOutTemplate = images.read(imageBasePath + soldOutPath)
+
+  return function (): boolean {
+    var img = screen()
+    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    if (!point) return false
+
+    // 入场券右侧查找已售罄
+    var checkX = point.x + template.width
+    var checkW = width - checkX
+    var soldOutPoint = images.findImageInRegion(img, soldOutTemplate, checkX, point.y, checkW, template.height, 0.9)
+    if (soldOutPoint) {
+      log('[入场券] 已售罄，跳过:', ticketPath)
+      return false
+    }
+
+    var cx = device.width - point.x - template.width / 2
+    var cy = point.y + template.height / 2
+    log('镜像点击:', ticketPath, `坐标(${cx}, ${cy})`)
     click(cx, cy)
     return true
   }

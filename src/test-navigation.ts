@@ -10,7 +10,7 @@
  */
 
 import { Router } from './router/Router'
-import { screen, createMirroredAction } from './utils/img'
+import { screen, createTicketAction } from './utils/img'
 import { 战斗 } from './pages/战斗'
 import { 基地 } from './pages/基地'
 import { 历练大厅 } from './pages/历练大厅'
@@ -56,7 +56,7 @@ var 巡逻车Page = new 巡逻车()
 new 食堂()
 var 邮件Page = new 邮件()
 new 个人信息()
-var 服务器选择Page = new 服务器选择()
+export var 服务器选择Page = new 服务器选择()
 var 异域挑战Page = new 异域挑战()
 var 异域挑战军团奖励Page = new 异域挑战军团奖励()
 var 异域挑战个人奖励Page = new 异域挑战个人奖励()
@@ -72,7 +72,7 @@ var 终末危机Page = new 终末危机()
 var totalTests = 0
 var passedTests = 0
 
-function testGo(target: any, label: string, expectSuccess: boolean = true): boolean {
+export function testGo(target: any, label: string, expectSuccess: boolean = true): boolean {
   totalTests++
   var start = Date.now()
   try {
@@ -152,7 +152,7 @@ console.log('当前识别为: ' + (initPage ? initPage.name : '未知'))
 // ===============================================================
 console.log('')
 console.log('===== Phase 2: 导航覆盖 =====')
-function runTestSuite() {
+export function runTestSuite() {
   // 每个 testGo 独立，Router 自动处理多跳路由和回退，不需要手工"回X"步骤
   testGo(基地, '① 基地')
   testPageDetected('基地')
@@ -261,9 +261,14 @@ function runTestSuite() {
     if (ok_寰球救援) {
       testActionOptional(function () { return 寰球救援Page.免费() }, '寰球救援 免费')
     }
-    var ok_寰球远征 = testGo(寰球远征, '㉒ 寰球远征')
-    if (ok_寰球远征) {
-      testActionOptional(function () { return 寰球远征Page.免费() }, '寰球远征 免费')
+    var day = new Date().getDay()
+    if (day >= 5 || day === 0) {
+      var ok_寰球远征 = testGo(寰球远征, '㉒ 寰球远征')
+      if (ok_寰球远征) {
+        testActionOptional(function () { return 寰球远征Page.免费() }, '寰球远征 免费')
+      }
+    } else {
+      testSkip('寰球远征仅周五~周末开放')
     }
     var ok_玩法商店 = testGo(玩法商店, '⑪ 玩法商店')
     if (ok_玩法商店) {
@@ -342,7 +347,7 @@ function runTestSuite() {
     testPageDetected('军团商店')
 
     // 救援入场券：镜像坐标 → 道具购买 → 最大（缓存）→ 购买（缓存）
-    var _ticketAction = createMirroredAction('images/军团商店_环球救援入场券_1_0.9_115_709_230_827.png')
+    var _ticketAction = createTicketAction('images/军团商店_环球救援入场券_1_0.9_115_709_230_827.png', 'images/$军团商店_已售罄_0_0.9_759_0_895_y.png')
     if (testAction(_ticketAction, '军团商店 救援入场券（镜像坐标）')) {
       sleep(1500)
       if (testPageDetected('道具购买')) {
@@ -355,7 +360,7 @@ function runTestSuite() {
     // sleep(2000)
     testGo(军团商店, '㉖ 军团商店')
     // 远征入场券：同上
-    var _ticketAction2 = createMirroredAction('images/军团商店_环球远征入场券_1_0.9_114_518_230_633.png')
+    var _ticketAction2 = createTicketAction('images/军团商店_环球远征入场券_1_0.9_114_518_230_633.png', 'images/$军团商店_已售罄_0_0.9_759_0_895_y.png')
     if (testAction(_ticketAction2, '军团商店 远征入场券（镜像坐标）')) {
       sleep(1500)
       if (testPageDetected('道具购买')) {
@@ -369,30 +374,7 @@ function runTestSuite() {
     testSkip('军团商店不可达，跳过入场券测试')
   }
 }
-let point = [0, 0]
-
-let i = 0
-
-while(true) {
-  if(testGo(服务器选择, '⑯ 服务器选择')){
-    let currentPoint = 服务器选择Page.next()
-  
-    if(currentPoint != null){
-       if (point[0] != currentPoint[0] || point[1] != currentPoint[1]) {
-    console.log("循环结束，点击次数：", i)
-  }
-  i++
-  click(currentPoint[0] + 60, currentPoint[1] + 10)
-  runTestSuite()
-  sleep(500)
-    }else{
-      break
-    }
-  }
-  
-  
-}
-console.log("选择服务器次数：", i)
+runTestSuite()
 // ===============================================================
 // Phase 3: 特殊场景
 // ===============================================================
