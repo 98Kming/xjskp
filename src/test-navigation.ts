@@ -152,7 +152,7 @@ console.log('当前识别为: ' + (initPage ? initPage.name : '未知'))
 // ===============================================================
 console.log('')
 console.log('===== Phase 2: 导航覆盖 =====')
-function testOnce() {
+function runTestSuite() {
   // 每个 testGo 独立，Router 自动处理多跳路由和回退，不需要手工"回X"步骤
   testGo(基地, '① 基地')
   testPageDetected('基地')
@@ -383,7 +383,7 @@ while(true) {
   }
   i++
   click(currentPoint[0] + 60, currentPoint[1] + 10)
-  testOnce()
+  runTestSuite()
   sleep(500)
     }else{
       break

@@ -100,6 +100,8 @@ var refHeight = 1920
 
 function expandRegion(x1: number, y1: number, x2: number, y2: number): [number, number, number, number] {
   x1 = Math.max(x1 - 10, 0)
+  // 纵向扩展 300px：refHeight=1920, 按 2400 作为实际屏高基数计算偏移
+  // (2400/10)*1.25 = 300px，覆盖底部状态栏/导航栏差异
   y1 = Math.max(y1 - (2400 / 10)*1.25, 0)
   x2 = Math.min(x2 + 10, width)
   if (y2 > refHeight) {
