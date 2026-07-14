@@ -18,6 +18,18 @@ export class 战斗 extends BasePage {
     return this.七日突围Action()
   }
 
+  scrollDown() {
+    swipe(50, 900, 50, 600,300)
+    swipe(50, 600, 120, 600,100)
+    sleep(500)
+  }
+
+  scrollUp() {
+    swipe(50, 600, 50, 900,300)
+    swipe(50, 900, 120, 900,100)
+    sleep(500)
+  }
+
   routes(): Route[] {
     return [
       { target: 基地, action: createRouteAction('images/$基地-未选中_0_0.8_658_2331_1080_2367.png'), imagePath: 'images/$基地-未选中_0_0.8_658_2331_1080_2367.png' },
@@ -26,13 +38,9 @@ export class 战斗 extends BasePage {
         target: 幸运锦鲤, action: function (): boolean {
           var action = createRouteAction('images/战斗$幸运锦鲤_0_0.7_30_542_118_617.png')
           if (action()) return true
-          gesture(300, [50, 900], [50, 600])
-          gesture(100, [50, 600], [120, 600])
-          sleep(500)
+          scrollDown()
           if (action()) return true
-          gesture(300, [50, 600], [50, 900])
-          gesture(100, [50, 900], [120, 900])
-          sleep(500)
+          scrollUp()
           return action()
         }, imagePath: 'images/战斗$幸运锦鲤_0_0.7_30_542_118_617.png'
       },
@@ -43,17 +51,9 @@ export class 战斗 extends BasePage {
         target: 先锋宝藏, action: function (): boolean {
           var action = createRouteAction('images/战斗$先锋宝藏_0_0.8_64_1010_118_1049.png')
           if (action()) return true
-          // 入口找不到则下滑再试
-          gesture(300, [50, 900], [50, 600])
-          // 打断滚动
-          gesture(100, [50, 600], [120, 600])
-          sleep(500)
+          scrollDown()
           if (action()) return true
-          // 入口找不到则上滑再试
-          gesture(300, [50, 600], [50, 900])
-          // 打断滚动
-          gesture(100, [50, 900], [120, 900])
-          sleep(500)
+          scrollUp()
           return action()
         }, imagePath: 'images/战斗$先锋宝藏_0_0.8_64_1010_118_1049.png'
       },
@@ -61,13 +61,9 @@ export class 战斗 extends BasePage {
         target: 武装降临, action: function (): boolean {
           var action = createRouteAction('images/战斗$武装降临_0_0.8_11_382_132_411.png')
           if (action()) return true
-          gesture(300, [50, 900], [50, 600])
-          gesture(100, [50, 600], [120, 600])
-          sleep(500)
+          scrollDown()
           if (action()) return true
-          gesture(300, [50, 600], [50, 900])
-          gesture(100, [50, 900], [120, 900])
-          sleep(500)
+          scrollUp()
           return action()
         }, imagePath: 'images/战斗$武装降临_0_0.8_11_382_132_411.png'
       },
