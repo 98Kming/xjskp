@@ -7,6 +7,7 @@ module.exports = {
     main: path.resolve(__dirname, "./src/main.ts"),
     "test-navigation": path.resolve(__dirname, "./src/test-navigation.ts"),
     "test-scroll": path.resolve(__dirname, "./src/test-scroll.ts"),
+    daily: path.resolve(__dirname, "./src/daily.ts"),
   },
 
   output: {

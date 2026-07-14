@@ -7,7 +7,7 @@ export class 异域挑战军团奖励 extends BasePage {
   is = createPageDetector('images/异域挑战-军团奖励_1_0.9_110_2018_288_2065.png')
 
   领取(): boolean {
-    return createRouteAction('images/$领取_0_0.8_761_700_864_1500.png')()
+    return createRouteAction('images/$领取_0_0.8_761_700_864_1500.png')() && (sleep(800), this.back(), sleep(800), true)
   }
 
   routes(): Route[] {

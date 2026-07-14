@@ -7,7 +7,7 @@ export class 食堂 extends BasePage {
   is = createPageDetector('images/食堂$$_一键领取_1_0.9_442_2245_641_2302.png')
 
   领取(): boolean {
-    return createRouteAction('images/食堂$$_一键领取_1_0.9_442_2245_641_2302.png')()
+    return createRouteAction('images/食堂$$_一键领取_1_0.9_442_2245_641_2302.png')() && (sleep(800), this.back(), sleep(800), true)
   }
 
   routes(): Route[] {
