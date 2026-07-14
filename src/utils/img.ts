@@ -1,15 +1,19 @@
 export const width = 1080
 export const height = width / device.width * device.height
 console.log('屏幕宽高:', width, height, '设备宽高:', device.width, device.height)
+import { imageBasePath } from '../config'
 let last_capture_time = 0
 let cache_screen_img: ImageWrapper | null = null
 var templateCache = new java.util.HashMap()
 var pointCache = new java.util.HashMap()
 
-function getTemplate(filePath: string): ImageWrapper {
+export function getTemplate(filePath: string): ImageWrapper {
   var template = templateCache.get(filePath)
   if (!template) {
-    template = images.read("xjskp/"+filePath)
+    template = images.read(imageBasePath+filePath)
+    if(template == null){
+      throw new Error(`模板图片不存在: ${filePath}`)
+    }
     templateCache.put(filePath, template)
   }
   return template
@@ -206,6 +210,48 @@ export function createAnchoredAction(anchorPath: string, targetPath: string): ()
     if (!targetPoint) return false
 
     click(targetPoint.x + targetTemplate.width / 2, targetPoint.y + targetTemplate.height / 2)
+    return true
+  }
+}
+
+/**
+ * 镜像坐标点击：找图后点击 device.width - 图片.x, 图片.y + 图片.height / 2
+ * 入场券类按钮专用：图片在屏幕左侧匹配，点击右侧对应位置。
+ * 支持 cache=1 坐标缓存。
+ */
+export function createMirroredAction(filePath: string): () => boolean {
+  var parsed = imageNameParser(filePath)
+  var template = getTemplate(filePath)
+  var rw = parsed.x2 - parsed.x1
+  var rh = parsed.y2 - parsed.y1
+
+  if (parsed.cache === 1) {
+    return function (): boolean {
+      var cached = pointCache.get(filePath)
+      if (cached) {
+        click(cached.x, cached.y)
+        return true
+      }
+      var img = screen()
+      var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+      if (!point) return false
+      var cx = device.width - point.x - template.width / 2
+      var cy = point.y + template.height / 2
+      pointCache.put(filePath, { x: cx, y: cy })
+      log('镜像点击:', filePath, `坐标(${cx}, ${cy})`)
+      click(cx, cy)
+      return true
+    }
+  }
+
+  return function (): boolean {
+    var img = screen()
+    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    if (!point) return false
+    var cx = device.width - point.x
+    var cy = point.y + template.height / 2
+    log('镜像点击:', filePath, `坐标(${cx}, ${cy})`)
+    click(cx, cy)
     return true
   }
 }

@@ -6,6 +6,7 @@ module.exports = {
   entry: {
     main: path.resolve(__dirname, "./src/main.ts"),
     "test-navigation": path.resolve(__dirname, "./src/test-navigation.ts"),
+    "test-scroll-server": path.resolve(__dirname, "./src/test-scroll-server.ts"),
   },
 
   output: {

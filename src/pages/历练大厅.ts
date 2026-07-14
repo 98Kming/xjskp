@@ -3,6 +3,7 @@ import { createAnchoredAction, createPageDetector, createRouteAction } from '../
 import { 玩法商店 } from './玩法商店'
 import { 寰球救援 } from './寰球救援'
 import { 寰球远征 } from './寰球远征'
+import { 终末危机 } from './终末危机'
 
 export class 历练大厅 extends BasePage {
   name = '历练大厅'
@@ -18,6 +19,10 @@ export class 历练大厅 extends BasePage {
       ) },
       { target: 寰球远征, action: createAnchoredAction(
         'images/历练大厅_远征_1_0.9_181_1296_274_1339.png',
+        'images/$挑战_0_0.9.png'
+      ) },
+      { target: 终末危机, action: createAnchoredAction(
+        'images/历练大厅_终末危机_1_0.9_88_1733_275_1782.png',
         'images/$挑战_0_0.9.png'
       ) },
     ]

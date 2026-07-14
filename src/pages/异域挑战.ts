@@ -1,5 +1,6 @@
 import { BasePage, Route } from './BasePage'
 import { createPageDetector, createRouteAction } from '../utils/img'
+import { Router } from '../router/Router'
 import { 异域挑战军团奖励 } from './异域挑战-军团奖励'
 
 export class 异域挑战 extends BasePage {
@@ -12,8 +13,8 @@ export class 异域挑战 extends BasePage {
     if (ok) {
       sleep(1000)
       this.确认Action()
-      // 第二次扫荡
-      sleep(500)
+      // 第二次扫荡：先导航回异域挑战
+      Router.getInstance().go(异域挑战)
       createRouteAction('images/异域挑战$$_扫荡_1_0.9_338_2263_462_2317.png')()
       sleep(1000)
       this.确认Action()

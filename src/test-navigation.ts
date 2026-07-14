@@ -10,7 +10,7 @@
  */
 
 import { Router } from './router/Router'
-import { screen } from './utils/img'
+import { screen, createMirroredAction } from './utils/img'
 import { 战斗 } from './pages/战斗'
 import { 基地 } from './pages/基地'
 import { 历练大厅 } from './pages/历练大厅'
@@ -32,6 +32,12 @@ import { 异域挑战军团奖励 } from './pages/异域挑战-军团奖励'
 import { 异域挑战个人奖励 } from './pages/异域挑战-个人奖励'
 import { 先锋宝藏 } from './pages/先锋宝藏'
 import { 每日一刀 } from './pages/每日一刀'
+import { 武装降临 } from './pages/武装降临'
+import { 武装降临任务 } from './pages/武装降临-任务'
+import { 随机事件 } from './pages/随机事件'
+import { 军团商店 } from './pages/军团商店'
+import { 道具购买 } from './pages/道具购买'
+import { 终末危机 } from './pages/终末危机'
 
 var router = Router.getInstance()
 
@@ -50,13 +56,19 @@ var 巡逻车Page = new 巡逻车()
 new 食堂()
 var 邮件Page = new 邮件()
 new 个人信息()
-new 服务器选择()
+var 服务器选择Page = new 服务器选择()
 var 异域挑战Page = new 异域挑战()
 var 异域挑战军团奖励Page = new 异域挑战军团奖励()
 var 异域挑战个人奖励Page = new 异域挑战个人奖励()
 var 先锋宝藏Page = new 先锋宝藏()
 var 每日一刀Page = new 每日一刀()
+var 武装降临Page = new 武装降临()
+var 武装降临任务Page = new 武装降临任务()
+var 随机事件Page = new 随机事件()
+var 军团商店Page = new 军团商店()
+var 道具购买Page = new 道具购买()
 
+var 终末危机Page = new 终末危机()
 var totalTests = 0
 var passedTests = 0
 
@@ -140,132 +152,247 @@ console.log('当前识别为: ' + (initPage ? initPage.name : '未知'))
 // ===============================================================
 console.log('')
 console.log('===== Phase 2: 导航覆盖 =====')
+function testOnce() {
+  // 每个 testGo 独立，Router 自动处理多跳路由和回退，不需要手工"回X"步骤
+  testGo(基地, '① 基地')
+  testPageDetected('基地')
+  var ok_随机事件 = testGo(随机事件, '㉕ 随机事件')
+  if (ok_随机事件) {
+    testPageDetected('随机事件')
+    testActionOptional(function () { return 随机事件Page.领取() }, '随机事件 领取')
+  } else {
+    testSkip('随机事件不可达')
+  }
+  testGo(战斗, '② 战斗')
+  testPageDetected('战斗')
+  testAction(function () { return 战斗Page.click_七日突围() }, '战斗 七日突围')
 
-// 每个 testGo 独立，Router 自动处理多跳路由和回退，不需要手工"回X"步骤
-testGo(基地, '① 基地')
-testPageDetected('基地')
-testGo(战斗, '② 战斗')
-testPageDetected('战斗')
-testAction(function() { return 战斗Page.click_七日突围() }, '战斗 七日突围')
+  // 军团
+  testGo(军团, '③ 军团')
+  testPageDetected('军团')
 
-// 军团
-testGo(军团, '③ 军团')
-testPageDetected('军团')
+  // 每日一刀（从军团进入）
+  testGo(每日一刀, '㉑ 每日一刀')
+  testPageDetected('每日一刀')
+  testActionOptional(function () { return 每日一刀Page.砍一刀() }, '每日一刀 砍一刀')
 
-// 每日一刀（从军团进入）
-testGo(每日一刀, '㉑ 每日一刀')
-testPageDetected('每日一刀')
-testActionOptional(function() { return 每日一刀Page.砍一刀() }, '每日一刀 砍一刀')
-
-// 异域挑战 → 军团奖励 → 个人奖励
-var ok_异域挑战 = testGo(异域挑战, '⑰ 异域挑战')
-if (ok_异域挑战) {
-  testPageDetected('异域挑战')
-  testAction(function() { return 异域挑战Page.扫荡() }, '异域挑战 扫荡')
-  var ok_军团奖励 = testGo(异域挑战军团奖励, '⑱ 异域挑战-军团奖励')
-  if (ok_军团奖励) {
-    testPageDetected('异域挑战-军团奖励')
-    testActionOptional(function() { return 异域挑战军团奖励Page.领取() }, '军团奖励 领取')
-    var ok_个人奖励 = testGo(异域挑战个人奖励, '⑲ 异域挑战-个人奖励')
-    if (ok_个人奖励) {
-      testPageDetected('异域挑战-个人奖励')
-        testActionOptional(function() { return 异域挑战个人奖励Page.领取() }, '个人奖励 领取')
+  // 武装降临 → 武装降临-任务
+  var ok_武装降临 = testGo(武装降临, '㉓ 武装降临')
+  if (ok_武装降临) {
+    testPageDetected('武装降临')
+    var ok_武装降临任务 = testGo(武装降临任务, '㉔ 武装降临-任务')
+    if (ok_武装降临任务) {
+      testPageDetected('武装降临-任务')
+      testActionOptional(function () { return 武装降临任务Page.领取() }, '武装降临-任务 领取')
     } else {
-      testSkip('异域挑战-个人奖励不可达')
+      testSkip('武装降临-任务不可达')
     }
   } else {
-    testSkip('异域挑战-军团奖励不可达，跳过个人奖励')
+    testSkip('武装降临不可达')
   }
-} else {
-  testSkip('异域挑战不可达，跳过军团奖励和个人奖励')
-}
 
-// 幸运锦鲤 → 免费福利
-var ok_幸运锦鲤 = testGo(幸运锦鲤, '④ 幸运锦鲤')
-if (ok_幸运锦鲤) {
-  testPageDetected('幸运锦鲤')
-  var ok_免费福利 = testGo(幸运锦鲤免费福利, '⑤ 免费福利')
-  if (ok_免费福利) {
-    testPageDetected('幸运锦鲤-免费福利')
-    testAction(function() { return 幸运锦鲤免费福利Page.领取奖励() }, '免费福利 领取奖励')
+  // 异域挑战 → 军团奖励 → 个人奖励
+  var ok_异域挑战 = testGo(异域挑战, '⑰ 异域挑战')
+  if (ok_异域挑战) {
+    testPageDetected('异域挑战')
+    testAction(function () { return 异域挑战Page.扫荡() }, '异域挑战 扫荡')
+    var ok_军团奖励 = testGo(异域挑战军团奖励, '⑱ 异域挑战-军团奖励')
+    if (ok_军团奖励) {
+      testPageDetected('异域挑战-军团奖励')
+      testActionOptional(function () { return 异域挑战军团奖励Page.领取() }, '军团奖励 领取')
+      var ok_个人奖励 = testGo(异域挑战个人奖励, '⑲ 异域挑战-个人奖励')
+      if (ok_个人奖励) {
+        testPageDetected('异域挑战-个人奖励')
+        testActionOptional(function () { return 异域挑战个人奖励Page.领取() }, '个人奖励 领取')
+      } else {
+        testSkip('异域挑战-个人奖励不可达')
+      }
+    } else {
+      testSkip('异域挑战-军团奖励不可达，跳过个人奖励')
+    }
   } else {
-    testSkip('幸运锦鲤-免费福利不可达')
+    testSkip('异域挑战不可达，跳过军团奖励和个人奖励')
   }
-} else {
-  testSkip('幸运锦鲤不可达，跳过免费福利')
-}
 
-// 侧栏 → 邮件
-var ok_侧栏 = testGo(侧栏, '⑥ 侧栏')
-if (ok_侧栏) {
-  testPageDetected('侧栏')
-  var ok_邮件 = testGo(邮件, '⑦ 邮件')
-  if (ok_邮件) {
-    testPageDetected('邮件')
-    testActionOptional(function() { return 邮件Page.一键领取() }, '邮件 一键领取')
+  // 幸运锦鲤 → 免费福利
+  var ok_幸运锦鲤 = testGo(幸运锦鲤, '④ 幸运锦鲤')
+  if (ok_幸运锦鲤) {
+    testPageDetected('幸运锦鲤')
+    var ok_免费福利 = testGo(幸运锦鲤免费福利, '⑤ 免费福利')
+    if (ok_免费福利) {
+      testPageDetected('幸运锦鲤-免费福利')
+      testAction(function () { return 幸运锦鲤免费福利Page.领取奖励() }, '免费福利 领取奖励')
+    } else {
+      testSkip('幸运锦鲤-免费福利不可达')
+    }
   } else {
-    testSkip('邮件不可达')
+    testSkip('幸运锦鲤不可达，跳过免费福利')
   }
-} else {
-  testSkip('侧栏不可达，跳过邮件')
-}
 
-// 巡逻车
-var ok_巡逻车 = testGo(巡逻车, '⑧ 巡逻车')
-if (ok_巡逻车) {
-  testPageDetected('巡逻车')
-  testActionOptional(function() { return 巡逻车Page.领取() }, '巡逻车 领取')
-} else {
-  testSkip('巡逻车不可达，跳过领取')
-}
-
-// 历练大厅 → 寰球救援 / 寰球远征 / 玩法商店
-var ok_历练大厅 = testGo(历练大厅, '⑨ 历练大厅')
-if (ok_历练大厅) {
-  testPageDetected('历练大厅')
-  var ok_寰球救援 = testGo(寰球救援, '⑩ 寰球救援')
-  if (ok_寰球救援) {
-    testActionOptional(function() { return 寰球救援Page.免费() }, '寰球救援 免费')
-  }
-  var ok_寰球远征 = testGo(寰球远征, '㉒ 寰球远征')
-  if (ok_寰球远征) {
-    testActionOptional(function() { return 寰球远征Page.免费() }, '寰球远征 免费')
-  }
-  var ok_玩法商店 = testGo(玩法商店, '⑪ 玩法商店')
-  if (ok_玩法商店) {
-    testPageDetected('玩法商店')
+  // 侧栏 → 邮件
+  var ok_侧栏 = testGo(侧栏, '⑥ 侧栏')
+  if (ok_侧栏) {
+    testPageDetected('侧栏')
+    var ok_邮件 = testGo(邮件, '⑦ 邮件')
+    if (ok_邮件) {
+      testPageDetected('邮件')
+      testActionOptional(function () { return 邮件Page.一键领取() }, '邮件 一键领取')
+    } else {
+      testSkip('邮件不可达')
+    }
   } else {
-    testSkip('玩法商店不可达')
+    testSkip('侧栏不可达，跳过邮件')
   }
-}
 
-// 先锋宝藏
-var ok_先锋宝藏 = testGo(先锋宝藏, '⑳ 先锋宝藏')
-if (ok_先锋宝藏) {
-  testPageDetected('先锋宝藏')
-  testActionOptional(function() { return 先锋宝藏Page.免费() }, '先锋宝藏 免费')
-} else {
-  testSkip('先锋宝藏不可达')
-}
-
-// 食堂
-testGo(食堂, '⑫ 食堂')
-testPageDetected('食堂')
-
-// 个人信息 → 服务器选择
-var ok_个人信息 = testGo(个人信息, '⑬ 个人信息')
-if (ok_个人信息) {
-  testPageDetected('个人信息')
-  var ok_服务器选择 = testGo(服务器选择, '⑭ 服务器选择')
-  if (ok_服务器选择) {
-    testPageDetected('服务器选择')
+  // 巡逻车
+  var ok_巡逻车 = testGo(巡逻车, '⑧ 巡逻车')
+  if (ok_巡逻车) {
+    testPageDetected('巡逻车')
+    testActionOptional(function () { return 巡逻车Page.领取() }, '巡逻车 领取')
   } else {
-    testSkip('服务器选择不可达')
+    testSkip('巡逻车不可达，跳过领取')
   }
-} else {
-  testSkip('个人信息不可达，跳过服务器选择')
-}
 
+  // 历练大厅 → 寰球救援 / 寰球远征 / 玩法商店
+  var ok_历练大厅 = testGo(历练大厅, '⑨ 历练大厅')
+  if (ok_历练大厅) {
+    testPageDetected('历练大厅')
+    var ok_寰球救援 = testGo(寰球救援, '⑩ 寰球救援')
+    if (ok_寰球救援) {
+      testActionOptional(function () { return 寰球救援Page.免费() }, '寰球救援 免费')
+    }
+    var ok_寰球远征 = testGo(寰球远征, '㉒ 寰球远征')
+    if (ok_寰球远征) {
+      testActionOptional(function () { return 寰球远征Page.免费() }, '寰球远征 免费')
+    }
+    var ok_玩法商店 = testGo(玩法商店, '⑪ 玩法商店')
+    if (ok_玩法商店) {
+      testPageDetected('玩法商店')
+    } else {
+      testSkip('玩法商店不可达')
+    }
+    var ok_终末危机 = testGo(终末危机, '终末危机')
+    if (ok_终末危机) {
+      testPageDetected('终末危机')
+      testAction(function () { return 终末危机Page.扫荡() }, '终末危机 扫荡')
+    } else {
+      testSkip('终末危机不可达')
+    }
+  }
+  if (ok_巡逻车) {
+    testPageDetected('巡逻车')
+    testActionOptional(function () { return 巡逻车Page.领取() }, '巡逻车 领取')
+  } else {
+    testSkip('巡逻车不可达，跳过领取')
+  }
+
+  // 历练大厅 → 寰球救援 / 玩法商店
+  var ok_历练大厅 = testGo(历练大厅, '⑨ 历练大厅')
+  if (ok_历练大厅) {
+    testPageDetected('历练大厅')
+    var ok_寰球救援 = testGo(寰球救援, '⑩ 寰球救援')
+    if (ok_寰球救援) {
+      testActionOptional(function () { return 寰球救援Page.免费() }, '寰球救援 免费')
+    }
+    var ok_玩法商店 = testGo(玩法商店, '⑪ 玩法商店')
+    if (ok_玩法商店) {
+      testPageDetected('玩法商店')
+    } else {
+      testSkip('玩法商店不可达')
+    }
+    var ok_终末危机 = testGo(终末危机, '终末危机')
+    if (ok_终末危机) {
+      testPageDetected('终末危机')
+      testAction(function () { return 终末危机Page.扫荡() }, '终末危机 扫荡')
+    } else {
+      testSkip('终末危机不可达')
+    }
+  }
+
+  // 先锋宝藏
+  var ok_先锋宝藏 = testGo(先锋宝藏, '⑳ 先锋宝藏')
+  if (ok_先锋宝藏) {
+    testPageDetected('先锋宝藏')
+    testActionOptional(function () { return 先锋宝藏Page.免费() }, '先锋宝藏 免费')
+  } else {
+    testSkip('先锋宝藏不可达')
+  }
+
+  // 食堂
+  testGo(食堂, '⑫ 食堂')
+  testPageDetected('食堂')
+
+  // 个人信息 → 服务器选择
+  // var ok_个人信息 = testGo(个人信息, '⑬ 个人信息')
+  // if (ok_个人信息) {
+  //   testPageDetected('个人信息')
+  //   var ok_服务器选择 = testGo(服务器选择, '⑭ 服务器选择')
+  //   if (ok_服务器选择) {
+  //     testPageDetected('服务器选择')
+  //   } else {
+  //     testSkip('服务器选择不可达')
+  //   }
+  // } else {
+  //   testSkip('个人信息不可达，跳过服务器选择')
+  // }
+
+  // 军团商店（从军团进入）→ 道具购买弹窗 → 最大 + 购买
+  var ok_军团商店 = testGo(军团商店, '㉖ 军团商店')
+  if (ok_军团商店) {
+    testPageDetected('军团商店')
+
+    // 救援入场券：镜像坐标 → 道具购买 → 最大（缓存）→ 购买（缓存）
+    var _ticketAction = createMirroredAction('images/军团商店_环球救援入场券_1_0.9_115_709_230_827.png')
+    if (testAction(_ticketAction, '军团商店 救援入场券（镜像坐标）')) {
+      sleep(1500)
+      if (testPageDetected('道具购买')) {
+        testAction(function () { return 道具购买Page.最大() }, '道具购买 最大（缓存）')
+        testAction(function () { return 道具购买Page.购买() }, '道具购买 购买（缓存）')
+      } else {
+        testSkip('道具购买弹窗未出现')
+      }
+    }
+    // sleep(2000)
+    testGo(军团商店, '㉖ 军团商店')
+    // 远征入场券：同上
+    var _ticketAction2 = createMirroredAction('images/军团商店_环球远征入场券_1_0.9_114_518_230_633.png')
+    if (testAction(_ticketAction2, '军团商店 远征入场券（镜像坐标）')) {
+      sleep(1500)
+      if (testPageDetected('道具购买')) {
+        testAction(function () { return 道具购买Page.最大() }, '道具购买 最大（缓存）')
+        testAction(function () { return 道具购买Page.购买() }, '道具购买 购买（缓存）')
+      } else {
+        testSkip('道具购买弹窗未出现')
+      }
+    }
+  } else {
+    testSkip('军团商店不可达，跳过入场券测试')
+  }
+}
+let point = [0, 0]
+
+let i = 0
+
+while(true) {
+  if(testGo(服务器选择, '⑯ 服务器选择')){
+    let currentPoint = 服务器选择Page.next()
+  
+    if(currentPoint != null){
+       if (point[0] != currentPoint[0] || point[1] != currentPoint[1]) {
+    console.log("循环结束，点击次数：", i)
+  }
+  i++
+  click(currentPoint[0] + 60, currentPoint[1] + 10)
+  testOnce()
+  sleep(500)
+    }else{
+      break
+    }
+  }
+  
+  
+}
+console.log("选择服务器次数：", i)
 // ===============================================================
 // Phase 3: 特殊场景
 // ===============================================================
