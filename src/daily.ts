@@ -139,6 +139,14 @@ export function runDaily(): void {
         if (anyClaimed) break  // 已领过，入口消失 → 正常结束
         return false           // 从未出现过入口 → 跳过
       }
+      // 检测结束状态（已领完/需看广告），正常结束
+      if (随机事件Page.hasEnded()) {
+        if (!anyClaimed) {
+          console.log('[日常] 随机事件 已结束')
+          return true
+        }
+        break
+      }
       var ok = 随机事件Page.领取()
       if (!ok) {
         if (!anyClaimed) throw new Error('到达随机事件但领取失败')
@@ -217,4 +225,4 @@ export function runDaily(): void {
   console.log('================================')
 }
 
-runDaily()
+

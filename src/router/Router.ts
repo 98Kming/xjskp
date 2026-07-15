@@ -535,7 +535,7 @@ export class Router {
           if (targetPage) {
             queue.push({ page: targetPage, path: current.path.concat([route]) })
           } else {
-            log('[路由] 页面未注册: ' + targetName)
+            //log('[路由] 页面未注册: ' + targetName)
           }
         }
       }

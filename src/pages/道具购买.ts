@@ -19,13 +19,13 @@ export class 道具购买 extends BasePage {
     var buyAction = createRouteAction('images/道具购买$$购买_1_0.8_400_1232_528_1311.png')
 
     for (var i = 0; i < 3; i++) {
-      if (maxAction()) break
+      if (maxAction() && (sleep(800), this.back(), sleep(800), true)) break
       sleep(800)
     }
     sleep(500)
 
     for (var j = 0; j < 3; j++) {
-      if (buyAction()) return true
+      if (buyAction() && (sleep(800), this.back(), sleep(800), true)) return true
       sleep(800)
     }
     return false

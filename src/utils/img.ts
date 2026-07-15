@@ -6,12 +6,12 @@ let last_capture_time = 0
 let cache_screen_img: ImageWrapper | null = null
 var templateCache = new java.util.HashMap()
 var pointCache = new java.util.HashMap()
-
+export let recycleImgs: ImageWrapper[] = []
 export function getTemplate(filePath: string): ImageWrapper {
   var template = templateCache.get(filePath)
   if (!template) {
-    template = images.read(imageBasePath+filePath)
-    if(template == null){
+    template = images.read(imageBasePath + filePath)
+    if (template == null) {
       throw new Error(`模板图片不存在: ${filePath}`)
     }
     templateCache.put(filePath, template)
@@ -31,6 +31,7 @@ export function screen(interval: number = 500, recycle: boolean = true): ImageWr
   }
   if (recycle && cache_screen_img) {
     cache_screen_img.recycle()
+    recycleImgs.push(cache_screen_img)
   }
   let img
   try {
@@ -102,7 +103,7 @@ function expandRegion(x1: number, y1: number, x2: number, y2: number): [number, 
   x1 = Math.max(x1 - 10, 0)
   // 纵向扩展 300px：refHeight=1920, 按 2400 作为实际屏高基数计算偏移
   // (2400/10)*1.25 = 300px，覆盖底部状态栏/导航栏差异
-  y1 = Math.max(y1 - (2400 / 10)*1.25, 0)
+  y1 = Math.max(y1 - (2400 / 10) * 1.25, 0)
   x2 = Math.min(x2 + 10, width)
   if (y2 > refHeight) {
     y1 = Math.min(height - (y2 - y1), y1)
@@ -116,6 +117,16 @@ function expandRegion(x1: number, y1: number, x2: number, y2: number): [number, 
 export interface PageDetector {
   (img: ImageWrapper): boolean
   detectImagePath: string
+}
+
+export function imageDetector(filePath: string): boolean {
+  var parsed = imageNameParser(filePath)
+  var template = getTemplate(filePath)
+  var rw = parsed.x2 - parsed.x1
+  var rh = parsed.y2 - parsed.y1
+  let img = screen()
+  var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+  return !!point
 }
 
 export function createPageDetector(filePath: string): PageDetector {
@@ -137,7 +148,7 @@ export function createPageDetector(filePath: string): PageDetector {
     }
     // 计算亮度下降百分比
     let percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100;
-    percentDiff < 50 &&log('[亮度] 模板:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5),percentDiff, filePath)
+    percentDiff < 50 && log('[亮度] 模板:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5), percentDiff, filePath)
     return percentDiff < 50;
   } as PageDetector
   fn.detectImagePath = filePath
@@ -386,4 +397,59 @@ export function pageChange(beforeImg: ImageWrapper): boolean {
   }
 
   return (mismatches / total) > 0.03
+}
+
+
+export function scrollFind(imgPath: string, x1: number, y1: number, x2: number, y2: number, x3: number, maxScroll: number = 20): OpenCV.Point | null {
+  var parsed = imageNameParser(imgPath)
+  var rw = parsed.x2 - parsed.x1
+  var rh = parsed.y2 - parsed.y1
+  var template = getTemplate(imgPath)
+  for (var i = 0; i < maxScroll; i++) {
+    var img = screen()
+    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    if (point) {
+      // var cx = point.x + template.width + 60
+      // var cy = point.y + template.height + 10
+      // console.log('[服务器选择] 找到选中标识 坐标:(' + point.x + ',' + point.y + ') 点击:(' + cx + ',' + cy + ')')
+      return point
+    }
+    // 向上滚动：从屏幕下方滑到上方
+    swipe(x1, y1, x2, y2, 300)
+    swipe(x2, y2, x3, y2, 300)
+    sleep(800)
+    var afterImg = screen(0, false)
+    let x = Math.min(x1, x2, x3)
+    let y = Math.min(y1, y2)
+    let w = Math.max(x1, x2, x3) - x
+    let h = Math.max(y1, y2) - y
+    let clipImg = images.clip(afterImg, x, y, w, h)
+    if (images.findImageInRegion(img, clipImg, x, y, w, h, 0.99)) {
+      clipImg.recycle()
+      img.recycle()
+      // 滑动后未发生页面变化，说明已滑到底部，停止滚动
+      console.log('[服务器选择] 滑动后未发生页面变化，已滑到底部，停止滚动')
+      break
+    }
+    clipImg.recycle()
+    img.recycle()
+  }
+  return null
+}
+
+export function findImageMinYPoint(img: ImageWrapper, template: ImageWrapper, x: number, y: number, w: number, h: number, threshold: number) {
+  // 在标识下方区域找目标按钮，取最上方的一个
+  var targetResult = images.matchTemplate(img, template, {
+    region: [x, y, w, h,],
+    threshold: threshold,
+    max: 20
+  })
+  if (!targetResult || !targetResult.matches || targetResult.matches.length === 0) return false
+  var topMatch = targetResult.matches[0]
+  for (var mi = 1; mi < targetResult.matches.length; mi++) {
+    if (targetResult.matches[mi].point.y < topMatch.point.y) {
+      topMatch = targetResult.matches[mi]
+    }
+  }
+  return topMatch.point
 }
