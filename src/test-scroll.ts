@@ -12,7 +12,6 @@ new 个人信息()
 // new 战斗()
 var 服务器选择Page = new 服务器选择()
 var router = Router.getInstance()
-log("开始选择服务器")
 runDaily()
 while (router.go(服务器选择)) {
   if (!服务器选择Page.next()) {
@@ -20,7 +19,6 @@ while (router.go(服务器选择)) {
   }
   runDaily()
   i++
-  log("到达服务器选择页面，点击次数：", i)
   sleep(1000)
 }
 console.log("选择服务器次数：", i)

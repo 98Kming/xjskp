@@ -1,8 +1,5 @@
 import { BasePage } from './BasePage'
-import { createPageDetector, width, height, getTemplate, scrollFind, screen, imageNameParser, findImageMinYPoint } from '../utils/img'
-
-/** AutoXJS Google ML Kit OCR（运行时可选） */
-declare var gml: { ocr: (img: any, region: number[]) => string[] }
+import { createPageDetector, width, height, getTemplate, scrollFind, screen, imageNameParser, findImageMinYPoint, ocrText } from '../utils/img'
 
 export class 服务器选择 extends BasePage {
   name = '服务器选择'
@@ -41,12 +38,7 @@ export class 服务器选择 extends BasePage {
     if (result) {
       //click(result.x + tpl_未选中.width / 2, result.y + tpl_未选中.height / 2)
       sleep(200)
-      let userName = ''
-      if (typeof gml !== 'undefined') {
-        try { userName = gml.ocr(img, [result.x + tpl_未选中.width, result.y, tpl_未选中.width, tpl_未选中.height])[0] || '' } catch (e) {}
-      } else if (typeof ocr !== 'undefined') {
-        try { userName = ocr(img, [result.x + tpl_未选中.width, result.y, tpl_未选中.width, tpl_未选中.height])[0] || '' } catch (e) {}
-      }
+      let userName = ocrText(img, result.x + tpl_未选中.width, result.y, width - tpl_未选中.width - result.x, tpl_未选中.height)
       console.log('[服务器选择] 切换到下一个服务器', userName)
       click(width / 4, searchY + 50)
       return true
@@ -67,12 +59,7 @@ export class 服务器选择 extends BasePage {
         parsed_未选中.threshold)
       if (result2) {
         //click(result2.x + tpl_未选中.width / 2, result2.y + tpl_未选中.height / 2)
-        let userName2 = ''
-        if (typeof gml !== 'undefined') {
-          try { userName2 = gml.ocr(img2, [result2.x + tpl_未选中.width, result2.y, tpl_未选中.width, tpl_未选中.height])[0] || '' } catch (e) {}
-        } else if (typeof ocr !== 'undefined') {
-          try { userName2 = ocr(img2, [result2.x + tpl_未选中.width, result2.y, tpl_未选中.width, tpl_未选中.height])[0] || '' } catch (e) {}
-        }
+        let userName2 = ocrText(img2, result2.x + tpl_未选中.width, result2.y, width - tpl_未选中.width - result2.x, tpl_未选中.height)
         console.log('[服务器选择] 切换到下一个服务器', userName2)
         click(width / 4, searchY2 + 50)
         return true
