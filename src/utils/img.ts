@@ -7,6 +7,23 @@ let cache_screen_img: ImageWrapper | null = null
 var templateCache = new java.util.HashMap()
 var pointCache = new java.util.HashMap()
 export let recycleImgs: ImageWrapper[] = []
+
+/** AutoXJS Google ML Kit OCR（运行时可选） */
+declare var gmlkit: { ocr: (img: any, lang: string) => { text: string } }
+/** AutoXJS Google ML Kit OCR（部分 fork 缩写名） */
+declare var gml: { ocr: (img: any, region: number[]) => string[] }
+
+/**
+ * 从图片指定区域 OCR 取文字，三路降级兼容 AutoX.js 和 AutoJs6。
+ * gmlkit（原版 AutoX.js）→ gml（fork 缩写）→ AutoJs6 ocr
+ */
+export function ocrText(img: any, x: number, y: number, w: number, h: number): string {
+  var text = ''
+  try { if (typeof gmlkit !== 'undefined') { var c = images.clip(img, x, y, w, h); if (c) { try { text = gmlkit.ocr(c, 'zh').text || '' } finally { c.recycle() } } } } catch (e) { }
+  if (!text && typeof gml !== 'undefined') { try { text = gml.ocr(img, [x, y, w, h])[0] || '' } catch (e) { } }
+  if (!text && typeof ocr !== 'undefined') { try { text = ocr.recognizeText(img, { region: [x, y, w, h] })[0] || '' } catch (e) { } }
+  return text
+}
 export function getTemplate(filePath: string): ImageWrapper {
   var template = templateCache.get(filePath)
   if (!template) {
@@ -316,7 +333,7 @@ export function createTicketAction(ticketPath: string, soldOutPath: string): () 
 
 var closeButtons: (() => boolean)[] = [
   createRouteAction('images/$关闭1_0_0.8_800_400_1020_600.png'),
-  createRouteAction('images/重新连接_1_0.9_635_1460_847_1513.png'),
+  createRouteAction('images/重新连接_0_0.9_635_1460_847_1513.png'),
   createRouteAction('images/$确定_0_0.8_494_1000_764_1600.png'),
 ]
 const colors_关闭_无框_多点: [number, number, string][] = [[4, 13, "#fde6bc"], [6, 21, "#fce4bb"], [13, 42, "#fadda4"], [16, 48, "#fdd59d"], [-1, 24, "#fbe3ba"], [14, 22, "#fce4bb"], [21, 18, "#ffebc4"], [29, 15, "#fff8d8"], [0, 2, "#fee6bc"], [4, 7, "#fde5bb"], [2, 19, "#fde9c4"], [10, 24, "#fce4bb"], [15, 47, "#f3cb93"], [-15, 29, "#fee9c4"], [12, 23, "#fce4bb"]]
@@ -366,7 +383,7 @@ export function tryCloseModals(): boolean {
     }
   }
 
-  // 兜底：图片模板匹配（关闭1 + 重新连接）
+  // 兜底：图片模板匹配
   for (var k = 0; k < closeButtons.length; k++) {
     if (closeButtons[k]()) return true
   }

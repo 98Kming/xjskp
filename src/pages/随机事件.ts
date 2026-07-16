@@ -19,7 +19,12 @@ export class 随机事件 extends BasePage {
     createRouteAction('images/随机事件$$领取-允许进入_0_0.9_641_1434_814_1478.png'),
     createRouteAction('images/随机事件$$领取-出兵支援_0_0.9_269_1432_444_1482.png'),
     createRouteAction('images/随机事件$$领取-收留驯养_0_0.9_263_1432_445_1482.png'),
+    createRouteAction('images/随机事件$$领取-欣然接受_0_0.9_452_1434_630_1479.png'),
+    createRouteAction('images/随机事件$$领取-监听情报_0_0.9_269_1434_441_1477.png'),
+    createRouteAction('images/随机事件$$领取-保留药品_0_0.9_638_1432_817_1479.png'),
   ]
+
+  private 委婉拒绝Action = createRouteAction('images/随机事件$$领取-委婉拒绝_0_0.9_254_1139_451_1192.png')
 
   /**
    * 检测当前页面是否已结束（出现结束按钮）
@@ -29,17 +34,31 @@ export class 随机事件 extends BasePage {
   }
 
   /**
-   * 领取随机事件：轮询领取列表，扫到就点，直到无新按钮
+   * 随机事件页面
+   * 领取列表出现过的需要点
+   * 出现焕新试剂的需要日志输出
+   * 出现委婉拒绝的同时没出现焕新试剂的需要点
+   * 出现结束、或出现焕新试剂的退出循环，这种情况随机事件的入口还会存在
    */
   领取(): boolean {
     var claimed = false
     var idleRounds = 0
+
     while (true) {
       var found = false
+
+      // 焕新试剂检测：出现即退出（入口仍在）
       let flag = imageDetector("images/_焕新试剂_0_0.9_0_0_w_h.png")
       if (flag) {
         log("★ 焕新试剂")
+        break
       }
+
+      // 结束检测：出现即退出（入口仍在）
+      if (this.hasEnded()) {
+        break
+      }
+
       for (var i = 0; i < this.领取列表.length; i++) {
         if (this.领取列表[i]()) {
           sleep(1000)
@@ -50,15 +69,21 @@ export class 随机事件 extends BasePage {
           break  // 扫到就点，下一轮从头再扫
         }
       }
-      if (!flag && createRouteAction('images/随机事件$$领取-委婉拒绝_0_0.9_254_1139_451_1192.png')) {
+
+      // 委婉拒绝按钮（焕新试剂不存在时 — 上面已 break，此处 flag 必为 false）
+      if (this.委婉拒绝Action()) {
         sleep(1000)
         tryCloseModals()
         claimed = true
         found = true
         idleRounds = 0
       }
+
       if (!found) {
-        if (claimed) break  // 领过且本轮无新按钮 → 结束
+        if (claimed) {
+          log('[随机事件] 无新按钮，可能有未添加模板的按钮等待收录')
+          break
+        }
         idleRounds++
         if (idleRounds >= 5) break  // 等约 4 秒仍无按钮 → 放弃
         sleep(800)                  // 还没出现过，等入口

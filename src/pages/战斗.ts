@@ -15,7 +15,7 @@ export class 战斗 extends BasePage {
   private 七日突围Action = createRouteAction('images/战斗$$七日突围_0_0.9_987_976_1051_1022.png')
 
   click_七日突围(): boolean {
-    return this.七日突围Action()
+    return this.七日突围Action() && (sleep(800), this.back(), sleep(800), true)
   }
 
   scrollDown() {
@@ -31,6 +31,7 @@ export class 战斗 extends BasePage {
   }
 
   routes(): Route[] {
+    var self = this
     return [
       { target: 基地, action: createRouteAction('images/$基地-未选中_0_0.8_658_2331_1080_2367.png'), imagePath: 'images/$基地-未选中_0_0.8_658_2331_1080_2367.png' },
       { target: 军团, action: createRouteAction('images/$军团-未选中_0_0.8_807_2335_1080_2367.png'), imagePath: 'images/$军团-未选中_0_0.8_807_2335_1080_2367.png' },
@@ -38,9 +39,9 @@ export class 战斗 extends BasePage {
         target: 幸运锦鲤, action: function (): boolean {
           var action = createRouteAction('images/战斗$幸运锦鲤_0_0.7_30_542_118_617.png')
           if (action()) return true
-          scrollDown()
+          self.scrollDown()
           if (action()) return true
-          scrollUp()
+          self.scrollUp()
           return action()
         }, imagePath: 'images/战斗$幸运锦鲤_0_0.7_30_542_118_617.png'
       },
@@ -51,9 +52,9 @@ export class 战斗 extends BasePage {
         target: 先锋宝藏, action: function (): boolean {
           var action = createRouteAction('images/战斗$先锋宝藏_0_0.8_64_1010_118_1049.png')
           if (action()) return true
-          scrollDown()
+          self.scrollDown()
           if (action()) return true
-          scrollUp()
+          self.scrollUp()
           return action()
         }, imagePath: 'images/战斗$先锋宝藏_0_0.8_64_1010_118_1049.png'
       },
@@ -61,9 +62,9 @@ export class 战斗 extends BasePage {
         target: 武装降临, action: function (): boolean {
           var action = createRouteAction('images/战斗$武装降临_0_0.8_11_382_132_411.png')
           if (action()) return true
-          scrollDown()
+          self.scrollDown()
           if (action()) return true
-          scrollUp()
+          self.scrollUp()
           return action()
         }, imagePath: 'images/战斗$武装降临_0_0.8_11_382_132_411.png'
       },
