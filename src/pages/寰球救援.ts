@@ -13,7 +13,12 @@ export class 寰球救援 extends BasePage {
         this.back()
         //tryCloseModals()
         sleep(500)
-        action()
+        if (action()) {
+          sleep(1000)
+          this.back()
+          //tryCloseModals()
+          sleep(500)
+        }
         return true
       }
       sleep(1000)

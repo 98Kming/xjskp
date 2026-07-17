@@ -9,7 +9,7 @@ export class 服务器选择 extends BasePage {
    * scrollFind 向上找选中标识，在选中下方找未选中。
    * 下方没有则再滚动一次，重新找选中→找下方未选中。
    */
-  next(): boolean {
+  next(): string|null {
     var imgPath_选中 = 'images/服务器选择_选中_0_0.9_95_250_117_1588.png'
     var imgPath_未选中 = 'images/服务器选择_未选中_0_0.9_92_250_106_1882.png'
 
@@ -17,7 +17,7 @@ export class 服务器选择 extends BasePage {
     var point = scrollFind(imgPath_选中, width / 2, height * 0.7, width / 2, height * 0.3, width / 3)
     if (!point) {
       console.log('[服务器选择] 未找到当前选中服务器')
-      return false
+      return null
     }
 
     var tpl_选中 = getTemplate(imgPath_选中)
@@ -41,7 +41,7 @@ export class 服务器选择 extends BasePage {
       let userName = ocrText(img, result.x + tpl_未选中.width, result.y, width - tpl_未选中.width - result.x, tpl_未选中.height)
       console.log('[服务器选择] 切换到下一个服务器', userName)
       click(width / 4, searchY + 50)
-      return true
+      return userName
     }
     // 3. 下方没有（当前在列表末尾），再滚动一次
     swipe(width / 2, height * 0.7, width / 2, height * 0.3, 300)
@@ -62,10 +62,10 @@ export class 服务器选择 extends BasePage {
         let userName2 = ocrText(img2, result2.x + tpl_未选中.width, result2.y, width - tpl_未选中.width - result2.x, tpl_未选中.height)
         console.log('[服务器选择] 切换到下一个服务器', userName2)
         click(width / 4, searchY2 + 50)
-        return true
+        return userName2
       }
     }
     console.log('[服务器选择] 未找到可切换的服务器')
-    return false
+    return null
   }
 }

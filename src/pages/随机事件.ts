@@ -7,7 +7,6 @@ export class 随机事件 extends BasePage {
 
   private 领取列表 = [
     createRouteAction('images/随机事件$$领取-答应交易_1_0.9_263_1138_444_1192.png'),
-    createRouteAction('images/随机事件$$领取-确定_1_0.9_478_1134_613_1192.png'),
     createRouteAction('images/随机事件$$领取-立即隔离_1_0.9_254_1139_451_1192.png'),
     createRouteAction('images/随机事件$$领取-立即净化_1_0.9_264_1432_445_1480.png'),
     createRouteAction('images/随机事件$$领取-批准进入_1_0.9_269_1432_444_1482.png'),
@@ -22,9 +21,15 @@ export class 随机事件 extends BasePage {
     createRouteAction('images/随机事件$$领取-欣然接受_1_0.9_452_1434_630_1479.png'),
     createRouteAction('images/随机事件$$领取-监听情报_1_0.9_269_1434_441_1477.png'),
     createRouteAction('images/随机事件$$领取-保留药品_1_0.9_638_1432_817_1479.png'),
+    createRouteAction('images/随机事件$$领取-冒险搜查_1_0.9_266_1435_444_1479.png'),
+    createRouteAction('images/随机事件$$领取-强行采集_1_0.9_266_1435_444_1479.png'),
+    createRouteAction('images/随机事件$$领取-同意交易_1_0.9_269_1435_440_1478.png'),
+    createRouteAction('images/随机事件$$领取-主动清缴_1_0.9_270_1436_439_1476.png'),
+    createRouteAction('images/随机事件$$领取-尽力挽留_1_0.9_640_1438_810_1475.png'),
   ]
 
   private 委婉拒绝Action = createRouteAction('images/随机事件$$领取-委婉拒绝_1_0.9_254_1139_451_1192.png')
+  private 确定Action = createRouteAction('images/随机事件$$领取-确定_1_0.9_478_1134_613_1192.png')
 
   /**
    * 检测当前页面是否已结束（出现结束按钮）
@@ -48,7 +53,7 @@ export class 随机事件 extends BasePage {
       var found = false
 
       // 焕新试剂检测：出现即退出（入口仍在）
-      let flag = imageDetector("images/_焕新试剂_1_0.9_0_0_w_h.png")
+      let flag = imageDetector("images/_焕新试剂_0_0.9_0_0_w_h.png")
       if (flag) {
         log("★ 焕新试剂")
         break
@@ -62,7 +67,6 @@ export class 随机事件 extends BasePage {
       for (var i = 0; i < this.领取列表.length; i++) {
         if (this.领取列表[i]()) {
           sleep(1000)
-          tryCloseModals()
           claimed = true
           found = true
           idleRounds = 0
@@ -70,10 +74,14 @@ export class 随机事件 extends BasePage {
         }
       }
 
+      if(this.确定Action()) {
+        sleep(1000)
+        this.back()
+        sleep(800)
+      }
+
       // 委婉拒绝按钮（焕新试剂不存在时 — 上面已 break，此处 flag 必为 false）
       if (this.委婉拒绝Action()) {
-        sleep(1000)
-        tryCloseModals()
         claimed = true
         found = true
         idleRounds = 0

@@ -400,7 +400,7 @@ export class Router {
     } else {
       click(100, device.height - 100)
       sleep(150)
-      click(device.width / 2, device.height - 30)
+      click(device.width / 2, device.height - 10)
       sleep(1500)
     }
 
@@ -446,27 +446,27 @@ export class Router {
       }
     }
 
-    log('[导航] 尝试备选回退')
-    click(device.width / 2, device.height - 50)
-    sleep(1500)
+    // log('[导航] 尝试备选回退')
+    // click(device.width / 2, device.height - 50)
+    // sleep(1500)
 
-    afterImg = screen(0, false)
-    after = this.detectCurrentPage(afterImg)
-    if (after && after.name !== beforeName) {
-      beforeImg.recycle()
-      return after
-    }
-    if (!after) {
-      afterImg.recycle()
-      if (pageChange(beforeImg)) {
-        log('[导航] 备选回退后截图变化，回退生效')
-        var landed3 = this.verifyAfterChange()
-        beforeImg.recycle()
-        return landed3
-      }
-    }
+    // afterImg = screen(0, false)
+    // after = this.detectCurrentPage(afterImg)
+    // if (after && after.name !== beforeName) {
+    //   beforeImg.recycle()
+    //   return after
+    // }
+    // if (!after) {
+    //   afterImg.recycle()
+    //   if (pageChange(beforeImg)) {
+    //     log('[导航] 备选回退后截图变化，回退生效')
+    //     var landed3 = this.verifyAfterChange()
+    //     beforeImg.recycle()
+    //     return landed3
+    //   }
+    // }
 
-    log('[导航] 所有回退尝试均无效')
+    // log('[导航] 所有回退尝试均无效')
     beforeImg.recycle()
     return null
   }

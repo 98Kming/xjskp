@@ -3,7 +3,7 @@
 // 构建产物：dist/daily.js
 
 import { Router } from './router/Router'
-import { createTicketAction } from './utils/img'
+import { createTicketAction, imageDetector } from './utils/img'
 import { 基地 } from './pages/基地'
 import { 随机事件 } from './pages/随机事件'
 import { 战斗 } from './pages/战斗'
@@ -62,6 +62,7 @@ var totalTasks = 0
 var successTasks = 0
 var skipTasks = 0
 var failTasks = 0
+var currentServer: string | null = null
 
 /** 导航到目标页 */
 function nav(target: any): boolean {
@@ -70,7 +71,8 @@ function nav(target: any): boolean {
   } catch (e: any) {
     // 手动停止时立即终止
     if (e.message && e.message.indexOf('ScriptInterruptedException') >= 0) throw e
-    console.log('[日常] ⚠ 导航异常: ' + (e.message || e))
+    var serverTag = currentServer ? ' [' + currentServer + ']' : ''
+    console.log('[日常] ⚠ 导航异常: ' + (e.message || e) + serverTag)
     return false
   }
 }
@@ -95,10 +97,15 @@ function doTask(label: string, action: () => boolean): boolean {
     // 手动停止时立即终止
     if (e.message && e.message.indexOf('ScriptInterruptedException') >= 0) throw e
     var elapsed = ((Date.now() - start) / 1000).toFixed(1)
-    console.log('[日常] ❌ ' + label + ' — ' + (e.message || e) + ' (' + elapsed + 's)')
+    var serverTag = currentServer ? ' [' + currentServer + ']' : ''
+    console.log('[日常] ❌ ' + label + ' — ' + (e.message || e) + serverTag + ' (' + elapsed + 's)')
     failTasks++
     return false
   }
+}
+
+export function setCurrentServer(name: string | null): void {
+  currentServer = name
 }
 
 export function runDaily(): void {
@@ -122,11 +129,11 @@ export function runDaily(): void {
     if (!nav(先锋宝藏)) return false
     return 先锋宝藏Page.免费()
   })
-  doTask('免费福利 领取', function (): boolean {
-    if (!nav(幸运锦鲤)) return false
-    if (!nav(幸运锦鲤免费福利)) return false
-    return 幸运锦鲤免费福利Page.领取奖励()
-  })
+  // doTask('免费福利 领取', function (): boolean {
+  //   if (!nav(幸运锦鲤)) return false
+  //   if (!nav(幸运锦鲤免费福利)) return false
+  //   return 幸运锦鲤免费福利Page.领取奖励()
+  // })
   doTask('邮件 一键领取', function (): boolean {
     if (!nav(侧栏)) return false
     if (!nav(邮件)) return false
@@ -171,6 +178,10 @@ export function runDaily(): void {
       return false
     }
     if (!nav(历练大厅)) return false
+    if (imageDetector('images/历练大厅_远征-未开启_1_0.9_573_1599_866_1644.png')) {
+      console.log('[日常]   寰球远征未开启')
+      return false
+    }
     if (!nav(寰球远征)) return false
     return 寰球远征Page.免费()
   })
@@ -252,7 +263,7 @@ export function runDaily(): void {
   // 摘要
   console.log('')
   console.log('================================')
-  console.log('   日常任务 — 完成')
+  console.log('   日常任务 — 完成' + (currentServer ? ' [' + currentServer + ']' : ''))
   console.log('   成功: ' + successTasks + ' | 跳过: ' + skipTasks + ' | 失败: ' + failTasks + ' | 总计: ' + totalTasks)
   console.log('================================')
 }

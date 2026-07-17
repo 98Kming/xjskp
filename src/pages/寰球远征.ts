@@ -8,11 +8,13 @@ export class 寰球远征 extends BasePage {
   免费(): boolean {
     var action = createRouteAction('images/寰球远征$$免费_1_0.8_47_766_110_808.png')
     for (var i = 0; i < 3; i++) {
-      let flag = action() 
-      sleep(1000)
-      if (flag) {
+      if (action() ) {
+        sleep(1000)
+         this.back()
+        sleep(500)
         return true
       }
+      sleep(1000)
     }
     return false
   }

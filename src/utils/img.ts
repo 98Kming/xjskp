@@ -220,7 +220,7 @@ export function createRouteAction(filePath: string): () => boolean {
       }
       var img = screen()
       var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-      log('尝试匹配模板:', filePath, `[${parsed.x1},${parsed.y1}-${parsed.x2},${parsed.y2}]`, point ? `结果: 找到坐标(${point.x}, ${point.y})` : '结果: 未找到')
+      //log('尝试匹配模板:', filePath, `[${parsed.x1},${parsed.y1}-${parsed.x2},${parsed.y2}]`, point ? `结果: 找到坐标(${point.x}, ${point.y})` : '结果: 未找到')
       if (!point) return false
       var cx = point.x + template.width / 2
       var cy = point.y + template.height / 2
@@ -239,9 +239,6 @@ export function createRouteAction(filePath: string): () => boolean {
   return function (): boolean {
     var img = screen()
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-    if(filePath.includes('images/战斗$引航行动_0_0.85_51_400_119_1178.png')) {
-      log('尝试匹配模板:', filePath, `[${parsed.x1},${parsed.y1}-${parsed.x2},${parsed.y2}]`,parsed.threshold, point ? `结果: 找到坐标(${point.x}, ${point.y})` : '结果: 未找到')
-    }
     if (!point) return false
     click(point.x + template.width / 2, point.y + template.height / 2)
     return true
