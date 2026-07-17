@@ -159,32 +159,6 @@ export function runDaily(): void {
   })
 
   // ======== 基地（入口：历练大厅、食堂） ========
-  doTask('随机事件 领取', function (): boolean {
-    if (!nav(基地)) return false
-    var anyClaimed = false
-    while (true) {
-      if (!nav(随机事件)) {
-        if (anyClaimed) break  // 已领过，入口消失 → 正常结束
-        return false           // 从未出现过入口 → 跳过
-      }
-      // 检测结束状态（已领完/需看广告），正常结束
-      if (随机事件Page.hasEnded()) {
-        if (!anyClaimed) {
-          console.log('[日常] 随机事件 已结束')
-          return true
-        }
-        break
-      }
-      var ok = 随机事件Page.领取()
-      if (!ok) {
-        if (!anyClaimed) throw new Error('到达随机事件但领取失败')
-        break
-      }
-      anyClaimed = true
-      nav(基地)  // 回基地等下轮入口
-    }
-    return true
-  })
   doTask('寰球救援 免费', function (): boolean {
     if (!nav(历练大厅)) return false
     if (!nav(寰球救援)) return false
@@ -214,7 +188,32 @@ export function runDaily(): void {
     if (!nav(食堂)) return false
     return 食堂Page.领取()
   })
-
+  doTask('随机事件 领取', function (): boolean {
+    if (!nav(基地)) return false
+    var anyClaimed = false
+    while (true) {
+      if (!nav(随机事件)) {
+        if (anyClaimed) break  // 已领过，入口消失 → 正常结束
+        return false           // 从未出现过入口 → 跳过
+      }
+      // 检测结束状态（已领完/需看广告），正常结束
+      if (随机事件Page.hasEnded()) {
+        if (!anyClaimed) {
+          console.log('[日常] 随机事件 已结束')
+          return true
+        }
+        break
+      }
+      var ok = 随机事件Page.领取()
+      if (!ok) {
+        if (!anyClaimed) throw new Error('到达随机事件但领取失败')
+        break
+      }
+      anyClaimed = true
+      nav(基地)  // 回基地等下轮入口
+    }
+    return true
+  })
   // ======== 军团 ========
   doTask('军团', function (): boolean {
     if (!nav(军团)) return false
