@@ -8,6 +8,7 @@ import { 巡逻车 } from './巡逻车'
 import { 个人信息 } from './个人信息'
 import { 先锋宝藏 } from './先锋宝藏'
 import { 武装降临 } from './武装降临'
+import { 引航行动 } from './引航行动'
 
 export class 战斗 extends BasePage {
   name = '战斗'
@@ -67,6 +68,16 @@ export class 战斗 extends BasePage {
           self.scrollUp()
           return action()
         }, imagePath: 'images/战斗$武装降临_0_0.8_11_382_132_411.png'
+      },
+      {
+        target: 引航行动, action: function (): boolean {
+          var action = createRouteAction('images/战斗$引航行动_0_0.85_51_400_119_1178.png')
+          if (action()) return true
+          self.scrollDown()
+          if (action()) return true
+          self.scrollUp()
+          return action()
+        }, imagePath: 'images/战斗$引航行动_0_0.85_51_400_119_1178.png'
       },
     ]
   }

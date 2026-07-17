@@ -305,10 +305,8 @@ export class Router {
             log('[导航] 第' + (i + 1) + '跳偏离: 期望"' + targetName + '"，进入"' + page.name + '"')
             deviated = true
           }
-          tryCloseModals()
-          sleep(1500)
-          // 继续轮询剩余次数，确认目标页不可达后再判负
-          continue
+          // 偏离到已知页面，直接结束轮询走超时回退
+          break
         }
 
         // 页面持续未变：首次点击可能未生效，尽快重试
@@ -350,7 +348,7 @@ export class Router {
 
         // 页面从已知变为未知（加载过渡），延长等待而非立即失败
         if (landedPage === null) {
-          sleep(2000)  // 短等页面过渡，6×800ms 轮询已覆盖大部分场景
+          sleep(500)  // 短等页面过渡，4×800ms 轮询未识别再等多无益
           var extFrame = screen()
           var extPage = this.detectCurrentPage(extFrame)
           if (extPage && extPage.constructor === route.target) {

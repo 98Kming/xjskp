@@ -25,6 +25,9 @@ import { 道具购买 } from './pages/道具购买'
 import { 武装降临 } from './pages/武装降临'
 import { 武装降临任务 } from './pages/武装降临-任务'
 import { 随机事件 } from './pages/随机事件'
+import { 引航行动 } from './pages/引航行动'
+import { 引航行动时域珍藏 } from './pages/引航行动-时域珍藏'
+import { 引航行动每日观察 } from './pages/引航行动-每日观察'
 
 var router = Router.getInstance()
 
@@ -55,5 +58,8 @@ new 道具购买()
 new 武装降临()
 new 武装降临任务()
 new 随机事件()
+new 引航行动()
+new 引航行动时域珍藏()
+new 引航行动每日观察()
 
 router.go(基地)

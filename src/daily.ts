@@ -25,6 +25,9 @@ import { 寰球救援 } from './pages/寰球救援'
 import { 寰球远征 } from './pages/寰球远征'
 import { 终末危机 } from './pages/终末危机'
 import { 食堂 } from './pages/食堂'
+import { 引航行动 } from './pages/引航行动'
+import { 引航行动时域珍藏 } from './pages/引航行动-时域珍藏'
+import { 引航行动每日观察 } from './pages/引航行动-每日观察'
 
 var router = Router.getInstance()
 
@@ -51,6 +54,9 @@ var 寰球救援Page = new 寰球救援()
 var 寰球远征Page = new 寰球远征()
 var 终末危机Page = new 终末危机()
 var 食堂Page = new 食堂()
+var 引航行动Page = new 引航行动()
+var 引航行动时域珍藏Page = new 引航行动时域珍藏()
+var 引航行动每日观察Page = new 引航行动每日观察()
 
 var totalTasks = 0
 var successTasks = 0
@@ -109,6 +115,7 @@ export function runDaily(): void {
 
   // ======== 战斗（默认页，入口：先锋宝藏、幸运锦鲤、侧栏、巡逻车） ========
   doTask('战斗 七日突围', function (): boolean {
+    if (!nav(战斗)) return false
     return 战斗Page.click_七日突围()
   })
   doTask('先锋宝藏 免费', function (): boolean {
@@ -128,6 +135,27 @@ export function runDaily(): void {
   doTask('巡逻车 领取', function (): boolean {
     if (!nav(巡逻车)) return false
     return 巡逻车Page.领取()
+  })
+
+  // ======== 引航行动（限时活动 2026/07/25 截止）========
+  var 引航行动可达 = nav(引航行动)
+  doTask('引航行动-时域珍藏 免费', function (): boolean {
+    if (Date.now() >= new Date(2026, 6, 25).getTime()) {
+      console.log('[日常]   引航行动限时活动已结束')
+      return false
+    }
+    if (!引航行动可达) return false
+    if (!nav(引航行动时域珍藏)) return false
+    return 引航行动时域珍藏Page.click_免费()
+  })
+  doTask('引航行动-每日观察 领取', function (): boolean {
+    if (Date.now() >= new Date(2026, 6, 25).getTime()) {
+      console.log('[日常]   引航行动限时活动已结束')
+      return false
+    }
+    if (!引航行动可达) return false
+    if (!nav(引航行动每日观察)) return false
+    return 引航行动每日观察Page.领取()
   })
 
   // ======== 基地（入口：历练大厅、食堂） ========
@@ -173,6 +201,11 @@ export function runDaily(): void {
     return 寰球远征Page.免费()
   })
   doTask('终末危机 扫荡', function (): boolean {
+    var hour = new Date().getHours()
+    if (hour < 12 || hour >= 23) {
+      console.log('[日常]   终末危机仅在 12:00~23:00 开放')
+      return false
+    }
     if (!nav(历练大厅)) return false
     if (!nav(终末危机)) return false
     return 终末危机Page.扫荡()

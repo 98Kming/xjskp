@@ -6,31 +6,31 @@ export class 随机事件 extends BasePage {
   is = createPageDetector('images/随机事件_1_0.9_441_624_637_682.png')
 
   private 领取列表 = [
-    createRouteAction('images/随机事件$$领取-答应交易_0_0.9_263_1138_444_1192.png'),
-    createRouteAction('images/随机事件$$领取-确定_0_0.9_478_1134_613_1192.png'),
-    createRouteAction('images/随机事件$$领取-立即隔离_0_0.9_254_1139_451_1192.png'),
-    createRouteAction('images/随机事件$$领取-立即净化_0_0.9_264_1432_445_1480.png'),
-    createRouteAction('images/随机事件$$领取-批准进入_0_0.9_269_1432_444_1482.png'),
-    createRouteAction('images/随机事件$$领取-加强巡逻_0_0.9_637_1134_816_1192.png'),
-    createRouteAction('images/随机事件$$领取-优先民生_0_0.9_639_1434_817_1479.png'),
-    createRouteAction('images/随机事件$$领取-前往搜救_0_0.9_266_1434_441_1481.png'),
-    createRouteAction('images/随机事件$$领取-暂时收留_0_0.9_641_1434_814_1478.png'),
-    createRouteAction('images/随机事件$$领取-没收严惩_0_0.9_641_1434_814_1478.png'),
-    createRouteAction('images/随机事件$$领取-允许进入_0_0.9_641_1434_814_1478.png'),
-    createRouteAction('images/随机事件$$领取-出兵支援_0_0.9_269_1432_444_1482.png'),
-    createRouteAction('images/随机事件$$领取-收留驯养_0_0.9_263_1432_445_1482.png'),
-    createRouteAction('images/随机事件$$领取-欣然接受_0_0.9_452_1434_630_1479.png'),
-    createRouteAction('images/随机事件$$领取-监听情报_0_0.9_269_1434_441_1477.png'),
-    createRouteAction('images/随机事件$$领取-保留药品_0_0.9_638_1432_817_1479.png'),
+    createRouteAction('images/随机事件$$领取-答应交易_1_0.9_263_1138_444_1192.png'),
+    createRouteAction('images/随机事件$$领取-确定_1_0.9_478_1134_613_1192.png'),
+    createRouteAction('images/随机事件$$领取-立即隔离_1_0.9_254_1139_451_1192.png'),
+    createRouteAction('images/随机事件$$领取-立即净化_1_0.9_264_1432_445_1480.png'),
+    createRouteAction('images/随机事件$$领取-批准进入_1_0.9_269_1432_444_1482.png'),
+    createRouteAction('images/随机事件$$领取-加强巡逻_1_0.9_637_1134_816_1192.png'),
+    createRouteAction('images/随机事件$$领取-优先民生_1_0.9_639_1434_817_1479.png'),
+    createRouteAction('images/随机事件$$领取-前往搜救_1_0.9_266_1434_441_1481.png'),
+    createRouteAction('images/随机事件$$领取-暂时收留_1_0.9_641_1434_814_1478.png'),
+    createRouteAction('images/随机事件$$领取-没收严惩_1_0.9_641_1434_814_1478.png'),
+    createRouteAction('images/随机事件$$领取-允许进入_1_0.9_641_1434_814_1478.png'),
+    createRouteAction('images/随机事件$$领取-出兵支援_1_0.9_269_1432_444_1482.png'),
+    createRouteAction('images/随机事件$$领取-收留驯养_1_0.9_263_1432_445_1482.png'),
+    createRouteAction('images/随机事件$$领取-欣然接受_1_0.9_452_1434_630_1479.png'),
+    createRouteAction('images/随机事件$$领取-监听情报_1_0.9_269_1434_441_1477.png'),
+    createRouteAction('images/随机事件$$领取-保留药品_1_0.9_638_1432_817_1479.png'),
   ]
 
-  private 委婉拒绝Action = createRouteAction('images/随机事件$$领取-委婉拒绝_0_0.9_254_1139_451_1192.png')
+  private 委婉拒绝Action = createRouteAction('images/随机事件$$领取-委婉拒绝_1_0.9_254_1139_451_1192.png')
 
   /**
    * 检测当前页面是否已结束（出现结束按钮）
    */
   hasEnded(): boolean {
-    return imageDetector('images/随机事件$$领取-结束_0_0.9_435_1425_654_1482.png')
+    return imageDetector('images/随机事件$$领取-结束_1_0.9_435_1425_654_1482.png')
   }
 
   /**
@@ -48,7 +48,7 @@ export class 随机事件 extends BasePage {
       var found = false
 
       // 焕新试剂检测：出现即退出（入口仍在）
-      let flag = imageDetector("images/_焕新试剂_0_0.9_0_0_w_h.png")
+      let flag = imageDetector("images/_焕新试剂_1_0.9_0_0_w_h.png")
       if (flag) {
         log("★ 焕新试剂")
         break

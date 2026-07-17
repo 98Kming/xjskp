@@ -6,6 +6,7 @@ let last_capture_time = 0
 let cache_screen_img: ImageWrapper | null = null
 var templateCache = new java.util.HashMap()
 var pointCache = new java.util.HashMap()
+var regionCache = new java.util.HashMap()
 export let recycleImgs: ImageWrapper[] = []
 
 /** AutoXJS Google ML Kit OCR（运行时可选） */
@@ -153,6 +154,23 @@ export function createPageDetector(filePath: string): PageDetector {
   var rh = parsed.y2 - parsed.y1
 
   var fn = function (img: ImageWrapper): boolean {
+    var cached = regionCache.get(filePath)
+    if (cached) {
+      var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
+      if (point) {
+        var tplPixel = images.pixel(template, 0, 0)
+        var scrPixel = images.pixel(img, point.x, point.y)
+        let lum1 = colors.luminance(tplPixel);
+        let lum2 = colors.luminance(scrPixel);
+        if (lum2 !== 0) {
+          let percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100;
+          if (percentDiff < 50) return true
+        }
+      }
+      // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
+      return false
+    }
+    // 无缓存 → 全量搜索
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false
     var tplPixel = images.pixel(template, 0, 0)
@@ -166,6 +184,14 @@ export function createPageDetector(filePath: string): PageDetector {
     // 计算亮度下降百分比
     let percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100;
     percentDiff < 50 && log('[亮度] 模板:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5), percentDiff, filePath)
+    if (parsed.cache === 1 && percentDiff < 50) {
+      regionCache.put(filePath, {
+        x1: Math.max(point.x - 5, 0),
+        y1: Math.max(point.y - 5, 0),
+        x2: Math.min(point.x + template.width + 5, width),
+        y2: Math.min(point.y + template.height + 5, height)
+      })
+    }
     return percentDiff < 50;
   } as PageDetector
   fn.detectImagePath = filePath
@@ -178,13 +204,19 @@ export function createRouteAction(filePath: string): () => boolean {
   var rh = parsed.y2 - parsed.y1
   var template = getTemplate(filePath)
 
-  // cache=1: 带坐标缓存，首次匹配后直接复用坐标
+  // cache=1: 带区域缓存，首次匹配后缩小搜索范围（避免盲点，兼顾速度）
   if (parsed.cache === 1) {
     return function (): boolean {
-      var cached = pointCache.get(filePath)
+      var cached = regionCache.get(filePath)
       if (cached) {
-        click(cached.x, cached.y)
-        return true
+        var img = screen()
+        var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
+        if (point) {
+          click(point.x + template.width / 2, point.y + template.height / 2)
+          return true
+        }
+        // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
+        return false
       }
       var img = screen()
       var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
@@ -192,7 +224,12 @@ export function createRouteAction(filePath: string): () => boolean {
       if (!point) return false
       var cx = point.x + template.width / 2
       var cy = point.y + template.height / 2
-      pointCache.put(filePath, { x: cx, y: cy })
+      regionCache.put(filePath, {
+        x1: Math.max(point.x - 5, 0),
+        y1: Math.max(point.y - 5, 0),
+        x2: Math.min(point.x + template.width + 5, width),
+        y2: Math.min(point.y + template.height + 5, height)
+      })
       click(cx, cy)
       return true
     }
@@ -202,6 +239,9 @@ export function createRouteAction(filePath: string): () => boolean {
   return function (): boolean {
     var img = screen()
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    if(filePath.includes('images/战斗$引航行动_0_0.85_51_400_119_1178.png')) {
+      log('尝试匹配模板:', filePath, `[${parsed.x1},${parsed.y1}-${parsed.x2},${parsed.y2}]`,parsed.threshold, point ? `结果: 找到坐标(${point.x}, ${point.y})` : '结果: 未找到')
+    }
     if (!point) return false
     click(point.x + template.width / 2, point.y + template.height / 2)
     return true
@@ -333,7 +373,7 @@ export function createTicketAction(ticketPath: string, soldOutPath: string): () 
 
 var closeButtons: (() => boolean)[] = [
   createRouteAction('images/$关闭1_0_0.8_800_400_1020_600.png'),
-  createRouteAction('images/重新连接_0_0.9_635_1460_847_1513.png'),
+  createRouteAction('images/重新连接_1_0.9_635_1460_847_1513.png'),
   createRouteAction('images/$确定_0_0.8_494_1000_764_1600.png'),
 ]
 const colors_关闭_无框_多点: [number, number, string][] = [[4, 13, "#fde6bc"], [6, 21, "#fce4bb"], [13, 42, "#fadda4"], [16, 48, "#fdd59d"], [-1, 24, "#fbe3ba"], [14, 22, "#fce4bb"], [21, 18, "#ffebc4"], [29, 15, "#fff8d8"], [0, 2, "#fee6bc"], [4, 7, "#fde5bb"], [2, 19, "#fde9c4"], [10, 24, "#fce4bb"], [15, 47, "#f3cb93"], [-15, 29, "#fee9c4"], [12, 23, "#fce4bb"]]
