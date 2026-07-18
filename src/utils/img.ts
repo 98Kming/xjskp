@@ -127,7 +127,7 @@ function expandRegion(x1: number, y1: number, x2: number, y2: number): [number, 
     y1 = Math.min(height - (y2 - y1), y1)
     y2 = height
   } else {
-    y2 += height - refHeight
+    y2 = Math.min(y2 + height - refHeight + 5, height)
   }
   return [x1, y1, x2, y2]
 }

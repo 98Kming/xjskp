@@ -95,7 +95,7 @@ function doTask(label: string, action: () => boolean): boolean {
     return false
   } catch (e: any) {
     // 手动停止时立即终止
-    if (e.message && e.message.indexOf('ScriptInterruptedException') >= 0) throw e
+    if (e.message && e.message.indexOf('InterruptedException') >= 0) throw e
     var elapsed = ((Date.now() - start) / 1000).toFixed(1)
     var serverTag = currentServer ? ' [' + currentServer + ']' : ''
     console.log('[日常] ❌ ' + label + ' — ' + (e.message || e) + serverTag + ' (' + elapsed + 's)')

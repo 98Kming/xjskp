@@ -1,4 +1,4 @@
-import { runDaily } from "./daily"
+import { runDaily, setCurrentServer } from "./daily"
 import { 个人信息 } from "./pages/个人信息"
 import { 战斗 } from "./pages/战斗"
 import { 服务器选择 } from "./pages/服务器选择"
@@ -14,7 +14,9 @@ var 服务器选择Page = new 服务器选择()
 var router = Router.getInstance()
 runDaily()
 while (router.go(服务器选择)) {
-  if (!服务器选择Page.next()) {
+  let server = 服务器选择Page.next()
+  setCurrentServer(server)
+  if (!server) {
     break
   }
   runDaily()
