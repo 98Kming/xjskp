@@ -26,6 +26,7 @@ export class 随机事件 extends BasePage {
     createRouteAction('images/随机事件$$领取-同意交易_1_0.9_269_1435_440_1478.png'),
     createRouteAction('images/随机事件$$领取-主动清缴_1_0.9_270_1436_439_1476.png'),
     createRouteAction('images/随机事件$$领取-尽力挽留_1_0.9_640_1438_810_1475.png'),
+    createRouteAction('images/随机事件$$领取-允许入内_1_0.9_268_1434_439_1477.png'),
   ]
 
   private 委婉拒绝Action = createRouteAction('images/随机事件$$领取-委婉拒绝_1_0.9_254_1139_451_1192.png')

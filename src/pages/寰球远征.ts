@@ -6,7 +6,7 @@ export class 寰球远征 extends BasePage {
   is = createPageDetector('images/寰球远征$$_开始游戏_1_0.9_515_1741_614_1829.png')
 
   免费(): boolean {
-    var action = createRouteAction('images/寰球远征$$免费_1_0.9_47_766_110_808.png')
+    var action = createRouteAction('images/寰球远征$$免费_1_0.6_47_766_110_808.png')
     for (var i = 0; i < 3; i++) {
       if (action() ) {
         sleep(1000)
