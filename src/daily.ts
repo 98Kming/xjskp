@@ -108,7 +108,8 @@ function doTask(label: string, action: () => boolean): boolean {
       successTasks++
       return true
     }
-    console.log('[日常] ⏭️ ' + label + ' — 跳过 (' + elapsed + 's)')
+    var serverTag = currentServer ? ' [' + currentServer + ']' : ''
+    console.log(serverTag +'[日常] ⏭️ ' + label + ' — 跳过 (' + elapsed + 's)')
     skipTasks++
     return false
   } catch (e: any) {
@@ -116,7 +117,7 @@ function doTask(label: string, action: () => boolean): boolean {
     if (e.message && e.message.indexOf('InterruptedException') >= 0) throw e
     var elapsed = ((Date.now() - start) / 1000).toFixed(1)
     var serverTag = currentServer ? ' [' + currentServer + ']' : ''
-    console.log('[日常] ❌ ' + label + ' — ' + (e.message || e) + serverTag + ' (' + elapsed + 's)')
+    console.log(serverTag + '[日常] ❌ ' + label + ' — ' + (e.message || e) + ' (' + elapsed + 's)')
     failTasks++
     return false
   }
