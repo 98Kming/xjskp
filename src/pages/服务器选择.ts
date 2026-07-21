@@ -38,7 +38,7 @@ export class 服务器选择 extends BasePage {
     if (result) {
       //click(result.x + tpl_未选中.width / 2, result.y + tpl_未选中.height / 2)
       sleep(200)
-      let userName = ocrText(img, result.x + tpl_未选中.width, result.y, width - tpl_未选中.width - result.x, tpl_未选中.height)
+      let userName = ocrText(img, result.x + tpl_未选中.width, result.y, width - tpl_未选中.width - result.x, tpl_未选中.height).replace(/[\r\n]/g, '')
       console.log('[服务器选择] 切换到下一个服务器', userName)
       click(width / 4, searchY + 50)
       return userName
@@ -59,7 +59,7 @@ export class 服务器选择 extends BasePage {
         parsed_未选中.threshold)
       if (result2) {
         //click(result2.x + tpl_未选中.width / 2, result2.y + tpl_未选中.height / 2)
-        let userName2 = ocrText(img2, result2.x + tpl_未选中.width, result2.y, width - tpl_未选中.width - result2.x, tpl_未选中.height)
+        let userName2 = ocrText(img2, result2.x + tpl_未选中.width, result2.y, width - tpl_未选中.width - result2.x, tpl_未选中.height).replace(/[\r\n]/g, '')
         console.log('[服务器选择] 切换到下一个服务器', userName2)
         click(width / 4, searchY2 + 50)
         return userName2
