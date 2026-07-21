@@ -16,6 +16,7 @@ import { 异域挑战军团奖励 } from './pages/异域挑战-军团奖励'
 import { 异域挑战个人奖励 } from './pages/异域挑战-个人奖励'
 import { 军团商店 } from './pages/军团商店'
 import { 道具购买 } from './pages/道具购买'
+import { 玩法商店 } from './pages/玩法商店'
 import { 幸运锦鲤 } from './pages/幸运锦鲤'
 import { 幸运锦鲤免费福利 } from './pages/幸运锦鲤-免费福利'
 import { 侧栏 } from './pages/侧栏'
@@ -49,6 +50,7 @@ var 异域挑战军团奖励Page = new 异域挑战军团奖励()
 var 异域挑战个人奖励Page = new 异域挑战个人奖励()
 new 军团商店()
 var 道具购买Page = new 道具购买()
+var 玩法商店Page = new 玩法商店()
 new 幸运锦鲤()
 var 幸运锦鲤免费福利Page = new 幸运锦鲤免费福利()
 var 邮件Page = new 邮件()
@@ -130,7 +132,7 @@ var 服务器选择Page = new 服务器选择()
 /** 执行全部日常任务（不含摘要，支持多服复用） */
 function executeDailyTasks(): void {
 
-  // ======== 战斗（默认页，入口：先锋宝藏、幸运锦鲤、侧栏、巡逻车） ========
+  // ======== 战斗（默认页，入口：先锋宝藏、幸运锦鲤、巡逻车） ========
   if (isDailyEnabled('战斗_七日突围')) {
     doTask('战斗 七日突围', function (): boolean {
       if (!nav(战斗)) return false
@@ -155,6 +157,20 @@ function executeDailyTasks(): void {
       if (!nav(侧栏)) return false
       if (!nav(邮件)) return false
       return 邮件Page.一键领取()
+    })
+  }
+  if (isDailyEnabled('好友_领取体力')) {
+    doTask('好友 领取体力', function (): boolean {
+      if (!nav(侧栏)) return false
+      if (!nav(好友)) return false
+      return 好友Page.领取体力()
+    })
+  }
+  if (isDailyEnabled('好友_一键赠送')) {
+    doTask('好友 一键赠送', function (): boolean {
+      if (!nav(侧栏)) return false
+      if (!nav(好友)) return false
+      return 好友Page.一键赠送()
     })
   }
   if (isDailyEnabled('巡逻车_领取')) {
@@ -263,6 +279,13 @@ function executeDailyTasks(): void {
       return true
     })
   }
+  // ======== 玩法商店（从基地进入） ========
+  if (isDailyEnabled('商店_超时空军团兵碎片')) {
+    doTask('超时空军团兵碎片 购买', function (): boolean {
+      if (!nav(玩法商店)) return false
+      return 玩法商店Page.buy_超时空军团兵()
+    })
+  }
   // ======== 军团（任一子功能开启时导航） ========
   var 军团功能开启 = isDailyEnabled('军团_每日一刀') || isDailyEnabled('军团_异域挑战') || isDailyEnabled('军团_军团商店')
   if (军团功能开启) {
@@ -311,25 +334,11 @@ function executeDailyTasks(): void {
     })
   }
 
-  // ======== 好友 ========
-  if (isDailyEnabled('好友_领取体力')) {
-    doTask('好友 领取体力', function (): boolean {
-      if (!nav(好友)) return false
-      return 好友Page.领取体力()
-    })
-  }
-  if (isDailyEnabled('好友_一键赠送')) {
-    doTask('好友 一键赠送', function (): boolean {
-      if (!nav(好友)) return false
-      return 好友Page.一键赠送()
-    })
-  }
-
+  // ======== 玩法商店 ========
   // ======== 未实现的功能（有开关、无页面逻辑） ========
   // TODO: 先锋宝藏_特惠战令 — 需实现 先锋宝藏Page.特惠战令()
   // TODO: 碧海凉夏_免费抽 — 需实现 碧海凉夏Page.免费抽()
   // TODO: 作战计划_签到 — 需实现 作战计划Page.签到()
-  // TODO: 商店_超时空军团兵碎片 — 需实现 商店Page.超时空军团兵碎片()
   // TODO: 兑换码 — 需实现 兑换码Page.兑换()
 }
 
