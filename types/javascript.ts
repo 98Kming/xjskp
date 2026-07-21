@@ -39,3 +39,7 @@ type VisibilityRule = {
   shows: string[] // 【OR 逻辑】：列表中只要有一个 Key 为 true并且显示，则满足显示条件
   hides: string[] // 【AND 排斥逻辑】：列表中只要有一个 Key 为 true并且显示，则直接隐藏 (优先级最高)
 }
+type Teammate = {
+  img: ImageWrapper
+  name: string
+}

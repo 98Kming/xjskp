@@ -1,0 +1,97 @@
+<vertical bg="#ffffff" alpha="0.9" id="mainView" layout_height="wrap_content">
+  <appbar>
+    <tabs
+      id="tabHost" >
+    </tabs>
+  </appbar>
+  <viewpager
+    id="viewPager" 
+    layout_width="match_parent" 
+    layout_height="0dp"
+    layout_weight="1"
+    >
+    <vertical layout_width="match_parent" layout_height="wrap_content" padding="16">
+      <horizontal>
+        <text textSize="16sp" textColor="#000000" textStyle="bold">选择功能：</text>
+        <pref-spinner id="模式" spinnerMode="dropdown" entries="普通关卡|精英关卡|寰球救援|元素试炼|寰球远征_准备" h="24"/>
+      </horizontal>
+      <pref-switch id="开局闪退" text="开局闪退，需要root" layoutDirection="rtl" />
+      <pref-enable-num-input id="执行次数" text="执行次数：" min="1"/>
+      <pref-enable-num-input id="选择关卡" text="选择关卡：" min="1"/>
+      <pref-enable-num-input id="退出等级" text="退出等级：" min="1"/>
+      <pref-enable-num-input id="超时退出" text="超时退出(分钟)："/>
+      <pref-switch id="开始游戏" text="开始游戏" layoutDirection="rtl" />
+      <vertical id="组队">
+        <pref-switch id="enable_组队" text="组队" layoutDirection="rtl" />
+        <vertical id="组队_功能">
+          <pref-switch id="队长" text="我是队长（出票）" layoutDirection="rtl" />
+          <pref-switch id="自动邀请" text="自动邀请" layoutDirection="rtl" />
+          <pref-switch id="自动接受邀请" text="自动接受邀请" layoutDirection="rtl" />
+          <vertical id="队友信息">
+            <horizontal >
+              <text>队友名称:</text>
+              <text id="队友名称" w="100" />
+            </horizontal>
+            <button id="获取队友信息" text="获取队友信息"></button>
+          </vertical>
+        </vertical>
+      </vertical>
+    </vertical>
+    <vertical layout_width="match_parent" layout_height="wrap_content" padding="16">
+      <pref-switch id="识别技能" text="识别技能" layoutDirection="rtl" />
+      <scroll layout_width="match_parent" layout_weight="1">
+        <vertical>
+          <pref-num-seekbar id="子弹_seekbar" text="子弹" min="0" max="100" progress="100"/>
+          <pref-num-seekbar id="元素子弹_seekbar" text="元素子弹" min="0" max="100" progress="100" step="100"/>
+          <pref-num-seekbar id="温压弹_seekbar" text="温压弹" min="0" max="100" progress="98"/>
+          <pref-num-seekbar id="干冰弹_seekbar" text="干冰弹" min="0" max="100" progress="95"/>
+          <pref-num-seekbar id="电磁穿刺_seekbar" text="电磁穿刺" min="0" max="100" progress="93"/>
+          <pref-num-seekbar id="装甲车_seekbar" text="装甲车" min="0" max="100" progress="99"/>
+          <pref-num-seekbar id="冰暴发生器_seekbar" text="冰暴发生器" min="0" max="100" progress="94"/>
+          <pref-num-seekbar id="旋风加农_seekbar" text="旋风加农" min="0" max="100" progress="97"/>
+          <pref-num-seekbar id="燃油弹_seekbar" text="燃油弹" min="0" max="100" progress="96"/>
+          <pref-num-seekbar id="无人机_seekbar" text="无人机" min="0" max="100" progress="96"/>
+        </vertical>
+      </scroll>
+      <horizontal>
+        <button layout_weight="1" id="重置技能优先级">重置技能优先级</button>
+      </horizontal>
+    </vertical>
+    <vertical layout_width="match_parent" layout_height="wrap_content" padding="16">
+      <scroll layout_width="match_parent" layout_weight="1">
+        <vertical>
+          <pref-switch id="战斗_七日突围" text="战斗-七日突围" checked="true" layoutDirection="rtl" />
+          <pref-switch id="巡逻车_领取" text="巡逻车-领取" checked="true" layoutDirection="rtl" />
+          <pref-switch id="随机事件_领取" text="随机事件-领取" checked="true" layoutDirection="rtl" />
+          <pref-switch id="邮件" text="领取邮件" checked="true" layoutDirection="rtl" />
+          <pref-switch id="好友_领取体力" text="好友-领取体力" checked="true" layoutDirection="rtl" />
+          <pref-switch id="好友_一键赠送" text="好友-一键赠送" checked="true" layoutDirection="rtl" />
+          <pref-switch id="先锋宝藏_特惠战令" text="先锋宝藏-特惠战令" checked="true" layoutDirection="rtl" />
+          <pref-switch id="先锋宝藏_免费抽" text="先锋宝藏-免费抽" checked="true" layoutDirection="rtl" />
+          <pref-switch id="幸运锦鲤_免费福利" text="幸运锦鲤-免费福利" checked="true" layoutDirection="rtl" />
+          <pref-switch id="碧海凉夏_免费抽" text="碧海凉夏-免费抽" checked="true" layoutDirection="rtl" />
+          <pref-switch id="作战计划_签到" text="作战计划-签到" checked="true" layoutDirection="rtl" />
+          <pref-switch id="寰球救援_领票" text="寰球救援-领票" checked="true" layoutDirection="rtl" />
+          <pref-switch id="寰球远征_免费" text="寰球远征-免费" checked="true" layoutDirection="rtl" />
+          <pref-switch id="终末危机_扫荡" text="终末危机-扫荡" checked="true" layoutDirection="rtl" />
+          <pref-switch id="商店_超时空军团兵碎片" text="商店-超时空军团兵碎片" checked="true" layoutDirection="rtl" />
+          <pref-switch id="食堂" text="食堂-一键领取" checked="true" layoutDirection="rtl" />
+          <pref-switch id="引航行动_时域珍藏" text="引航行动-时域珍藏" checked="true" layoutDirection="rtl" />
+          <pref-switch id="引航行动_每日观察" text="引航行动-每日观察" checked="true" layoutDirection="rtl" />
+          <pref-switch id="军团_每日一刀" text="军团-每日一刀" checked="true" layoutDirection="rtl" />
+          <pref-switch id="军团_军团商店" text="军团-军团商店" checked="true" layoutDirection="rtl" />
+          <pref-switch id="军团_异域挑战" text="军团-异域挑战" checked="true" layoutDirection="rtl" />
+          <pref-switch id="闪退19次" text="闪退19次" checked="true" layoutDirection="rtl" />
+          <pref-switch id="全部账号" text="全部账号-挨个服务器执行" checked="false" layoutDirection="rtl" />
+          <button id="兑换码" text="兑换码" />
+        </vertical>
+      </scroll>
+    </vertical>
+  </viewpager>
+  <horizontal>
+    <button layout_weight="1" id="启动" text="启动" />
+    <button layout_weight="1" id="最小化" text="最小化" />
+    <button layout_weight="1" id="退出" text="退出" />
+  </horizontal>
+ 
+</vertical>

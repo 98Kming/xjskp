@@ -28,9 +28,13 @@ export function ocrText(img: any, x: number, y: number, w: number, h: number): s
 export function getTemplate(filePath: string): ImageWrapper {
   var template = templateCache.get(filePath)
   if (!template) {
-    template = images.read(imageBasePath + filePath)
+    // 仅在 CWD 就是 imageBasePath 目录时才不拼接
+    let cwd = files.cwd().replace(/\/+$/, '')
+    let base = imageBasePath.replace(/\/+$/, '')
+    let path = cwd === base || cwd.endsWith('/' + base) ? filePath : imageBasePath + filePath
+    template = images.read(path)
     if (template == null) {
-      throw new Error(`模板图片不存在: ${filePath}`)
+      throw new Error(`模板图片不存在: ${path}`)
     }
     templateCache.put(filePath, template)
   }
