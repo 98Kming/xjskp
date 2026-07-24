@@ -2,13 +2,17 @@
 // 完整 Router 路由引擎 — 单例模式，BFS 寻路，逐跳执行
 
 import { BasePage, Route, setRegisterCallback } from '../pages/BasePage'
-import { imageNameParser, pageChange, screen, tryCloseModals } from '../utils/img'
+import { imageNameParser, pageChange, screen, tryCloseModals, PageDetector } from '../utils/img'
 import { NavigationError } from './errors'
 
 export class Router {
   private static instance: Router
   private pages: BasePage[] = []
   private pageMap: { [key: string]: BasePage } = {}
+  private lastFailImageInfo: string = ''
+  private _backLoopPage: string = ''
+  private _backLoopCount = 0
+  private _fatalUnknown = false       // 致命未知：页面完全无法识别时终止后续导航
   private constructor() {}
 
   static getInstance(): Router {
@@ -31,11 +35,9 @@ export class Router {
    * 统一策略：未知页面 → back → 重识别 → BFS 重规划，直至到达目标或达到回退上限。
    */
   go(targetClass: { new(...args: any[]): BasePage }): boolean {
-    var maxBacks = 5
-    var totalBacks = 0
-    var maxUnknownBacks = 6    // 未知页面逐层回退，允许更多步数
-    var unknownBacks = 0
-    var replanLeft = 2
+    // 每次 go() 调用重置死循环计数器和致命未知标记，防止跨调用泄漏
+    this._fatalUnknown = false
+    this.clearBackDeadLoop()
     var targetName = (targetClass as any).name
     var pageLog: string[] = []                // 页面轨迹，用于最终打印完整链路
 
@@ -45,8 +47,21 @@ export class Router {
       }
     }
 
+    if (this._fatalUnknown) {
+      trackPage('致命未知')
+      log('[导航] 链路: ' + pageLog.join(' → '))
+      throw new NavigationError('页面完全无法识别，终止后续导航，无法到达' + targetName)
+    }
+
+    var maxBacks = 5          // 路由失败重试上限
+    var maxTimeoutBacks = 2    // 超时不可识别重试上限
+    var totalBacks = 0
+    var timeoutBacks = 0
+    var maxUnknownBacks = 6    // 未知页面逐层回退，允许更多步数
+    var unknownBacks = 0
+    var replanLeft = 2
     var current: BasePage | null = null
-    while (totalBacks < maxBacks && unknownBacks < maxUnknownBacks) {
+    while (totalBacks < maxBacks && timeoutBacks < maxTimeoutBacks && unknownBacks < maxUnknownBacks) {
       if (!current) {
         var img = screen()
         current = this.detectCurrentPage(img)
@@ -89,8 +104,10 @@ export class Router {
         var backResult = this.performBack(current)
         if (!backResult) {
           log('[导航] 建议检查 ' + current.name + ' 的页面识别或路由配置')
+          if (current) this.checkBackDeadLoop(current.name)
           current = null
         } else {
+          this.clearBackDeadLoop()
           current = backResult
         }
         totalBacks++
@@ -113,12 +130,22 @@ export class Router {
         var nullPage = this.detectCurrentPage(nullImg)
         if (nullPage && current && nullPage === current) {
           log('[导航] 链路: ' + pageLog.join(' → '))
-          throw new NavigationError('按钮不存在，无法到达' + targetName + '，入口可能未开放')
+          var errMsg = '按钮不存在，无法到达' + targetName + '，入口可能未开放'
+          if (this.lastFailImageInfo) {
+            errMsg += ' | ' + this.lastFailImageInfo
+          }
+          throw new NavigationError(errMsg)
         }
         // 页面变了（过渡动画残留），回退重试
-        log('[导航] 按钮不可达，回退重试(' + (totalBacks + 1) + '/' + maxBacks + ')')
+        log('[导航] 按钮不可达，回退重试(' + (timeoutBacks + 1) + '/' + maxTimeoutBacks + ')')
+        var backName = current ? current.name : ''
         current = this.performBack(current)
-        totalBacks++
+        if (!current) {
+          if (backName) this.checkBackDeadLoop(backName)
+        } else {
+          this.clearBackDeadLoop()
+        }
+        timeoutBacks++
         replanLeft = 2
         continue
       }
@@ -130,14 +157,14 @@ export class Router {
       // 从已知页面点击后变为 null（加载过渡），不后退，延等多一轮
       if (!retryCurrent) {
         log('[导航] 页面加载过渡中，等待...')
-        sleep(3000)
+        sleep(1000)
         var retry2 = this.detectCurrentPage(screen())
         if (retry2 && retry2.constructor === targetClass) {
           trackPage(retry2.name)
           log('[导航] 链路: ' + pageLog.join(' → '))
           return true
         }
-        totalBacks++
+        timeoutBacks++
         replanLeft = 2
         current = null
         continue
@@ -164,22 +191,41 @@ export class Router {
       // 超时后页面未变 → 路由配置或按钮匹配有问题，回退无意义
       if (current && retryCurrent === current) {
         log('[导航] 链路: ' + pageLog.join(' → '))
-        throw new NavigationError('页面未变化，无法到达' + targetName + '，按钮匹配可能有问题')
+        var errMsg3 = '页面未变化，无法到达' + targetName + '，按钮匹配可能有问题'
+        if (this.lastFailImageInfo) errMsg3 += ' | ' + this.lastFailImageInfo
+        throw new NavigationError(errMsg3)
       }
 
-      log('[导航] 路径执行失败，页面:' + retryCurrent.name + '，回退重试(' + (totalBacks + 1) + '/' + maxBacks + ')')
+      log('[导航] 路径执行失败，页面:' + retryCurrent.name + '，回退重试(' + (timeoutBacks + 1) + '/' + maxTimeoutBacks + ')')
+      var backName3 = retryCurrent ? retryCurrent.name : ''
       current = this.performBack(retryCurrent)
-      if (!current) log('[导航] 建议检查目标页面入口是否存在')
-      totalBacks++
+      if (!current) {
+        log('[导航] 建议检查目标页面入口是否存在')
+        if (backName3) this.checkBackDeadLoop(backName3)
+      } else {
+        this.clearBackDeadLoop()
+      }
+      timeoutBacks++
       replanLeft = 2
     }
 
     if (unknownBacks >= maxUnknownBacks) {
+      this._fatalUnknown = true
       log('[导航] 链路: ' + pageLog.join(' → '))
-      throw new NavigationError('未知页面回退' + maxUnknownBacks + '次后仍无法识别，无法到达' + targetName)
+      var errMsg4 = '未知页面回退' + maxUnknownBacks + '次后仍无法识别，无法到达' + targetName
+      if (this.lastFailImageInfo) errMsg4 += ' | ' + this.lastFailImageInfo
+      throw new NavigationError(errMsg4)
+    }
+    if (timeoutBacks >= maxTimeoutBacks) {
+      log('[导航] 链路: ' + pageLog.join(' → '))
+      var errMsg5 = '页面无法识别，已达超时重试上限(' + maxTimeoutBacks + ')，无法到达' + targetName
+      if (this.lastFailImageInfo) errMsg5 += ' | ' + this.lastFailImageInfo
+      throw new NavigationError(errMsg5)
     }
     log('[导航] 链路: ' + pageLog.join(' → '))
-    throw new NavigationError('已达最大回退次数(' + maxBacks + ')，无法到达' + targetName)
+    var errMsg6 = '已达最大回退次数(' + maxBacks + ')，无法到达' + targetName
+    if (this.lastFailImageInfo) errMsg6 += ' | ' + this.lastFailImageInfo
+    throw new NavigationError(errMsg6)
   }
 
   /** 打印路径规划: A → B → C */
@@ -205,14 +251,34 @@ export class Router {
 
       log('[导航] 第' + (i + 1) + '/' + totalHops + '跳: ' + startName + ' → ' + targetName)
 
-      var actionOk = route.action()
+      // 部分入口按钮有延迟出现（如随机事件），重试等按钮出现
+      var actionOk = false
+      var maxActionAttempts = 3
+      for (var actionAttempt = 0; actionAttempt < maxActionAttempts; actionAttempt++) {
+        actionOk = route.action()
+        if (actionOk) break
+        if (actionAttempt < maxActionAttempts - 1) {
+          log('[导航] 第' + (i + 1) + '跳: 按钮未找到，' + ((actionAttempt + 1) * 800) + 'ms后重试')
+          sleep(800)
+        }
+      }
 
       if (!actionOk) {
-        log('[导航] 第' + (i + 1) + '跳失败: 按钮未找到 [' + startName + ' → ' + targetName + ']，入口可能未开放')
+        var failInfo = '第' + (i + 1) + '跳失败: 按钮未找到 [' + startName + ' → ' + targetName + ']'
+        if (route.imagePath) {
+          try {
+            var fp = imageNameParser(route.imagePath)
+            failInfo += ' | ' + route.imagePath + ' 区域[' + fp.x1 + ',' + fp.y1 + '-' + fp.x2 + ',' + fp.y2 + '] 阈值=' + fp.threshold
+          } catch (e) {
+            failInfo += ' | ' + route.imagePath
+          }
+        }
+        this.lastFailImageInfo = failInfo
+        log('[导航] ' + failInfo)
         return null
       }
 
-      var maxAttempts = 6
+      var maxAttempts = 4
       var interval = 800
       var hopOk = false
       var landedPage: string | null = null
@@ -245,9 +311,10 @@ export class Router {
           continue
         }
 
-        // 页面持续未变：可能弹窗遮挡了目标按钮，首次点击已关弹窗，重试点击
-        if (attempt === 3) {
-          log('[导航] 页面未变化，尝试重试点击（attempt=' + attempt + '）')
+        // 页面持续未变：首次点击可能未生效，尽快重试
+        if (attempt >= 1 && page.name === startName) {
+          var retryClickInfo = '第' + (i + 1) + '跳: 页面未跳转，重试点击 ' + (route.imagePath || targetName)
+          log('[导航] ' + retryClickInfo)
           route.action()
         }
       }
@@ -262,23 +329,33 @@ export class Router {
             timeoutInfo += ' | ' + route.imagePath
           }
         }
+        this.lastFailImageInfo = timeoutInfo
         log('[导航] ' + timeoutInfo)
+        // 超时后专门检测目标页模板是否匹配
+        var targetPageObj = this.pageMap[targetName]
+        if (targetPageObj) {
+          var targetCheck = targetPageObj.is(screen())
+          var detectInfo = '[导航] 目标页"' + targetName + '"检测: ' + (targetCheck ? '匹配' : '不匹配')
+          var detectPath = (targetPageObj.is as PageDetector).detectImagePath
+          if (detectPath) {
+            try {
+              var dp = imageNameParser(detectPath)
+              detectInfo += ' | 检测模板: ' + detectPath + ' 区域[' + dp.x1 + ',' + dp.y1 + '-' + dp.x2 + ',' + dp.y2 + '] 阈值=' + dp.threshold
+            } catch (e) {
+              detectInfo += ' | 检测模板: ' + detectPath
+            }
+          }
+          log(detectInfo)
+        }
 
         // 页面从已知变为未知（加载过渡），延长等待而非立即失败
         if (landedPage === null) {
-          for (var extAttempt = 0; extAttempt < 8; extAttempt++) {
-            sleep(1000)
-            var extFrame = screen()
-            var extPage = this.detectCurrentPage(extFrame)
-            if (extPage && extPage.constructor === route.target) {
-              log('[导航] 过渡加载完成，到达目标页:', extPage.name)
-              hopOk = true
-              break
-            }
-            if (extPage && extPage.name !== startName) {
-              log('[导航] 过渡后进入:', extPage.name)
-              break
-            }
+          sleep(2000)  // 短等页面过渡，6×800ms 轮询已覆盖大部分场景
+          var extFrame = screen()
+          var extPage = this.detectCurrentPage(extFrame)
+          if (extPage && extPage.constructor === route.target) {
+            log('[导航] 过渡加载完成，到达目标页:', extPage.name)
+            hopOk = true
           }
           if (!hopOk) return false
         } else {
@@ -325,7 +402,7 @@ export class Router {
     } else {
       click(100, device.height - 100)
       sleep(150)
-      click(device.width / 2, device.height - 100)
+      click(device.width / 2, device.height - 30)
       sleep(1500)
     }
 
@@ -396,6 +473,24 @@ export class Router {
     return null
   }
 
+  /** 在 performBack 返回 null 后调用，检测同页回退死循环 */
+  private checkBackDeadLoop(pageName: string): void {
+    if (pageName === this._backLoopPage) {
+      this._backLoopCount++
+      if (this._backLoopCount >= 2) {
+        throw new NavigationError('回退死循环: ' + pageName + ' 无出口')
+      }
+    } else {
+      this._backLoopPage = pageName
+      this._backLoopCount = 1
+    }
+  }
+
+  private clearBackDeadLoop(): void {
+    this._backLoopPage = ''
+    this._backLoopCount = 0
+  }
+
   /** pageChange 判定后二次确认页面身份，返回检测到的页面（可能 null） */
   private verifyAfterChange(): BasePage | null {
     sleep(300)
@@ -436,7 +531,7 @@ export class Router {
 
         if (!visited[targetName]) {
           visited[targetName] = true
-          var targetPage = this.pageMap[targetName]
+          var targetPage = this.pageMap[targetName]!
           if (targetPage) {
             queue.push({ page: targetPage, path: current.path.concat([route]) })
           } else {

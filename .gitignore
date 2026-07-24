@@ -2,3 +2,4 @@
 /dist/*
 /declarations
 /plugin
+/src/config.ts
