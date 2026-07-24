@@ -8,11 +8,17 @@ export class 寰球救援 extends BasePage {
   免费(): boolean {
     var action = createRouteAction('images/寰球救援$$免费_1_0.8_48_713_118_773.png')
     for (var i = 0; i < 3; i++) {
-      if (action() && (sleep(800), this.back(), sleep(800), true)) {
+      if (action()) {
         sleep(1000)
+        this.back()
         //tryCloseModals()
         sleep(500)
-        action()
+        if (action()) {
+          sleep(1000)
+          this.back()
+          //tryCloseModals()
+          sleep(500)
+        }
         return true
       }
       sleep(1000)

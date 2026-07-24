@@ -3,27 +3,25 @@ import { createPageDetector, createRouteAction } from '../utils/img'
 
 export class 寰球远征 extends BasePage {
   name = '寰球远征'
-  is = createPageDetector('images/寰球远征$$_开始游戏_1_0.8_515_1741_614_1829.png')
+  is = createPageDetector('images/寰球远征$$_开始游戏_1_0.9_515_1741_614_1829.png')
 
   免费(): boolean {
-    var action = createRouteAction('images/寰球远征$$免费_1_0.8_49_674_111_706.png')
+    var action = createRouteAction('images/寰球远征$$免费_1_0.6_47_766_110_808.png')
     for (var i = 0; i < 3; i++) {
-      let flag = action() 
-      sleep(1000)
-      if (flag) {
+      if (action() ) {
+        sleep(1000)
+         this.back()
+        sleep(500)
         return true
       }
+      sleep(1000)
     }
     return false
   }
 
   开始游戏(): boolean {
-    var action = createRouteAction('images/寰球远征$$_开始游戏_1_0.8_515_1741_614_1829.png')
-    for (var i = 0; i < 3; i++) {
-      if (action()) return true
-      sleep(1000)
-    }
-    return false
+    var action = createRouteAction('images/寰球远征$$_开始游戏_1_0.9_515_1741_614_1829.png')
+    return action()
   }
 
   routes(): Route[] {

@@ -3,7 +3,7 @@ import { createPageDetector, createRouteAction } from '../utils/img'
 
 export class 道具购买 extends BasePage {
   name = '道具购买'
-  is = createPageDetector('images/道具购买_0_0.8_453_565_629_617.png')
+  is = createPageDetector('images/道具购买_1_0.8_453_565_629_617.png')
 
   最大(): boolean {
     var action = createRouteAction('images/道具购买$$最大_1_0.9_751_1127_810_1161.png')
@@ -25,7 +25,7 @@ export class 道具购买 extends BasePage {
     sleep(500)
 
     for (var j = 0; j < 3; j++) {
-      if (buyAction()) return true
+      if (buyAction() && (sleep(800), this.back(), sleep(800), true)) return true
       sleep(800)
     }
     return false

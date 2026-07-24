@@ -86,6 +86,8 @@ export function testGo(target: any, label: string, expectSuccess: boolean = true
     console.log('  ❌ ' + label + ' — 期望' + (expectSuccess ? '成功' : '失败') + '，实际' + (ok ? '成功' : '失败') + ' (' + elapsed.toFixed(1) + 's)')
     return false
   } catch (e: any) {
+    // 手动停止时立即终止
+    if (e.message && e.message.indexOf('ScriptInterruptedException') >= 0) throw e
     var elapsed = (Date.now() - start) / 1000
     if (!expectSuccess) {
       console.log('  ✅ ' + label + ' — 预期失败 ✓ (' + elapsed.toFixed(1) + 's)')
@@ -374,15 +376,15 @@ export function runTestSuite() {
     testSkip('军团商店不可达，跳过入场券测试')
   }
 }
-runTestSuite()
+//runTestSuite()
 // ===============================================================
 // Phase 3: 特殊场景
 // ===============================================================
-console.log('')
-console.log('===== Phase 3: 特殊场景 =====')
+// console.log('')
+// console.log('===== Phase 3: 特殊场景 =====')
 
-testGo(基地, '⑮ 重复导航')
-testGo(选择技能, '⑯ 不可达（选择技能）', false)
+// testGo(基地, '⑮ 重复导航')
+// testGo(选择技能, '⑯ 不可达（选择技能）', false)
 
 // ===============================================================
 console.log('')

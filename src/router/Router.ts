@@ -305,10 +305,8 @@ export class Router {
             log('[导航] 第' + (i + 1) + '跳偏离: 期望"' + targetName + '"，进入"' + page.name + '"')
             deviated = true
           }
-          tryCloseModals()
-          sleep(1500)
-          // 继续轮询剩余次数，确认目标页不可达后再判负
-          continue
+          // 偏离到已知页面，直接结束轮询走超时回退
+          break
         }
 
         // 页面持续未变：首次点击可能未生效，尽快重试
@@ -350,7 +348,7 @@ export class Router {
 
         // 页面从已知变为未知（加载过渡），延长等待而非立即失败
         if (landedPage === null) {
-          sleep(2000)  // 短等页面过渡，6×800ms 轮询已覆盖大部分场景
+          sleep(500)  // 短等页面过渡，4×800ms 轮询未识别再等多无益
           var extFrame = screen()
           var extPage = this.detectCurrentPage(extFrame)
           if (extPage && extPage.constructor === route.target) {
@@ -402,7 +400,7 @@ export class Router {
     } else {
       click(100, device.height - 100)
       sleep(150)
-      click(device.width / 2, device.height - 30)
+      click(device.width / 2, device.height - 10)
       sleep(1500)
     }
 
@@ -448,27 +446,27 @@ export class Router {
       }
     }
 
-    log('[导航] 尝试备选回退')
-    click(device.width / 2, device.height - 50)
-    sleep(1500)
+    // log('[导航] 尝试备选回退')
+    // click(device.width / 2, device.height - 50)
+    // sleep(1500)
 
-    afterImg = screen(0, false)
-    after = this.detectCurrentPage(afterImg)
-    if (after && after.name !== beforeName) {
-      beforeImg.recycle()
-      return after
-    }
-    if (!after) {
-      afterImg.recycle()
-      if (pageChange(beforeImg)) {
-        log('[导航] 备选回退后截图变化，回退生效')
-        var landed3 = this.verifyAfterChange()
-        beforeImg.recycle()
-        return landed3
-      }
-    }
+    // afterImg = screen(0, false)
+    // after = this.detectCurrentPage(afterImg)
+    // if (after && after.name !== beforeName) {
+    //   beforeImg.recycle()
+    //   return after
+    // }
+    // if (!after) {
+    //   afterImg.recycle()
+    //   if (pageChange(beforeImg)) {
+    //     log('[导航] 备选回退后截图变化，回退生效')
+    //     var landed3 = this.verifyAfterChange()
+    //     beforeImg.recycle()
+    //     return landed3
+    //   }
+    // }
 
-    log('[导航] 所有回退尝试均无效')
+    // log('[导航] 所有回退尝试均无效')
     beforeImg.recycle()
     return null
   }
@@ -535,7 +533,7 @@ export class Router {
           if (targetPage) {
             queue.push({ page: targetPage, path: current.path.concat([route]) })
           } else {
-            log('[路由] 页面未注册: ' + targetName)
+            //log('[路由] 页面未注册: ' + targetName)
           }
         }
       }

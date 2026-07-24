@@ -54,7 +54,7 @@ while (totalBacks < 3 && unknownBacks < 6):
 
 - 每跳：action() 点击 → 6次×800ms 轮询检测页面切换
 - 按钮未找到 → 3次×800ms 恢复轮询（可能上一轮点击已生效）→ 仍失败 return null
-- 偏离到其他页 → tryCloseModals + 继续轮询
+- 偏离到其他已知页 → 立即 break 走超时回退（不 tryCloseModals，不继续空轮询）
 - 超时 + 页面为 null（过渡加载）→ 额外 8×1000ms 延长等待 → 仍 null return false
 - 超时 + 页面已知 → tryCloseModals → 还是没到 return false
 - **pageChange 加速（2026-07-11 优化）**：轮询期间检测到 pageChange(点击前截图) 连续 2 轮变化但 is() 不识别 → 提前结束轮询，进入过渡/偏离处理
@@ -393,3 +393,52 @@ detectCurrentPage(screen())
 - **最多 3 次**：平衡等入口延迟和失败快速反馈
 - **日志区分**：重试时打印 `[导航] 第i跳: 按钮未找到，800ms后重试`，最终失败打印原 failInfo
 - **找图次数影响**：延迟出现的入口平均多 ~1-2 次找图，可接受
+
+## 2026-07-17: 精确区域缓存 + 偏离提前中断轮询
+
+### 优化一：超时后 sleep(2000) → 500ms
+
+**背景：** `executePath` 跳转超时后 `landedPage===null` 时 `sleep(2000)` 等待页面过渡。但 hop 轮询已在 4×800ms 内试了 4 次都未识别，再多等 2 秒很少有用。
+
+**改动位置：** `Router.ts:353`
+
+| 之前 | 之后 |
+|------|------|
+| `sleep(2000)` 白等 2s | `sleep(500)` 做个最终检查即可 |
+
+**效果：** 超时场景每跳省 ~1.5s。
+
+### 优化二：盲点缓存改为精确区域缓存
+
+**背景：** 旧 cache=1 存 `(x, y)` 中心点，后续盲点 `click()`。页面变化时可能点到错误位置，双用途图（`A$_{B}`）风险更大。
+
+**改动位置：** `img.ts:createPageDetector` + `createRouteAction`
+
+**实现：** 引入 `regionCache` 替代 `pointCache`：
+- 匹配成功后缓存缩小后的搜索区域 `(x-5, y-5, x+tw+5, y+th+5)`
+- `createRouteAction` cache=1：读 `regionCache` → 在小区域内 `findImageInRegion` 验证 → 找到才点击
+- `createPageDetector`：同样先搜缓存区域，缓存找不到直接返回 false（不回退全量搜索）
+- 区域找不到不删缓存，等待下次重试（兼容临时遮挡场景）
+
+**找图次数对比：**
+
+| 方案 | 缓存命中 | 缓存未命中 |
+|------|----------|------------|
+| 旧盲点 | 0 次找图，盲点 ❌ 不安全 | 全量搜索 |
+| 新区域 | 1 次极小范围找图，验证 ✅ | 全量搜索 |
+
+### 优化三：偏离到已知页面提前中断轮询
+
+**背景：** 导航偏离到已知页后，旧逻辑 `tryCloseModals()` + `sleep(1500)` + `continue` 继续空轮询（浪费 3×800ms）。已知页面不会自己变回目标。
+
+**改动位置：** `Router.ts:executePath()` 偏离分支
+
+| 之前 | 之后 |
+|------|------|
+| 偏离 → 关弹窗 → 继续轮询满 4 次 | 偏离 → 立即 `break` 走超时回退 |
+
+### 相关代码
+
+- `src/router/Router.ts` — executePath 偏离处理 + 超时处理
+- `src/utils/img.ts` — regionCache 精确区域缓存
+- `src/utils/img.ts` — createPageDetector 坐标缓存

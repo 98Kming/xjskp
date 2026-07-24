@@ -1,18 +1,44 @@
 export const width = 1080
 export const height = width / device.width * device.height
-console.log('屏幕宽高:', width, height, '设备宽高:', device.width, device.height)
+console.log('屏幕宽高:', width, height, '设备宽高:', device.width, device.height, files.cwd())
 import { imageBasePath } from '../config'
 let last_capture_time = 0
 let cache_screen_img: ImageWrapper | null = null
 var templateCache = new java.util.HashMap()
 var pointCache = new java.util.HashMap()
+var regionCache = new java.util.HashMap()
+export let recycleImgs: ImageWrapper[] = []
 
+/** AutoXJS Google ML Kit OCR（运行时可选） */
+declare var gmlkit: { ocr: (img: any, lang: string) => { text: string } }
+/** AutoXJS Google ML Kit OCR（部分 fork 缩写名） */
+declare var gml: { ocr: (img: any, region: number[]) => string[] }
+
+/**
+ * 从图片指定区域 OCR 取文字，三路降级兼容 AutoX.js 和 AutoJs6。
+ * gmlkit（原版 AutoX.js）→ gml（fork 缩写）→ AutoJs6 ocr
+ */
+export function ocrText(img: any, x: number, y: number, w: number, h: number): string {
+  var text = ''
+  try { if (typeof gmlkit !== 'undefined') { var c = images.clip(img, x, y, w, h); if (c) { try { text = gmlkit.ocr(c, 'zh').text || '' } finally { c.recycle() } } } } catch (e) { }
+  if (!text && typeof gml !== 'undefined') { try { text = gml.ocr(img, [x, y, w, h])[0] || '' } catch (e) { } }
+  if (!text && typeof ocr !== 'undefined') { try { text = ocr.recognizeText(img, { region: [x, y, w, h] })[0] || '' } catch (e) { } }
+  return text
+}
 export function getTemplate(filePath: string): ImageWrapper {
   var template = templateCache.get(filePath)
   if (!template) {
-    template = images.read(imageBasePath+filePath)
-    if(template == null){
-      throw new Error(`模板图片不存在: ${filePath}`)
+    // 仅在 CWD 就是 imageBasePath 目录时才不拼接
+    // let cwd = files.cwd().replace(/\/+$/, '')
+    // let base = imageBasePath.replace(/\/+$/, '')
+    // let path = cwd === base || cwd.endsWith('/' + base) ? filePath : imageBasePath + filePath
+    template = images.read(filePath)
+    if (template == null) {
+      template = images.read(imageBasePath + filePath)
+      if (template == null) {
+        throw new Error(`模板图片不存在: ${filePath}`)
+      }
+      
     }
     templateCache.put(filePath, template)
   }
@@ -31,6 +57,7 @@ export function screen(interval: number = 500, recycle: boolean = true): ImageWr
   }
   if (recycle && cache_screen_img) {
     cache_screen_img.recycle()
+    recycleImgs.push(cache_screen_img)
   }
   let img
   try {
@@ -102,13 +129,13 @@ function expandRegion(x1: number, y1: number, x2: number, y2: number): [number, 
   x1 = Math.max(x1 - 10, 0)
   // 纵向扩展 300px：refHeight=1920, 按 2400 作为实际屏高基数计算偏移
   // (2400/10)*1.25 = 300px，覆盖底部状态栏/导航栏差异
-  y1 = Math.max(y1 - (2400 / 10)*1.25, 0)
+  y1 = Math.max(y1 - (2400 / 10) * 1.25, 0)
   x2 = Math.min(x2 + 10, width)
   if (y2 > refHeight) {
     y1 = Math.min(height - (y2 - y1), y1)
     y2 = height
   } else {
-    y2 += height - refHeight
+    y2 = Math.min(y2 + height - refHeight + 5, height)
   }
   return [x1, y1, x2, y2]
 }
@@ -118,6 +145,16 @@ export interface PageDetector {
   detectImagePath: string
 }
 
+export function imageDetector(filePath: string): boolean {
+  var parsed = imageNameParser(filePath)
+  var template = getTemplate(filePath)
+  var rw = parsed.x2 - parsed.x1
+  var rh = parsed.y2 - parsed.y1
+  let img = screen()
+  var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+  return !!point
+}
+
 export function createPageDetector(filePath: string): PageDetector {
   var parsed = imageNameParser(filePath)
   var template = getTemplate(filePath)
@@ -125,6 +162,23 @@ export function createPageDetector(filePath: string): PageDetector {
   var rh = parsed.y2 - parsed.y1
 
   var fn = function (img: ImageWrapper): boolean {
+    var cached = regionCache.get(filePath)
+    if (cached) {
+      var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
+      if (point) {
+        var tplPixel = images.pixel(template, 0, 0)
+        var scrPixel = images.pixel(img, point.x, point.y)
+        let lum1 = colors.luminance(tplPixel);
+        let lum2 = colors.luminance(scrPixel);
+        if (lum2 !== 0) {
+          let percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100;
+          if (percentDiff < 50) return true
+        }
+      }
+      // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
+      return false
+    }
+    // 无缓存 → 全量搜索
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false
     var tplPixel = images.pixel(template, 0, 0)
@@ -137,7 +191,15 @@ export function createPageDetector(filePath: string): PageDetector {
     }
     // 计算亮度下降百分比
     let percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100;
-    percentDiff < 50 &&log('[亮度] 模板:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5),percentDiff, filePath)
+    percentDiff < 50 && log('[亮度] 模板:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5), percentDiff, filePath)
+    if (parsed.cache === 1 && percentDiff < 50) {
+      regionCache.put(filePath, {
+        x1: Math.max(point.x - 5, 0),
+        y1: Math.max(point.y - 5, 0),
+        x2: Math.min(point.x + template.width + 5, width),
+        y2: Math.min(point.y + template.height + 5, height)
+      })
+    }
     return percentDiff < 50;
   } as PageDetector
   fn.detectImagePath = filePath
@@ -150,21 +212,32 @@ export function createRouteAction(filePath: string): () => boolean {
   var rh = parsed.y2 - parsed.y1
   var template = getTemplate(filePath)
 
-  // cache=1: 带坐标缓存，首次匹配后直接复用坐标
+  // cache=1: 带区域缓存，首次匹配后缩小搜索范围（避免盲点，兼顾速度）
   if (parsed.cache === 1) {
     return function (): boolean {
-      var cached = pointCache.get(filePath)
+      var cached = regionCache.get(filePath)
       if (cached) {
-        click(cached.x, cached.y)
-        return true
+        var img = screen()
+        var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
+        if (point) {
+          click(point.x + template.width / 2, point.y + template.height / 2)
+          return true
+        }
+        // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
+        return false
       }
       var img = screen()
       var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-      log('尝试匹配模板:', filePath, `[${parsed.x1},${parsed.y1}-${parsed.x2},${parsed.y2}]`, point ? `结果: 找到坐标(${point.x}, ${point.y})` : '结果: 未找到')
+      //log('尝试匹配模板:', filePath, `[${parsed.x1},${parsed.y1}-${parsed.x2},${parsed.y2}]`, point ? `结果: 找到坐标(${point.x}, ${point.y})` : '结果: 未找到')
       if (!point) return false
       var cx = point.x + template.width / 2
       var cy = point.y + template.height / 2
-      pointCache.put(filePath, { x: cx, y: cy })
+      regionCache.put(filePath, {
+        x1: Math.max(point.x - 5, 0),
+        y1: Math.max(point.y - 5, 0),
+        x2: Math.min(point.x + template.width + 5, width),
+        y2: Math.min(point.y + template.height + 5, height)
+      })
       click(cx, cy)
       return true
     }
@@ -304,8 +377,8 @@ export function createTicketAction(ticketPath: string, soldOutPath: string): () 
 }
 
 var closeButtons: (() => boolean)[] = [
-  createRouteAction('images/$关闭1_0_0.8_800_400_1020_600.png'),
   createRouteAction('images/重新连接_1_0.9_635_1460_847_1513.png'),
+  createRouteAction('images/$关闭1_0_0.8_800_400_1020_600.png'),
   createRouteAction('images/$确定_0_0.8_494_1000_764_1600.png'),
 ]
 const colors_关闭_无框_多点: [number, number, string][] = [[4, 13, "#fde6bc"], [6, 21, "#fce4bb"], [13, 42, "#fadda4"], [16, 48, "#fdd59d"], [-1, 24, "#fbe3ba"], [14, 22, "#fce4bb"], [21, 18, "#ffebc4"], [29, 15, "#fff8d8"], [0, 2, "#fee6bc"], [4, 7, "#fde5bb"], [2, 19, "#fde9c4"], [10, 24, "#fce4bb"], [15, 47, "#f3cb93"], [-15, 29, "#fee9c4"], [12, 23, "#fce4bb"]]
@@ -316,7 +389,13 @@ const colors_关闭_无框2_多点_exclude: [number, number, string][] = [[12, -
 const colors_关闭_无框2 = "#ebdab8"
 
 export function tryCloseModals(): boolean {
-  // 多点找色检测无框关闭按钮（替换关闭2的图片匹配）
+  // 优先：图片模板匹配（重新连接、确定等已知弹窗），
+  // 放在多点找色之前，避免弹窗下层按钮被误点
+  for (var k = 0; k < closeButtons.length; k++) {
+    if (closeButtons[k]()) return true
+  }
+
+  // 降级：多点找色检测无框关闭按钮（可能在弹窗下层，但无模板匹配时值得一试）
   var img = screen()
   var point = images.findMultiColors(img, colors_关闭_无框, colors_关闭_无框_多点, {
     region: [img.width * 0.8, 0, img.width * 0.2, img.height * 0.4], threshold: 26
@@ -355,10 +434,6 @@ export function tryCloseModals(): boolean {
     }
   }
 
-  // 兜底：图片模板匹配（关闭1 + 重新连接）
-  for (var k = 0; k < closeButtons.length; k++) {
-    if (closeButtons[k]()) return true
-  }
   return false
 }
 
@@ -386,4 +461,59 @@ export function pageChange(beforeImg: ImageWrapper): boolean {
   }
 
   return (mismatches / total) > 0.03
+}
+
+
+export function scrollFind(imgPath: string, x1: number, y1: number, x2: number, y2: number, x3: number, maxScroll: number = 20): OpenCV.Point | null {
+  var parsed = imageNameParser(imgPath)
+  var rw = parsed.x2 - parsed.x1
+  var rh = parsed.y2 - parsed.y1
+  var template = getTemplate(imgPath)
+  for (var i = 0; i < maxScroll; i++) {
+    var img = screen()
+    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    if (point) {
+      // var cx = point.x + template.width + 60
+      // var cy = point.y + template.height + 10
+      // console.log('[服务器选择] 找到选中标识 坐标:(' + point.x + ',' + point.y + ') 点击:(' + cx + ',' + cy + ')')
+      return point
+    }
+    // 向上滚动：从屏幕下方滑到上方
+    swipe(x1, y1, x2, y2, 300)
+    swipe(x2, y2, x3, y2, 300)
+    sleep(800)
+    var afterImg = screen(0, false)
+    let x = Math.min(x1, x2, x3)
+    let y = Math.min(y1, y2)
+    let w = Math.max(x1, x2, x3) - x
+    let h = Math.max(y1, y2) - y
+    let clipImg = images.clip(afterImg, x, y, w, h)
+    if (images.findImageInRegion(img, clipImg, x, y, w, h, 0.99)) {
+      clipImg.recycle()
+      img.recycle()
+      // 滑动后未发生页面变化，说明已滑到底部，停止滚动
+      console.log('[服务器选择] 滑动后未发生页面变化，已滑到底部，停止滚动')
+      break
+    }
+    clipImg.recycle()
+    img.recycle()
+  }
+  return null
+}
+
+export function findImageMinYPoint(img: ImageWrapper, template: ImageWrapper, x: number, y: number, w: number, h: number, threshold: number) {
+  // 在标识下方区域找目标按钮，取最上方的一个
+  var targetResult = images.matchTemplate(img, template, {
+    region: [x, y, w, h,],
+    threshold: threshold,
+    max: 20
+  })
+  if (!targetResult || !targetResult.matches || targetResult.matches.length === 0) return false
+  var topMatch = targetResult.matches[0]
+  for (var mi = 1; mi < targetResult.matches.length; mi++) {
+    if (targetResult.matches[mi].point.y < topMatch.point.y) {
+      topMatch = targetResult.matches[mi]
+    }
+  }
+  return topMatch.point
 }
