@@ -31,6 +31,7 @@
 import { mainWindow } from './MainWindow'
 import { smallWindow } from './SmallWindows'
 import { runDaily } from './daily'
+import { 兑换码 } from './model/兑换码'
 
 // var router = Router.getInstance()
 
@@ -66,6 +67,7 @@ import { runDaily } from './daily'
 // new 引航行动每日观察()
 
 //router.go(基地)
+var 兑换码运行中 = false
 var keepAlive = setInterval(function () {}, 10000)
 mainWindow.window.启动.setOnClickListener(new android.view.View.OnClickListener({
   onClick() {
@@ -81,6 +83,25 @@ mainWindow.window.退出.setOnClickListener(new android.view.View.OnClickListene
   onClick() {
     threads.shutDownAll()
     engines.myEngine().forceStop()
+  }
+}))
+mainWindow.window.兑换码.setOnClickListener(new android.view.View.OnClickListener({
+  onClick() {
+    if (兑换码运行中) {
+      console.log('[兑换码] 正在运行中，请等待完成')
+      toast('兑换码正在运行中')
+      return
+    }
+    兑换码运行中 = true
+    start(function () {
+      try {
+        兑换码.start()
+      } catch (e: any) {
+        console.error('[兑换码] 异常: ' + (e.message || e))
+      } finally {
+        兑换码运行中 = false
+      }
+    })
   }
 }))
 

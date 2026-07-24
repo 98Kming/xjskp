@@ -1,6 +1,6 @@
 export const width = 1080
 export const height = width / device.width * device.height
-console.log('屏幕宽高:', width, height, '设备宽高:', device.width, device.height)
+console.log('屏幕宽高:', width, height, '设备宽高:', device.width, device.height, files.cwd())
 import { imageBasePath } from '../config'
 let last_capture_time = 0
 let cache_screen_img: ImageWrapper | null = null
@@ -29,12 +29,16 @@ export function getTemplate(filePath: string): ImageWrapper {
   var template = templateCache.get(filePath)
   if (!template) {
     // 仅在 CWD 就是 imageBasePath 目录时才不拼接
-    let cwd = files.cwd().replace(/\/+$/, '')
-    let base = imageBasePath.replace(/\/+$/, '')
-    let path = cwd === base || cwd.endsWith('/' + base) ? filePath : imageBasePath + filePath
-    template = images.read(path)
+    // let cwd = files.cwd().replace(/\/+$/, '')
+    // let base = imageBasePath.replace(/\/+$/, '')
+    // let path = cwd === base || cwd.endsWith('/' + base) ? filePath : imageBasePath + filePath
+    template = images.read(filePath)
     if (template == null) {
-      throw new Error(`模板图片不存在: ${path}`)
+      template = images.read(imageBasePath + filePath)
+      if (template == null) {
+        throw new Error(`模板图片不存在: ${filePath}`)
+      }
+      
     }
     templateCache.put(filePath, template)
   }
