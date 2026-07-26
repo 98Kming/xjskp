@@ -31,6 +31,7 @@ import { 引航行动 } from './pages/引航行动'
 import { 引航行动时域珍藏 } from './pages/引航行动-时域珍藏'
 import { 引航行动每日观察 } from './pages/引航行动-每日观察'
 import { 好友 } from './pages/好友'
+import { 领取体力 } from './pages/领取体力'
 import { 个人信息 } from './pages/个人信息'
 import { 服务器选择 } from './pages/服务器选择'
 
@@ -64,12 +65,13 @@ var 引航行动Page = new 引航行动()
 var 引航行动时域珍藏Page = new 引航行动时域珍藏()
 var 引航行动每日观察Page = new 引航行动每日观察()
 var 好友Page = new 好友()
+var 领取体力Page = new 领取体力()
 
 var totalTasks = 0
 var successTasks = 0
 var skipTasks = 0
 var failTasks = 0
-var currentServer: string | null = null
+export var currentServer: string | null = null
 
 /** 检查主窗口日常开关是否开启 */
 function isDailyEnabled(id: string): boolean {
@@ -164,7 +166,8 @@ function executeDailyTasks(): void {
     doTask('好友 领取体力', function (): boolean {
       if (!nav(侧栏)) return false
       if (!nav(好友)) return false
-      return 好友Page.领取体力()
+      if (!nav(领取体力)) return false
+      return 领取体力Page.一键领取()
     })
   }
   if (isDailyEnabled('好友_一键赠送')) {

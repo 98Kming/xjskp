@@ -9,10 +9,6 @@ var pointCache = new java.util.HashMap()
 var regionCache = new java.util.HashMap()
 export let recycleImgs: ImageWrapper[] = []
 
-/** AutoXJS Google ML Kit OCR（运行时可选） */
-declare var gmlkit: { ocr: (img: any, lang: string) => { text: string } }
-/** AutoXJS Google ML Kit OCR（部分 fork 缩写名） */
-declare var gml: { ocr: (img: any, region: number[]) => string[] }
 
 /**
  * 从图片指定区域 OCR 取文字，三路降级兼容 AutoX.js 和 AutoJs6。
@@ -345,27 +341,33 @@ export function createMirroredAction(filePath: string): () => boolean {
  * 入场券镜像点击（含已售罄检测）：
  * 找入场券图片，若找到则在入场券右侧区域查找已售罄，
  * 已售罄则返回 false（跳过），否则执行镜像坐标点击。
- * ticketPath 按标准图片命名解析；soldOutPath 用 images.read 直接加载。
+ * ticketPath 按标准图片命名解析；soldOutPath 先直读（兼容非标准命名），失败再走 getTemplate。
  */
 export function createTicketAction(ticketPath: string, soldOutPath: string): () => boolean {
   var parsed = imageNameParser(ticketPath)
   var template = getTemplate(ticketPath)
   var rw = parsed.x2 - parsed.x1
   var rh = parsed.y2 - parsed.y1
-  var soldOutTemplate = images.read(imageBasePath + soldOutPath)
+  // soldOut图片可能不在标准路径下，先直读，失败再走 getTemplate 的双路径尝试
+  var soldOutTemplate = images.read(soldOutPath)
+  if (soldOutTemplate == null) {
+    soldOutTemplate = images.read(imageBasePath + soldOutPath)
+  }
 
   return function (): boolean {
     var img = screen()
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false
 
-    // 入场券右侧查找已售罄
-    var checkX = point.x + template.width
-    var checkW = width - checkX
-    var soldOutPoint = images.findImageInRegion(img, soldOutTemplate, checkX, point.y, checkW, template.height, 0.9)
-    if (soldOutPoint) {
-      log('[入场券] 已售罄，跳过:', ticketPath)
-      return false
+    // 入场券右侧查找已售罄（soldOutTemplate 可能为 null，跳过检测）
+    if (soldOutTemplate) {
+      var checkX = point.x + template.width
+      var checkW = width - checkX
+      var soldOutPoint = images.findImageInRegion(img, soldOutTemplate, checkX, point.y, checkW, template.height, 0.9)
+      if (soldOutPoint) {
+        log('[入场券] 已售罄，跳过:', ticketPath)
+        return false
+      }
     }
 
     var cx = device.width - point.x - template.width / 2

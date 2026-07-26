@@ -1,5 +1,6 @@
+import { currentServer } from '../daily'
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction, imageDetector, tryCloseModals } from '../utils/img'
+import { screen, createPageDetector, createRouteAction, getTemplate, imageDetector, imageNameParser, tryCloseModals, ocrText } from '../utils/img'
 
 export class 随机事件 extends BasePage {
   name = '随机事件'
@@ -52,11 +53,19 @@ export class 随机事件 extends BasePage {
 
     while (true) {
       var found = false
-
+      let filePath = 'images/_焕新试剂_0_0.9_0_0_w_h.png'
       // 焕新试剂检测：出现即退出（入口仍在）
-      let flag = imageDetector("images/_焕新试剂_0_0.9_0_0_w_h.png")
-      if (flag) {
-        log("★ 焕新试剂")
+      var parsed = imageNameParser(filePath)
+      var template = getTemplate(filePath)
+      var rw = parsed.x2 - parsed.x1
+      var rh = parsed.y2 - parsed.y1
+      let img = screen()
+      var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+      if (point) {
+        let tmp = images.clip(img,point.x + template.getWidth(), point.y + template.getHeight() - 50, 30, 50)
+        images.save(tmp, '/sdcard/' + (currentServer ? currentServer + '_' : '') + Date.now() + '.png')
+        log("★ 焕新试剂", gmlkit.ocr(tmp, 'zh'), ocrText(img, point.x + template.getWidth(), point.y + template.getHeight() - 50, 30, 50))
+        tmp.recycle()
         break
       }
 
@@ -75,7 +84,7 @@ export class 随机事件 extends BasePage {
         }
       }
 
-      if(this.确定Action()) {
+      if (this.确定Action()) {
         sleep(1000)
         this.back()
         sleep(800)

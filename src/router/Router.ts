@@ -71,9 +71,12 @@ export class Router {
         trackPage('未知')
         log('[导航] 无法识别当前页面，尝试关闭弹窗')
         tryCloseModals()
-        sleep(1500)
-        var img2 = screen()
-        current = this.detectCurrentPage(img2)
+        // 轮询检测弹窗关闭后的页面，不盲目等足 1.5s
+        for (var _cw = 0; _cw < 5; _cw++) {
+          sleep(300)
+          current = this.detectCurrentPage(screen())
+          if (current) break
+        }
         if (!current) {
           log('[导航] 未知页面逐层回退(' + (unknownBacks + 1) + '/' + maxUnknownBacks + ')')
           current = this.performBack(null)
@@ -156,8 +159,9 @@ export class Router {
 
       // 从已知页面点击后变为 null（加载过渡），不后退，延等多一轮
       if (!retryCurrent) {
-        log('[导航] 页面加载过渡中，等待...')
-        sleep(1000)
+        log('[导航] 页面加载过渡中，检查弹窗...')
+        tryCloseModals()
+        sleep(500)
         var retry2 = this.detectCurrentPage(screen())
         if (retry2 && retry2.constructor === targetClass) {
           trackPage(retry2.name)
@@ -348,7 +352,7 @@ export class Router {
 
         // 页面从已知变为未知（加载过渡），延长等待而非立即失败
         if (landedPage === null) {
-          sleep(500)  // 短等页面过渡，4×800ms 轮询未识别再等多无益
+          sleep(300)  // 短等页面过渡，4×800ms 轮询未识别再等多无益
           var extFrame = screen()
           var extPage = this.detectCurrentPage(extFrame)
           if (extPage && extPage.constructor === route.target) {
