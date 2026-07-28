@@ -7,6 +7,7 @@ import { 侧栏 } from './侧栏'
 import { 巡逻车 } from './巡逻车'
 import { 个人信息 } from './个人信息'
 import { 先锋宝藏 } from './先锋宝藏'
+import { 碧海凉夏 } from './碧海凉夏'
 import { 武装降临 } from './武装降临'
 import { 引航行动 } from './引航行动'
 
@@ -58,6 +59,16 @@ export class 战斗 extends BasePage {
           self.scrollUp()
           return action()
         }, imagePath: 'images/战斗$先锋宝藏_0_0.8_64_1010_118_1049.png'
+      },
+      {
+        target: 碧海凉夏, action: function (): boolean {
+          var action = createRouteAction('images/战斗$碧海凉夏_0_0.8_45_398_112_1200.png')
+          if (action()) return true
+          self.scrollDown()
+          if (action()) return true
+          self.scrollUp()
+          return action()
+        }, imagePath: 'images/战斗$碧海凉夏_0_0.8_45_398_112_1200.png'
       },
       {
         target: 武装降临, action: function (): boolean {

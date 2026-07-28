@@ -9,6 +9,7 @@ import { 基地 } from './pages/基地'
 import { 随机事件 } from './pages/随机事件'
 import { 战斗 } from './pages/战斗'
 import { 先锋宝藏 } from './pages/先锋宝藏'
+import { 碧海凉夏 } from './pages/碧海凉夏'
 import { 军团 } from './pages/军团'
 import { 每日一刀 } from './pages/每日一刀'
 import { 异域挑战 } from './pages/异域挑战'
@@ -44,6 +45,7 @@ var 随机事件Page = new 随机事件()
 new 侧栏()
 var 战斗Page = new 战斗()
 var 先锋宝藏Page = new 先锋宝藏()
+var 碧海凉夏Page = new 碧海凉夏()
 new 军团()
 var 每日一刀Page = new 每日一刀()
 var 异域挑战Page = new 异域挑战()
@@ -146,6 +148,12 @@ function executeDailyTasks(): void {
     doTask('先锋宝藏 免费', function (): boolean {
       if (!nav(先锋宝藏)) return false
       return 先锋宝藏Page.免费()
+    })
+  }
+  if (isDailyEnabled('碧海凉夏_免费抽')) {
+    doTask('碧海凉夏 免费', function (): boolean {
+      if (!nav(碧海凉夏)) return false
+      return 碧海凉夏Page.免费()
     })
   }
   if (isDailyEnabled('幸运锦鲤_免费福利')) {
@@ -341,7 +349,6 @@ function executeDailyTasks(): void {
   // ======== 玩法商店 ========
   // ======== 未实现的功能（有开关、无页面逻辑） ========
   // TODO: 先锋宝藏_特惠战令 — 需实现 先锋宝藏Page.特惠战令()
-  // TODO: 碧海凉夏_免费抽 — 需实现 碧海凉夏Page.免费抽()
   // TODO: 作战计划_签到 — 需实现 作战计划Page.签到()
   // TODO: 兑换码 — 需实现 兑换码Page.兑换()
 }
