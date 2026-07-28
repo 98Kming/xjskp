@@ -1,0 +1,13 @@
+{
+	"properties": {
+		"tsDir": {
+			"description": "ts文件编写路径",
+			"type": "string"
+		},
+		"layoutDir": {
+			"description": "ui界面编写路径",
+			"type": "string"
+		}
+	},
+	"type": "object"
+}
