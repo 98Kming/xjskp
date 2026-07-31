@@ -180,7 +180,6 @@ function executeDailyTasks(): void {
   }
   if (isDailyEnabled('好友_一键赠送')) {
     doTask('好友 一键赠送', function (): boolean {
-      if (!nav(侧栏)) return false
       if (!nav(好友)) return false
       return 好友Page.一键赠送()
     })
