@@ -31,7 +31,7 @@ try {
   xjskp.remove("redeemCode")
 }
 log("兑换码缓存", redeemCode.failCodes.length + redeemCode.successCodes.length)
-log(redeemCode.successCodes)
+//log(redeemCode.successCodes)
 /**
  * 从api获取兑换码，获取的兑换码可能失效（过期、不存在、错误）
  * 本地分别缓存生效和失效的兑换码

@@ -4,9 +4,11 @@ console.log('屏幕宽高:', width, height, '设备宽高:', device.width, devic
 import { imageBasePath } from '../config'
 let last_capture_time = 0
 let cache_screen_img: ImageWrapper | null = null
-var templateCache = new java.util.HashMap()
 var pointCache = new java.util.HashMap()
 var regionCache = new java.util.HashMap()
+// 模板缓存 LRU:数组头部最久未用、尾部最近使用,超上限淘汰并 recycle,防止 Dalvik 堆被模板 Bitmap 撑满
+var templateCache: { key: string; img: ImageWrapper }[] = []
+var TEMPLATE_CACHE_MAX = 120
 export let recycleImgs: ImageWrapper[] = []
 
 
@@ -22,21 +24,36 @@ export function ocrText(img: any, x: number, y: number, w: number, h: number): s
   return text
 }
 export function getTemplate(filePath: string): ImageWrapper {
-  var template = templateCache.get(filePath)
-  if (!template) {
-    // 仅在 CWD 就是 imageBasePath 目录时才不拼接
-    // let cwd = files.cwd().replace(/\/+$/, '')
-    // let base = imageBasePath.replace(/\/+$/, '')
-    // let path = cwd === base || cwd.endsWith('/' + base) ? filePath : imageBasePath + filePath
-    template = images.read(filePath)
-    if (template == null) {
-      template = images.read(imageBasePath + filePath)
-      if (template == null) {
-        throw new Error(`模板图片不存在: ${filePath}`)
+  // 线性查找(模板数量有上限,字符串比较开销可忽略)
+  for (var i = 0; i < templateCache.length; i++) {
+    if (templateCache[i].key === filePath) {
+      var hit = templateCache[i]
+      // 移到末尾表示最近使用
+      if (i !== templateCache.length - 1) {
+        templateCache.splice(i, 1)
+        templateCache.push(hit)
       }
-      
+      return hit.img
     }
-    templateCache.put(filePath, template)
+  }
+  // 仅在 CWD 就是 imageBasePath 目录时才不拼接
+  // let cwd = files.cwd().replace(/\/+$/, '')
+  // let base = imageBasePath.replace(/\/+$/, '')
+  // let path = cwd === base || cwd.endsWith('/' + base) ? filePath : imageBasePath + filePath
+  var template = images.read(filePath)
+  if (template == null) {
+    template = images.read(imageBasePath + filePath)
+    if (template == null) {
+      throw new Error(`模板图片不存在: ${filePath}`)
+    }
+  }
+  templateCache.push({ key: filePath, img: template })
+  // 超出上限淘汰最久未用(头部)。
+  // 注意:不 recycle 淘汰项——createPageDetector/createRouteAction 闭包和
+  // 兑换码静态字段长期持有模板引用,recycle 会导致 use-after-recycle;
+  // 无引用的模板由 GC 回收即可
+  if (templateCache.length > TEMPLATE_CACHE_MAX) {
+    templateCache.shift()
   }
   return template
 }
@@ -54,6 +71,10 @@ export function screen(interval: number = 500, recycle: boolean = true): ImageWr
   if (recycle && cache_screen_img) {
     cache_screen_img.recycle()
     recycleImgs.push(cache_screen_img)
+    // 只保留最近 50 张的引用,防数组无限增长(图片已 recycle,引用丢弃即可被 GC)
+    if (recycleImgs.length > 50) {
+      recycleImgs.splice(0, recycleImgs.length - 50)
+    }
   }
   let img
   try {
@@ -380,6 +401,7 @@ export function createTicketAction(ticketPath: string, soldOutPath: string): () 
 
 var closeButtons: (() => boolean)[] = [
   createRouteAction('images/重新连接_1_0.9_635_1460_847_1513.png'),
+  createRouteAction('images/$跳过_1_0.9_923_400_978_447.png'),
   createRouteAction('images/$关闭1_0_0.8_800_400_1020_600.png'),
   createRouteAction('images/$确定_0_0.8_494_1000_764_1600.png'),
 ]

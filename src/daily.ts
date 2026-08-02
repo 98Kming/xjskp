@@ -28,9 +28,10 @@ import { 寰球救援 } from './pages/寰球救援'
 import { 寰球远征 } from './pages/寰球远征'
 import { 终末危机 } from './pages/终末危机'
 import { 食堂 } from './pages/食堂'
-import { 引航行动 } from './pages/引航行动'
-import { 引航行动时域珍藏 } from './pages/引航行动-时域珍藏'
-import { 引航行动每日观察 } from './pages/引航行动-每日观察'
+import { 再别前线 } from './pages/再别前线'
+import { 再别前线机械传说 } from './pages/再别前线-机械传说'
+import { 再别前线太空撤离 } from './pages/再别前线-太空撤离'
+import { 再别前线废土互市 } from './pages/再别前线-废土互市'
 import { 好友 } from './pages/好友'
 import { 领取体力 } from './pages/领取体力'
 import { 个人信息 } from './pages/个人信息'
@@ -63,9 +64,10 @@ var 寰球救援Page = new 寰球救援()
 var 寰球远征Page = new 寰球远征()
 var 终末危机Page = new 终末危机()
 var 食堂Page = new 食堂()
-var 引航行动Page = new 引航行动()
-var 引航行动时域珍藏Page = new 引航行动时域珍藏()
-var 引航行动每日观察Page = new 引航行动每日观察()
+var 再别前线Page = new 再别前线()
+var 再别前线机械传说Page = new 再别前线机械传说()
+var 再别前线太空撤离Page = new 再别前线太空撤离()
+var 再别前线废土互市Page = new 再别前线废土互市()
 var 好友Page = new 好友()
 var 领取体力Page = new 领取体力()
 
@@ -180,7 +182,6 @@ function executeDailyTasks(): void {
   }
   if (isDailyEnabled('好友_一键赠送')) {
     doTask('好友 一键赠送', function (): boolean {
-      if (!nav(侧栏)) return false
       if (!nav(好友)) return false
       return 好友Page.一键赠送()
     })
@@ -192,32 +193,31 @@ function executeDailyTasks(): void {
     })
   }
 
-  // ======== 引航行动（限时活动 2026/07/25 截止）========
-  var 引航行动可达 = false
-  var 引航行动开关开启 = isDailyEnabled('引航行动_时域珍藏') || isDailyEnabled('引航行动_每日观察')
-  if (引航行动开关开启) {
-    引航行动可达 = nav(引航行动)
+  // ======== 再别前线（限时活动：机械传说、太空撤离、废土互市） ========
+  var 再别前线可达 = false
+  var 再别前线开关开启 = isDailyEnabled('再别前线_机械传说') || isDailyEnabled('再别前线_太空撤离') || isDailyEnabled('再别前线_废土互市')
+  if (再别前线开关开启) {
+    再别前线可达 = nav(再别前线)
   }
-  if (isDailyEnabled('引航行动_时域珍藏')) {
-    doTask('引航行动-时域珍藏 免费', function (): boolean {
-      if (Date.now() >= new Date(2026, 6, 25).getTime()) {
-        console.log('[日常]   引航行动限时活动已结束')
-        return false
-      }
-      if (!引航行动可达) return false
-      if (!nav(引航行动时域珍藏)) return false
-      return 引航行动时域珍藏Page.click_免费()
+  if (isDailyEnabled('再别前线_机械传说')) {
+    doTask('再别前线-机械传说 免费', function (): boolean {
+      if (!再别前线可达) return false
+      if (!nav(再别前线机械传说)) return false
+      return 再别前线机械传说Page.click_免费()
     })
   }
-  if (isDailyEnabled('引航行动_每日观察')) {
-    doTask('引航行动-每日观察 领取', function (): boolean {
-      if (Date.now() >= new Date(2026, 6, 25).getTime()) {
-        console.log('[日常]   引航行动限时活动已结束')
-        return false
-      }
-      if (!引航行动可达) return false
-      if (!nav(引航行动每日观察)) return false
-      return 引航行动每日观察Page.领取()
+  if (isDailyEnabled('再别前线_太空撤离')) {
+    doTask('再别前线-太空撤离 签到', function (): boolean {
+      if (!再别前线可达) return false
+      if (!nav(再别前线太空撤离)) return false
+      return 再别前线太空撤离Page.click_签到()
+    })
+  }
+  if (isDailyEnabled('再别前线_废土互市')) {
+    doTask('再别前线-废土互市 收购价', function (): boolean {
+      if (!再别前线可达) return false
+      if (!nav(再别前线废土互市)) return false
+      return 再别前线废土互市Page.收购价()
     })
   }
 

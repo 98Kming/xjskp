@@ -76,14 +76,16 @@
           <pref-switch id="终末危机_扫荡" text="终末危机-扫荡" checked="true" layoutDirection="rtl" />
           <pref-switch id="商店_超时空军团兵碎片" text="商店-超时空军团兵碎片" checked="true" layoutDirection="rtl" />
           <pref-switch id="食堂" text="食堂-一键领取" checked="true" layoutDirection="rtl" />
-          <pref-switch id="引航行动_时域珍藏" text="引航行动-时域珍藏" checked="true" layoutDirection="rtl" />
-          <pref-switch id="引航行动_每日观察" text="引航行动-每日观察" checked="true" layoutDirection="rtl" />
+          <pref-switch id="再别前线_机械传说" text="再别前线-机械传说" checked="true" layoutDirection="rtl" />
+          <pref-switch id="再别前线_太空撤离" text="再别前线-太空撤离" checked="true" layoutDirection="rtl" />
+          <pref-switch id="再别前线_废土互市" text="再别前线-废土互市" checked="true" layoutDirection="rtl" />
           <pref-switch id="军团_每日一刀" text="军团-每日一刀" checked="true" layoutDirection="rtl" />
           <pref-switch id="军团_军团商店" text="军团-军团商店" checked="true" layoutDirection="rtl" />
           <pref-switch id="军团_异域挑战" text="军团-异域挑战" checked="true" layoutDirection="rtl" />
           <pref-switch id="闪退19次" text="闪退19次" checked="true" layoutDirection="rtl" />
           <pref-switch id="全部账号" text="全部账号-挨个服务器执行" checked="false" layoutDirection="rtl" />
           <button id="兑换码" text="兑换码" />
+          <button id="探索" text="探索" />
         </vertical>
       </scroll>
     </vertical>

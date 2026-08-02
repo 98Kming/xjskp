@@ -25,13 +25,15 @@
 // import { 武装降临 } from './pages/武装降临'
 // import { 武装降临任务 } from './pages/武装降临-任务'
 // import { 随机事件 } from './pages/随机事件'
-// import { 引航行动 } from './pages/引航行动'
-// import { 引航行动时域珍藏 } from './pages/引航行动-时域珍藏'
-// import { 引航行动每日观察 } from './pages/引航行动-每日观察'
+// import { 再别前线 } from './pages/再别前线'
+// import { 再别前线机械传说 } from './pages/再别前线-机械传说'
+// import { 再别前线太空撤离 } from './pages/再别前线-太空撤离'
+// import { 再别前线废土互市 } from './pages/再别前线-废土互市'
 import { mainWindow } from './MainWindow'
 import { smallWindow } from './SmallWindows'
 import { runDaily } from './daily'
 import { 兑换码 } from './model/兑换码'
+import { 探索 } from './model/探索'
 
 // var router = Router.getInstance()
 
@@ -62,12 +64,14 @@ import { 兑换码 } from './model/兑换码'
 // new 武装降临()
 // new 武装降临任务()
 // new 随机事件()
-// new 引航行动()
-// new 引航行动时域珍藏()
-// new 引航行动每日观察()
+// new 再别前线()
+// new 再别前线机械传说()
+// new 再别前线太空撤离()
+// new 再别前线废土互市()
 
 //router.go(基地)
 var 兑换码运行中 = false
+var 探索运行中 = false
 var keepAlive = setInterval(function () {}, 10000)
 mainWindow.window.启动.setOnClickListener(new android.view.View.OnClickListener({
   onClick() {
@@ -104,11 +108,31 @@ mainWindow.window.兑换码.setOnClickListener(new android.view.View.OnClickList
     })
   }
 }))
+mainWindow.window.探索.setOnClickListener(new android.view.View.OnClickListener({
+  onClick() {
+    if (探索运行中) {
+      console.log('[探索] 正在运行中，请等待完成')
+      toast('探索正在运行中')
+      return
+    }
+    探索运行中 = true
+    start(function () {
+      try {
+        new 探索().start()
+      } catch (e: any) {
+        console.error('[探索] 异常: ' + (e.message || e))
+      } finally {
+        探索运行中 = false
+      }
+    })
+  }
+}))
 
 function start(fun: () => void) {
   smallWindow.show("停止")
   threads.start(() => {
     try {
+      sleep(500)
       fun()
       smallWindow.hide()
     } catch (e: any) {

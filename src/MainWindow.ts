@@ -60,13 +60,15 @@ export type MainWindowView = {
   全部账号: ConfigurableView<PrefSwitch> & JsCheckBox
   开始任务: View
   兑换码: View
+  探索: View
   战斗_七日突围: ConfigurableView<PrefSwitch> & JsCheckBox
   巡逻车_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   随机事件_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   寰球远征_免费: ConfigurableView<PrefSwitch> & JsCheckBox
   终末危机_扫荡: ConfigurableView<PrefSwitch> & JsCheckBox
-  引航行动_时域珍藏: ConfigurableView<PrefSwitch> & JsCheckBox
-  引航行动_每日观察: ConfigurableView<PrefSwitch> & JsCheckBox
+  再别前线_机械传说: ConfigurableView<PrefSwitch> & JsCheckBox
+  再别前线_太空撤离: ConfigurableView<PrefSwitch> & JsCheckBox
+  再别前线_废土互市: ConfigurableView<PrefSwitch> & JsCheckBox
 }
 export class MainWindow extends FloatWindow<MainWindowView> {
   constructor() {
