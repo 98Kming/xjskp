@@ -72,6 +72,7 @@
           <pref-switch id="碧海凉夏_免费抽" text="碧海凉夏-免费抽" checked="true" layoutDirection="rtl" />
           <pref-switch id="作战计划_签到" text="作战计划-签到" checked="true" layoutDirection="rtl" />
           <pref-switch id="寰球救援_领票" text="寰球救援-领票" checked="true" layoutDirection="rtl" />
+          <pref-switch id="寰球救援_广告门票" text="寰球救援-广告门票" checked="true" layoutDirection="rtl" />
           <pref-switch id="寰球远征_免费" text="寰球远征-免费" checked="true" layoutDirection="rtl" />
           <pref-switch id="终末危机_扫荡" text="终末危机-扫荡" checked="true" layoutDirection="rtl" />
           <pref-switch id="商店_超时空军团兵碎片" text="商店-超时空军团兵碎片" checked="true" layoutDirection="rtl" />

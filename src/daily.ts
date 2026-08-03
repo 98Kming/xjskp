@@ -224,9 +224,15 @@ function executeDailyTasks(): void {
   // ======== 基地（入口：历练大厅、食堂） ========
   if (isDailyEnabled('寰球救援_领票')) {
     doTask('寰球救援 免费', function (): boolean {
-      if (!nav(历练大厅)) return false
+      // 直接 go 目标页:已在寰球救援页时 Router 直接返回 true,不退出重进
       if (!nav(寰球救援)) return false
       return 寰球救援Page.免费()
+    })
+  }
+  if (isDailyEnabled('寰球救援_广告门票')) {
+    doTask('寰球救援 广告门票', function (): boolean {
+      if (!nav(寰球救援)) return false
+      return 寰球救援Page.广告门票()
     })
   }
   if (isDailyEnabled('寰球远征_免费')) {
@@ -252,7 +258,7 @@ function executeDailyTasks(): void {
         console.log('[日常]   终末危机仅在 12:00~23:00 开放')
         return false
       }
-      if (!nav(历练大厅)) return false
+      // 直接 go 目标页(历练大厅仅中转,已在终末危机页时不退出重进)
       if (!nav(终末危机)) return false
       return 终末危机Page.扫荡()
     })
@@ -265,7 +271,7 @@ function executeDailyTasks(): void {
   }
   if (isDailyEnabled('随机事件_领取')) {
     doTask('随机事件 领取', function (): boolean {
-      if (!nav(基地)) return false
+      // 直接 go 随机事件(BFS 自动寻路),循环内会 nav(基地) 回入口页等待
       var anyClaimed = false
       while (true) {
         if (!nav(随机事件)) {

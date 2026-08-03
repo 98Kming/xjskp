@@ -32,6 +32,7 @@ export class 随机事件 extends BasePage {
 
   private 委婉拒绝Action = createRouteAction('images/随机事件$$领取-委婉拒绝_1_0.9_254_1139_451_1192.png')
   private 确定Action = createRouteAction('images/随机事件$$领取-确定_1_0.9_478_1134_613_1192.png')
+  private 低价买入Action = createRouteAction('images/随机事件$$领取-低价买入_1_0.9_641_1142_813_1186.png')
 
   /**
    * 检测当前页面是否已结束（出现结束按钮）
@@ -66,7 +67,13 @@ export class 随机事件 extends BasePage {
         images.save(tmp, '/sdcard/' + (currentServer ? currentServer + '_' : '') + Date.now() + '.png')
         log("★ 焕新试剂", gmlkit.ocr(tmp, 'zh'), ocrText(img, point.x + template.getWidth(), point.y + template.getHeight() - 50, 30, 50))
         tmp.recycle()
-        break
+        // 点击低价买入(购买焕新试剂),不直接 break,继续领取其他按钮
+        if (this.低价买入Action()) {
+          claimed = true
+          found = true
+          idleRounds = 0
+          sleep(1000)
+        }
       }
 
       // 结束检测：出现即退出（入口仍在）

@@ -51,6 +51,7 @@ export type MainWindowView = {
   碧海凉夏_免费抽: ConfigurableView<PrefSwitch> & JsCheckBox
   作战计划_签到: ConfigurableView<PrefSwitch> & JsCheckBox
   寰球救援_领票: ConfigurableView<PrefSwitch> & JsCheckBox
+  寰球救援_广告门票: ConfigurableView<PrefSwitch> & JsCheckBox
   商店_超时空军团兵碎片: ConfigurableView<PrefSwitch> & JsCheckBox
   食堂: ConfigurableView<PrefSwitch> & JsCheckBox
   军团_每日一刀: ConfigurableView<PrefSwitch> & JsCheckBox
