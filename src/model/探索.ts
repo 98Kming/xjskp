@@ -1,10 +1,10 @@
 // 使用 AutoJs6 全局 API(colors/images/click 等),不依赖项目 util 模块
-import { imageNameParser } from '../utils/img'
+import { getTemplate, imageNameParser } from '../utils/img'
 // 截图权限在 start() 里请求,避免模块加载(main.ts import)时就弹权限框阻塞主窗口创建
 /** 读图并按文件名解析匹配阈值(如 _0_0.65 后缀) */
 type Tpl = { img: any, threshold: number }
 function 读图(path: string): Tpl {
-  return { img: images.read(path), threshold: imageNameParser(path).threshold }
+  return { img: getTemplate(path), threshold: imageNameParser(path).threshold }
 }
 const img_炸弹 = 读图("./images/探索$$炸弹_0_0.65.png")
 const img_未知 = 读图("./images/探索$$未知块_0_0.9.png")
@@ -186,6 +186,11 @@ export class 探索 {
         cap.recycle()
       } else {
         this.detectCell(fast, images.captureScreen(), false)
+        if (fast.type == CellType.已知) {
+          // 点开后识别为"其他"可能是动画未结束,等 300ms 重新识别一次
+          sleep(300)
+          this.detectCell(fast, images.captureScreen(), false)
+        }
       }
     }
 
@@ -222,17 +227,10 @@ export class 探索 {
     this.width = parseInt((lenX / 5 + lenY / 6) / 2 + "")
     log(this.startX, this.startY, this.width)
     for (let i = 0; i < 6; i++) {
-      // if (this.table[i] == null) {
-      //   this.table[i] = new Array(5)
-      // }
       for (let j = 0; j < 5; j++) {
         this.detectCell(this.getCell(i, j), img, true)
       }
     }
-    //log("----------------------初始化表格-------------------------")
-    //this.waitDetectArr.forEach(cell => cell.weight = this.unknownTypeWeight(cell))
-    //this.print()
-    //log("----------------------初始化表格-------------------------")
   }
 
   getCell(i: number, j: number) {
@@ -257,15 +255,11 @@ export class 探索 {
         this.waitDetectArr.push(cell)
       }
     }
-    // log("----------------------重置表格-------------------------")
     this.box = undefined
     this.boxType = undefined
     this.boxPiece = 0
     this.hideCell = undefined
     this.bombCell = undefined
-    //this.waitDetectArr.forEach(cell => cell.weight = this.unknownTypeWeight(cell))
-    //this.print()
-    //log("----------------------重置表格-------------------------")
   }
 
   setBox(i: number, j: number, type: CellType.储物盒1层 | CellType.储物盒2层 | CellType.储物盒3层) {
@@ -293,62 +287,6 @@ export class 探索 {
     }
   }
 
-  // private detectCell(cell: Cell, img: ImageWrapper) {
-  //   const x = this.startX + cell.j * this.width;
-  //   const y = this.startY + cell.i * this.width;
-  //   const w = this.width;
-
-  //   // 隐藏物品
-  //   if (images.findImageInRegion(img, img_隐藏物品, x, y, w, w)) {
-  //     cell.type = CellType.隐藏物品;
-  //     cell.isBox = false;
-  //     this.hideCell = cell;
-  //     return;
-  //   }
-
-  //   // 炸弹
-  //   if (images.findImageInRegion(img, img_炸弹, x, y, w, w)) {
-  //     cell.type = CellType.炸弹;
-  //     cell.isBox = false;
-  //     this.bombCell = cell;
-  //     this.waitDetectArr.push(cell);
-  //     return;
-  //   }
-
-  //   // 储物盒（合并匹配）
-  //   const patterns = [
-  //     { img: img_1层储物盒, di: 0, dj: 0, type: CellType.储物盒1层 },
-  //     { img: img_2层储物盒11, di: 0, dj: 0, type: CellType.储物盒2层 },
-  //     { img: img_2层储物盒12, di: 0, dj: -1, type: CellType.储物盒2层 },
-  //     { img: img_2层储物盒21, di: -1, dj: 0, type: CellType.储物盒2层 },
-  //     { img: img_2层储物盒22, di: -1, dj: -1, type: CellType.储物盒2层 },
-  //     { img: img_3层储物盒11, di: 0, dj: 0, type: CellType.储物盒3层 },
-  //     { img: img_3层储物盒12, di: 0, dj: -1, type: CellType.储物盒3层 },
-  //     { img: img_3层储物盒21, di: -1, dj: 0, type: CellType.储物盒3层 },
-  //     { img: img_3层储物盒22, di: -1, dj: -1, type: CellType.储物盒3层 },
-  //     { img: img_3层储物盒31, di: -2, dj: 0, type: CellType.储物盒3层 },
-  //     { img: img_3层储物盒32, di: -2, dj: -1, type: CellType.储物盒3层 },
-  //   ];
-
-  //   for (const p of patterns) {
-  //     if (images.findImageInRegion(img, p.img, x, y, w, w)) {
-  //       const ri = cell.i + p.di;
-  //       const rj = cell.j + p.dj;
-  //       cell.type = p.type;
-  //       this.setBox(ri, rj, p.type);
-  //       return;
-  //     }
-  //   }
-
-  //   // 默认处理
-  //   if (images.findImageInRegion(img, img_未知, x, y, w, w)) {
-  //     this.waitDetectArr.push(cell);
-  //   } else {
-  //     cell.type = CellType.已知;
-  //     cell.isBox = false;
-  //     cell.weight = 0;
-  //   }
-  // }
   detectCell(cell: Cell, img: ImageWrapper = images.captureScreen(), first: boolean = true) {
     if (!first && this.box && cell.isBox) {
       cell.type = this.boxType!
@@ -358,9 +296,9 @@ export class 探索 {
     }
     let x = this.startX + cell.j * this.width
     let y = this.startY + cell.i * this.width
-    let tmp = images.clip(img, x, y, this.width, this.width)
-    images.save(tmp, "/sdcard/" + cell.i + "-" + cell.j + ".png")
-    tmp.recycle()
+    // let tmp = images.clip(img, x, y, this.width, this.width)
+    // images.save(tmp, "/sdcard/" + cell.i + "-" + cell.j + ".png")
+    // tmp.recycle()
     if (images.findImageInRegion(img, img_未知.img, x, y, this.width, this.width, img_未知.threshold)) {
       this.waitDetectArr.push(cell)
     } else if (images.findImageInRegion(img, img_隐藏物品.img, x, y, this.width, this.width, img_隐藏物品.threshold)) {

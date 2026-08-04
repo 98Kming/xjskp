@@ -4,7 +4,7 @@
 
 import { mainWindow } from "./MainWindow"
 import { Router } from './router/Router'
-import { createTicketAction, imageDetector } from './utils/img'
+import { createTicketAction, imageDetector, screen, tryCloseModals } from './utils/img'
 import { 基地 } from './pages/基地'
 import { 随机事件 } from './pages/随机事件'
 import { 战斗 } from './pages/战斗'
@@ -382,6 +382,13 @@ export function runDaily(): void {
       console.log('')
       console.log('--- 切换服务器: ' + server + ' ---')
       console.log('')
+      // 新服务器加载中：关闭弹窗直到进入战斗主界面（加载期其他页面识别不可靠，不能以"任意已知页"为准）
+      for (var w = 0; w < 30; w++) {
+        var wp = router.detectCurrentPage(screen(0))
+        if (wp && wp.name === '战斗') break
+        tryCloseModals()
+        sleep(1000)
+      }
       executeDailyTasks()
       sleep(1000)
     }

@@ -294,6 +294,10 @@ export class Router {
         var page = this.detectCurrentPage(frame)
 
         if (!page) {
+          // 页面未知：可能被弹窗遮挡识别图，尝试关闭，避免干等超时
+          if (attempt >= 1 && tryCloseModals()) {
+            log('[导航] 第' + (i + 1) + '跳: 关闭遮挡弹窗，继续等待页面')
+          }
           landedPage = null
           continue
         }

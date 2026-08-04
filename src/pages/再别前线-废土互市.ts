@@ -22,9 +22,12 @@ export class 再别前线废土互市 extends BasePage {
     if (!point) return false
     // 收购价右边 145px 区域 OCR 价格数字
     // y 上移 2px、高 +6:价格数字比"收购价"文字高,顶部被切会导致 980 误识别成 086
-    var text = ocrText(img, point.x + template.width, point.y - 5, 145, template.height + 9)
+    var text = ocrText(img, point.x + template.width + 5, point.y - 5, 130, template.height + 9)
     // 去掉所有非数字字符再取整,兼容千分位(如 "1,600")
     var num = parseInt(text.replace(/[^0-9]/g, '')) || 0
+    let tmp = images.clip(img, point.x + template.width + 5, point.y - 5, 130, template.height + 9)
+    images.save(tmp, "/sdcard/" + num + ".png")
+    tmp.recycle()
     var serverTag = currentServer ? ' [' + currentServer + ']' : ''
     if (!num || num < 900) {
       log(serverTag + '[废土互市] 收购价', text, '低于 900，跳过')

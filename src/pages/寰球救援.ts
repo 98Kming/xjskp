@@ -17,6 +17,7 @@ export class 寰球救援 extends BasePage {
     var tpl = getTemplate(filePath)
     var rw = parsed.x2 - parsed.x1
     var rh = parsed.y2 - parsed.y1
+    sleep(2000)
     var point = images.findImageInRegion(screen(), tpl, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false
     click(point.x + tpl.width / 2, point.y - 20)
