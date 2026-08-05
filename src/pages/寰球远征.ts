@@ -1,5 +1,5 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction, imageNameParser, getTemplate, screen } from '../utils/img'
+import { createPageDetector, createRouteAction, imageNameParser, getTemplate, screen, toScreenX, toScreenY } from '../utils/img'
 
 export class 寰球远征 extends BasePage {
   name = '寰球远征'
@@ -15,7 +15,7 @@ export class 寰球远征 extends BasePage {
       var img = screen()
       var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
       if (point) {
-        click(point.x + template.width / 2, point.y + template.height / 2 - 10)
+        click(toScreenX(point.x + template.width / 2), toScreenY(point.y + template.height / 2 - 10))
         sleep(1000)
         this.back()
         sleep(500)

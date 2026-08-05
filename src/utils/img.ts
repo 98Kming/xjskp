@@ -90,7 +90,12 @@ export function screen(interval: number = 500, recycle: boolean = true): ImageWr
   }
   last_capture_time = Date.now()
   if (img.width != width) {
-    img = images.scale(img, width, height)
+    // AutoJs6 文档「images.resize」：第二个参数为目标尺寸 [w, h]
+    // （images.scale 的 fx/fy 是缩放倍率而非目标尺寸，传 1080/2376 会把原图放大 1080×2376 倍直接 OOM）
+    img = images.resize(img, [width, height])
+    // AutoX.js：缩放生成的图 bitmap 是惰性的，images.pixel 读 y>=1400 区域抛 NPE
+    // （"Attempt to read from null array"），getBitmap() 强制实体化后 pixel 正常
+    img.getBitmap()
   }
   cache_screen_img = img
   return img
@@ -157,6 +162,18 @@ function expandRegion(x1: number, y1: number, x2: number, y2: number): [number, 
   return [x1, y1, x2, y2]
 }
 
+/**
+ * 1080 系坐标 → 物理屏幕坐标。
+ * 找图在缩放后的 1080x2376 图上进行，点击必须映射回设备实际分辨率
+ * （如 1440x3168），否则点击位置偏移。1080 宽设备上恒等映射，无影响。
+ */
+export function toScreenX(x: number): number {
+  return Math.round(x * device.width / width)
+}
+export function toScreenY(y: number): number {
+  return Math.round(y * device.height / height)
+}
+
 export interface PageDetector {
   (img: ImageWrapper): boolean
   detectImagePath: string
@@ -178,47 +195,46 @@ export function createPageDetector(filePath: string): PageDetector {
   var rw = parsed.x2 - parsed.x1
   var rh = parsed.y2 - parsed.y1
 
-  var fn = function (img: ImageWrapper): boolean {
-    var cached = regionCache.get(filePath)
-    if (cached) {
-      var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
-      if (point) {
-        var tplPixel = images.pixel(template, 0, 0)
-        var scrPixel = images.pixel(img, point.x, point.y)
-        let lum1 = colors.luminance(tplPixel);
-        let lum2 = colors.luminance(scrPixel);
-        if (lum2 !== 0) {
-          let percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100;
-          if (percentDiff < 50) return true
-        }
-      }
-      // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
-      return false
-    }
-    // 无缓存 → 全量搜索
-    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-    if (!point) return false
+/**
+ * 模板亮度一致性检查：模板与匹配点亮度差 <50% 才接受。
+ * AutoX.js 对 images.resize 后的截图在 y>=1500 区域调 pixel 会抛 NPE
+ * （"Attempt to read from null array"），此时跳过检查直接接受匹配，
+ * findImageInRegion 的阈值匹配已足够可靠，亮度检查只是防黑屏误匹配的附加防护。
+ */
+function luminanceOk(template: ImageWrapper, img: ImageWrapper, point: OpenCV.Point, filePath: string): boolean {
+  try {
     var tplPixel = images.pixel(template, 0, 0)
     var scrPixel = images.pixel(img, point.x, point.y)
-    let lum1 = colors.luminance(tplPixel);
-    let lum2 = colors.luminance(scrPixel);
-    if (lum2 === 0) {
-      log('[检测] 亮度为0，跳过匹配')
-      return false
+    var lum1 = colors.luminance(tplPixel)
+    var lum2 = colors.luminance(scrPixel)
+    if (lum2 === 0) return false
+    var percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100
+    if (percentDiff < 50) {
+      log('[亮度] 模板:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5), percentDiff, filePath)
+      return true
     }
-    // 计算亮度下降百分比
-    let percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100;
-    percentDiff < 50 && log('[亮度] 模板:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5), percentDiff, filePath)
-    if (parsed.cache === 1 && percentDiff < 50) {
-      regionCache.put(filePath, {
-        x1: Math.max(point.x - 5, 0),
-        y1: Math.max(point.y - 5, 0),
-        x2: Math.min(point.x + template.width + 5, width),
-        y2: Math.min(point.y + template.height + 5, height)
-      })
+    return false
+  } catch (e) {
+    // resize 截图像素读取失败 → 跳过亮度检查
+    return true
+  }
+}
+
+var fn = function (img: ImageWrapper): boolean {
+  var cached = regionCache.get(filePath)
+  if (cached) {
+    var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
+    if (point) {
+      return luminanceOk(template, img, point, filePath)
     }
-    return percentDiff < 50;
-  } as PageDetector
+    // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
+    return false
+  }
+  // 无缓存 → 全量搜索
+  var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+  if (!point) return false
+  return luminanceOk(template, img, point, filePath)
+} as PageDetector
   fn.detectImagePath = filePath
   return fn
 }
@@ -237,7 +253,7 @@ export function createRouteAction(filePath: string): () => boolean {
         var img = screen()
         var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
         if (point) {
-          click(point.x + template.width / 2, point.y + template.height / 2)
+          click(toScreenX(point.x + template.width / 2), toScreenY(point.y + template.height / 2))
           return true
         }
         // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
@@ -247,8 +263,8 @@ export function createRouteAction(filePath: string): () => boolean {
       var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
       //log('尝试匹配模板:', filePath, `[${parsed.x1},${parsed.y1}-${parsed.x2},${parsed.y2}]`, point ? `结果: 找到坐标(${point.x}, ${point.y})` : '结果: 未找到')
       if (!point) return false
-      var cx = point.x + template.width / 2
-      var cy = point.y + template.height / 2
+      var cx = toScreenX(point.x + template.width / 2)
+      var cy = toScreenY(point.y + template.height / 2)
       regionCache.put(filePath, {
         x1: Math.max(point.x - 5, 0),
         y1: Math.max(point.y - 5, 0),
@@ -265,7 +281,7 @@ export function createRouteAction(filePath: string): () => boolean {
     var img = screen()
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false
-    click(point.x + template.width / 2, point.y + template.height / 2)
+    click(toScreenX(point.x + template.width / 2), toScreenY(point.y + template.height / 2))
     return true
   }
 }
@@ -311,7 +327,7 @@ export function createAnchoredAction(anchorPath: string, targetPath: string): ()
     var targetPoint = topMatch.point
     if (!targetPoint) return false
 
-    click(targetPoint.x + targetTemplate.width / 2, targetPoint.y + targetTemplate.height / 2)
+    click(toScreenX(targetPoint.x + targetTemplate.width / 2), toScreenY(targetPoint.y + targetTemplate.height / 2))
     return true
   }
 }
@@ -337,8 +353,8 @@ export function createMirroredAction(filePath: string): () => boolean {
       var img = screen()
       var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
       if (!point) return false
-      var cx = device.width - point.x - template.width / 2
-      var cy = point.y + template.height / 2
+      var cx = toScreenX(width - point.x - template.width / 2)
+      var cy = toScreenY(point.y + template.height / 2)
       pointCache.put(filePath, { x: cx, y: cy })
       log('镜像点击:', filePath, `坐标(${cx}, ${cy})`)
       click(cx, cy)
@@ -350,8 +366,8 @@ export function createMirroredAction(filePath: string): () => boolean {
     var img = screen()
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false
-    var cx = device.width - point.x
-    var cy = point.y + template.height / 2
+    var cx = toScreenX(width - point.x)
+    var cy = toScreenY(point.y + template.height / 2)
     log('镜像点击:', filePath, `坐标(${cx}, ${cy})`)
     click(cx, cy)
     return true
@@ -391,8 +407,8 @@ export function createTicketAction(ticketPath: string, soldOutPath: string): () 
       }
     }
 
-    var cx = device.width - point.x - template.width / 2
-    var cy = point.y + template.height / 2
+    var cx = toScreenX(width - point.x - template.width / 2)
+    var cy = toScreenY(point.y + template.height / 2)
     log('镜像点击:', ticketPath, `坐标(${cx}, ${cy})`)
     click(cx, cy)
     return true
@@ -434,7 +450,7 @@ export function tryCloseModals(): boolean {
       }
     }
     if (!excluded) {
-      click(point.x, point.y + 30)
+      click(toScreenX(point.x), toScreenY(point.y + 30))
       return true
     }
   }
@@ -453,7 +469,7 @@ export function tryCloseModals(): boolean {
       }
     }
     if (!excluded2) {
-      click(point.x, point.y + 30)
+      click(toScreenX(point.x), toScreenY(point.y + 30))
       return true
     }
   }
@@ -503,8 +519,8 @@ export function scrollFind(imgPath: string, x1: number, y1: number, x2: number, 
       return point
     }
     // 向上滚动：从屏幕下方滑到上方
-    swipe(x1, y1, x2, y2, 300)
-    swipe(x2, y2, x3, y2, 300)
+    swipe(toScreenX(x1), toScreenY(y1), toScreenX(x2), toScreenY(y2), 300)
+    swipe(toScreenX(x2), toScreenY(y2), toScreenX(x3), toScreenY(y2), 300)
     sleep(800)
     var afterImg = screen(0, false)
     let x = Math.min(x1, x2, x3)

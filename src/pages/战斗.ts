@@ -1,5 +1,5 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction } from '../utils/img'
+import { createPageDetector, createRouteAction, toScreenX, toScreenY } from '../utils/img'
 import { 基地 } from './基地'
 import { 军团 } from './军团'
 import { 幸运锦鲤 } from './幸运锦鲤'
@@ -21,14 +21,14 @@ export class 战斗 extends BasePage {
   }
 
   scrollDown() {
-    swipe(50, 900, 50, 600,300)
-    swipe(50, 600, 120, 600,100)
+    swipe(toScreenX(50), toScreenY(900), toScreenX(50), toScreenY(600),300)
+    swipe(toScreenX(50), toScreenY(600), toScreenX(120), toScreenY(600),100)
     sleep(500)
   }
 
   scrollUp() {
-    swipe(50, 600, 50, 900,300)
-    swipe(50, 900, 120, 900,100)
+    swipe(toScreenX(50), toScreenY(600), toScreenX(50), toScreenY(900),300)
+    swipe(toScreenX(50), toScreenY(900), toScreenX(120), toScreenY(900),100)
     sleep(500)
   }
 
@@ -49,7 +49,7 @@ export class 战斗 extends BasePage {
       },
       { target: 侧栏, action: createRouteAction('images/战斗$侧栏_1_0.9_974_378_1040_447.png'), imagePath: 'images/战斗$侧栏_1_0.9_974_378_1040_447.png' },
       { target: 巡逻车, action: createRouteAction('images/战斗$巡逻车_1_0.7_58_1917_169_1955.png'), imagePath: 'images/战斗$巡逻车_1_0.7_58_1917_169_1955.png' },
-      { target: 个人信息, action: function (): boolean { click(100, 200); return true } },
+      { target: 个人信息, action: function (): boolean { click(toScreenX(100), toScreenY(200)); return true } },
       {
         target: 先锋宝藏, action: function (): boolean {
           var action = createRouteAction('images/战斗$先锋宝藏_0_0.8_64_1010_118_1049.png')

@@ -1,4 +1,4 @@
-import { tryCloseModals, getTemplate, screen, width, height } from "../utils/img"
+import { tryCloseModals, getTemplate, screen, width, height, toScreenX, toScreenY } from "../utils/img"
 
 type Data = {
   last_page: number,
@@ -43,7 +43,7 @@ export class 兑换码 {
   static 恭喜获得_point?: { x: number, y: number }
   static img_兑换 = getTemplate("images/兑换码_兑换_1_0.9_758_1198_849_1245.png");
   static img_兑换码_领取过 = getTemplate("images/兑换码_兑换码领取过_1_0.9_80_925_981_992.jpg")
-  static img_兑换码_恭喜获得 = getTemplate("images/兑换码_恭喜获得_1_0.9_438_602_637_656.jpg")
+  static img_兑换码_恭喜获得 = getTemplate("images/恭喜获得_1_0.85_438_602_637_656.jpg")
   static img_兑换码_冷却 = getTemplate("images/兑换码_兑换冷却_1_0.9_80_925_981_992.jpg")
   static img_兑换码_过期 = getTemplate("images/兑换码_兑换码过期_1_0.9_80_925_981_992.jpg")
   static img_兑换码_不存在 = getTemplate("images/兑换码_兑换码不存在_1_0.9_80_925_981_992.jpg")
@@ -58,11 +58,12 @@ export class 兑换码 {
     return false
   }
   static click_兑换() {
-    click(this.兑换_point!.x, this.兑换_point!.y)
+    click(toScreenX(this.兑换_point!.x), toScreenY(this.兑换_point!.y))
   }
   static has_恭喜获得(img: ImageWrapper) {
+    // 阈值 0.85：1440 设备截图缩放后模板相似度实测 0.8877，默认 0.9 匹配不上
     let point = images.findImageInRegion(img, this.img_兑换码_恭喜获得,
-      width * 0.3, height * 0.2, width * 0.4, height * 0.3)
+      width * 0.3, height * 0.2, width * 0.4, height * 0.3, 0.85)
     if (point) {
       this.恭喜获得_point || (this.恭喜获得_point = { x: point.x, y: point.y - 200 })
       return true
@@ -174,7 +175,7 @@ export class 兑换码 {
       retries++
       let img = screen(0)
       if (this.has_兑换(img)) {
-        click(this.兑换_point.x / 2, this.兑换_point.y + 20)
+        click(toScreenX(this.兑换_point.x / 2), toScreenY(this.兑换_point.y + 20))
         sleep(300)
         // 输入法输入框
         let edit = className("android.widget.EditText").findOnce()
@@ -197,7 +198,7 @@ export class 兑换码 {
           text(code)
         }
         sleep(300)
-        click(500, 300) // 关闭兑换码输入框弹窗
+        click(toScreenX(500), toScreenY(300)) // 关闭兑换码输入框弹窗
         sleep(300)
         let res
         let clickRetries = 0
@@ -205,7 +206,7 @@ export class 兑换码 {
         do {
           if (clickRetries >= maxClickRetries) break
           clickRetries++
-          click(this.兑换_point.x, this.兑换_point.y)
+          click(toScreenX(this.兑换_point.x), toScreenY(this.兑换_point.y))
           res = this.兑换结果()
           if (res != 兑换结果.识别失败) {
             return res
@@ -229,7 +230,7 @@ export class 兑换码 {
       let img = screen(0)
       if (this.has_恭喜获得(img)) {
         do {
-          click(this.恭喜获得_point!.x, this.恭喜获得_point!.y)
+          click(toScreenX(this.恭喜获得_point!.x), toScreenY(this.恭喜获得_point!.y))
           sleep(500)
         } while (this.has_恭喜获得(screen(0)))
         return 兑换结果.成功

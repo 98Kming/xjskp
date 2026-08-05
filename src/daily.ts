@@ -97,6 +97,18 @@ function nav(target: any): boolean {
     if (e.message && e.message.indexOf('ScriptInterruptedException') >= 0) throw e
     var serverTag = currentServer ? ' [' + currentServer + ']' : ''
     console.log('[日常] ⚠ 导航异常: ' + (e.message || e) + serverTag)
+    // 打印完整堆栈定位异常源头
+    if (e.stack) {
+      console.log('[日常] 堆栈: ' + e.stack)
+    }
+    try {
+      if (e.javaException && e.javaException.getStackTrace) {
+        var st = e.javaException.getStackTrace()
+        for (var si = 0; si < st.length; si++) {
+          console.log('[日常]   at ' + st[si].toString())
+        }
+      }
+    } catch (se) { }
     return false
   }
 }

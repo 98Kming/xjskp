@@ -1,5 +1,5 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction, screen, width, height, getTemplate, imageNameParser, ocrText } from '../utils/img'
+import { createPageDetector, createRouteAction, screen, width, height, getTemplate, imageNameParser, ocrText, toScreenX, toScreenY } from '../utils/img'
 import { getRecentAppsSorted, launchPackageByShell } from '../utils/app'
 import { currentServer } from '../daily'
 
@@ -40,7 +40,7 @@ export class 再别前线废土互市 extends BasePage {
     // 点复制 → 文本进入剪贴板
     if (!createRouteAction('images/废土互市$$复制_1_0.9_851_1230_894_1278.png')()) return false
     sleep(300)
-    click(width - 50, height - 50)
+    click(toScreenX(width - 50), toScreenY(height - 50))
     // 切 AutoJs6 前台读取剪贴板(Android 16 后台读剪贴板受限,前台可读)
     launch(context.getPackageName())
     sleep(2000)
@@ -49,7 +49,7 @@ export class 再别前线废土互市 extends BasePage {
     log(serverTag + '[废土互市] 剪贴板', str)
     setClip(str)
     sleep(500)
-    click(width - 50, height - 50)
+    click(toScreenX(width - 50), toScreenY(height - 50))
     // 回游戏:最近应用第 1 个是 AutoJs6(刚切前台),第 2 个是游戏
     // 用 root shell 启动(ColorOS 拦截应用层后台启动弹确认框,shell 启动实测不被拦截)
     var recentApps = getRecentAppsSorted(2)

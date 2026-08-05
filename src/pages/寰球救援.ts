@@ -1,10 +1,10 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction, screen, width, height, getTemplate, imageNameParser } from '../utils/img'
+import { createPageDetector, createRouteAction, screen, width, height, getTemplate, imageNameParser, toScreenX, toScreenY } from '../utils/img'
 
 export class 寰球救援 extends BasePage {
   name = '寰球救援'
   is = createPageDetector('images/寰球救援_1_0.9_418_2081_472_2107.png')
-  private static img_恭喜获得 = getTemplate('images/兑换码_恭喜获得_1_0.9_438_602_637_656.jpg')
+  private static img_恭喜获得 = getTemplate('images/恭喜获得_1_0.85_438_602_637_656.jpg')
 
   /**
    * 广告门票:点击后看广告,40 秒内出现"恭喜获得"即视为成功。
@@ -20,16 +20,17 @@ export class 寰球救援 extends BasePage {
     sleep(2000)
     var point = images.findImageInRegion(screen(), tpl, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false
-    click(point.x + tpl.width / 2, point.y - 20)
+    click(toScreenX(point.x + tpl.width / 2), toScreenY(point.y - 20))
     log('[寰球救援] 已点击广告门票,等待广告结束...')
     var start = Date.now()
     while (Date.now() - start < 40000) {
       sleep(1000)
+      // 阈值 0.85：1440 设备截图缩放后模板相似度实测 0.8877，0.9 匹配不上
       var point = images.findImageInRegion(screen(), 寰球救援.img_恭喜获得,
-        width * 0.3, height * 0.2, width * 0.4, height * 0.3, 0.9)
+        width * 0.3, height * 0.2, width * 0.4, height * 0.3, 0.85)
       if (point) {
         log('[寰球救援] 广告门票领取成功(恭喜获得)')
-        click(point.x, point.y - 200)
+        click(toScreenX(point.x), toScreenY(point.y - 200))
         sleep(800)
         this.back()
         sleep(800)

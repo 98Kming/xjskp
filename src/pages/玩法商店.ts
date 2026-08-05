@@ -1,5 +1,5 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction, getTemplate, imageNameParser, screen, width, height } from '../utils/img'
+import { createPageDetector, createRouteAction, getTemplate, imageNameParser, screen, width, height, toScreenX, toScreenY } from '../utils/img'
 
 export class 玩法商店 extends BasePage {
   name = '玩法商店'
@@ -11,7 +11,7 @@ export class 玩法商店 extends BasePage {
 
   /** 购买超时空军团兵碎片：向上滚动 → 找商品（镜像点击）→ 最大 → 购买 */
   buy_超时空军团兵(): boolean {
-    swipe(width / 2, height * 0.7, width / 2, height * 0.3, 300)
+    swipe(toScreenX(width / 2), toScreenY(height * 0.7), toScreenX(width / 2), toScreenY(height * 0.3), 300)
     sleep(800)
 
     var parsed = imageNameParser('images/_超时空军团兵_0_0.9_125_100_208_h.png')
@@ -23,8 +23,8 @@ export class 玩法商店 extends BasePage {
     if (!point) return false
 
     // 镜像点击（和入场券购买一致）
-    var cx = width - point.x - template.width / 2
-    var cy = point.y + template.height / 2
+    var cx = toScreenX(width - point.x - template.width / 2)
+    var cy = toScreenY(point.y + template.height / 2)
     click(cx, cy)
     sleep(1500)
 

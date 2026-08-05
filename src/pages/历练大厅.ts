@@ -1,5 +1,5 @@
 import { BasePage, Route } from './BasePage'
-import { createAnchoredAction, createPageDetector, createRouteAction, getTemplate, imageNameParser, screen, width, height } from '../utils/img'
+import { createAnchoredAction, createPageDetector, createRouteAction, getTemplate, imageNameParser, screen, width, height, toScreenX, toScreenY } from '../utils/img'
 import { 玩法商店 } from './玩法商店'
 import { 寰球救援 } from './寰球救援'
 import { 寰球远征 } from './寰球远征'
@@ -43,15 +43,15 @@ export class 历练大厅 extends BasePage {
           })
           if (!result || !result.matches || result.matches.length === 0) return false
           var p = result.matches[0].point
-          click(p.x + challengeTpl.width / 2, p.y + challengeTpl.height / 2)
+          click(toScreenX(p.x + challengeTpl.width / 2), toScreenY(p.y + challengeTpl.height / 2))
           return true
         }
 
         if (找锚点下方挑战()) return true
         // 终末危机在列表底部，挑战可能在可视区外，滑一次再查（两段式：滑动+点停惯性）
         console.log('[历练大厅] 终末危机挑战按钮未找到，滚动一次重试')
-        swipe(width / 2, height * 0.6, width / 2, height * 0.3, 300)
-        swipe(width / 2, height * 0.3, width / 2 + 50, height * 0.3, 100)
+        swipe(toScreenX(width / 2), toScreenY(height * 0.6), toScreenX(width / 2), toScreenY(height * 0.3), 300)
+        swipe(toScreenX(width / 2), toScreenY(height * 0.3), toScreenX(width / 2 + 50), toScreenY(height * 0.3), 100)
         sleep(800)
         return 找锚点下方挑战()
       }, imagePath: 'images/$挑战_0_0.9.png' },
