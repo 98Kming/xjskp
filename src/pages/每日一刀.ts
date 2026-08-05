@@ -3,7 +3,7 @@ import { createPageDetector, createRouteAction } from '../utils/img'
 
 export class 每日一刀 extends BasePage {
   name = '每日一刀'
-  is = createPageDetector('images/每日一刀_1_0.9_456_1935_766_1975.png')
+  is = createPageDetector('images/每日一刀_1_0.9_260_1556_560_1599.png')
   private 关闭 = createRouteAction('images/$关闭2_0_0.8_800_400_1020_600.png')
 
   砍一刀(): boolean {
