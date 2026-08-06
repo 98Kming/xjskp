@@ -12,6 +12,89 @@ var TEMPLATE_CACHE_MAX = 120
 export let recycleImgs: ImageWrapper[] = []
 
 
+/** 两矩形重叠面积占较小矩形面积的比例，无重叠返回 0 */
+function rectOverlapRatio(a: Rect | null, b: Rect | null): number {
+  if (!a || !b) return 0
+  var overlapW = Math.min(a.right, b.right) - Math.max(a.left, b.left)
+  var overlapH = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top)
+  if (overlapW <= 0 || overlapH <= 0) return 0
+  var overlap = overlapW * overlapH
+  var minArea = Math.min((a.right - a.left) * (a.bottom - a.top), (b.right - b.left) * (b.bottom - b.top))
+  return minArea > 0 ? overlap / minArea : 0
+}
+
+/**
+ * 递归去掉重复区域大于 50% 且内容被包含的节点，返回去重后的新树（纯 JS 对象）：
+ * 先清理子节点内部，再过滤与父节点冗余的子节点（子文本被父包含），
+ * 最后子节点两两去重（文本互相包含时保留索引小者，相同文本也只留一个）。
+ * 空文本节点不参与去重（父节点可能仅作分组，bounds 为 null 时直接跳过）。
+ * children 可能是 Java 数组/列表（无 map/forEach 方法），用 length/size 索引遍历。
+ */
+function removeOcrRedundant(node: OcrResult): OcrResult {
+  var children: OcrResult[] = []
+  var rawChildren: any = node.children
+  if (rawChildren) {
+    var len = rawChildren.length != null ? rawChildren.length : rawChildren.size()
+    for (var i = 0; i < len; i++) {
+      var child: OcrResult = rawChildren[i] != null ? rawChildren[i] : rawChildren.get(i)
+      children.push(removeOcrRedundant(child))
+    }
+  }
+  // 子节点与父节点冗余：子文本被父文本包含且重叠 >50% → 去掉子
+  var filtered: OcrResult[] = []
+  for (var i = 0; i < children.length; i++) {
+    var child = children[i]
+    if (child.text && node.text && node.text.includes(child.text) && rectOverlapRatio(node.bounds, child.bounds) > 0.5) {
+      continue
+    }
+    filtered.push(child)
+  }
+  // 子节点两两去重：重叠 >50% 且文本互相包含（相同文本保索引小者）→ 去掉被包含者
+  var keep: OcrResult[] = []
+  for (var i = 0; i < filtered.length; i++) {
+    var redundant = false
+    for (var j = 0; j < filtered.length; j++) {
+      if (i === j || redundant) continue
+      if (rectOverlapRatio(filtered[i].bounds, filtered[j].bounds) > 0.5 && filtered[i].text && filtered[j].text &&
+        (filtered[j].text === filtered[i].text ? i > j : filtered[j].text.includes(filtered[i].text))) {
+        redundant = true
+      }
+    }
+    if (!redundant) keep.push(filtered[i])
+  }
+  return {
+    level: node.level,
+    confidence: node.confidence,
+    text: node.text,
+    language: node.language,
+    bounds: node.bounds,
+    children: keep
+  }
+}
+
+/**
+ * 区域 OCR：裁剪指定区域识别，返回 OcrResult（含 bounds 树）。
+ * 区域越界自动 clamp 到图片范围内（images.clip 越界抛异常）；裁剪图用后 recycle 防泄漏。
+ */
+export function ocrRegion(img: ImageWrapper, x: number = 0, y: number = 0, w: number = img.getWidth(), h: number = img.getHeight()): OcrResult | null {
+  if (x < 0) x = 0
+  if (y < 0) y = 0
+  if (x + w > img.getWidth()) w = img.getWidth() - x
+  if (y + h > img.getHeight()) h = img.getHeight() - y
+  if (w <= 0 || h <= 0) return null
+  var c = images.clip(img, x, y, w, h)
+  if (c) {
+    try {
+      let result =  gmlkit.ocr(c, 'zh')
+      // 结果处理，识别结果重复区域大于50%且内容被包含，则去掉重复区域，避免父子层级冗余
+      return removeOcrRedundant(result)
+    } finally {
+      c.recycle()
+    }
+  }
+  return null
+}
+
 /**
  * 从图片指定区域 OCR 取文字，三路降级兼容 AutoX.js 和 AutoJs6。
  * gmlkit（原版 AutoX.js）→ gml（fork 缩写）→ AutoJs6 ocr

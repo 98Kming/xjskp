@@ -1,4 +1,4 @@
-import { currentServer } from '../daily'
+import { currentServer } from '../model/daily'
 import { BasePage, Route } from './BasePage'
 import { screen, createPageDetector, createRouteAction, getTemplate, imageDetector, imageNameParser, tryCloseModals, ocrText } from '../utils/img'
 
@@ -63,17 +63,18 @@ export class 随机事件 extends BasePage {
       let img = screen()
       var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
       if (point) {
-        let tmp = images.clip(img,point.x + template.getWidth(), point.y + template.getHeight() - 50, 30, 50)
+        let tmp = images.clip(img,point.x, point.y, template.width + 10, template.height + 10)
         images.save(tmp, '/sdcard/' + (currentServer ? currentServer + '_' : '') + Date.now() + '.png')
-        log("★ 焕新试剂", gmlkit.ocr(tmp, 'zh'), ocrText(img, point.x + template.getWidth(), point.y + template.getHeight() - 50, 30, 50))
+        log("★ 焕新试剂", gmlkit.ocr(tmp, 'zh'),point.x, point.y, template.width + 10, template.height + 10)
         tmp.recycle()
-        // 点击低价买入(购买焕新试剂),不直接 break,继续领取其他按钮
-        if (this.低价买入Action()) {
-          claimed = true
-          found = true
-          idleRounds = 0
-          sleep(1000)
-        }
+        break
+        // // 点击低价买入(购买焕新试剂),不直接 break,继续领取其他按钮
+        // if (this.低价买入Action()) {
+        //   claimed = true
+        //   found = true
+        //   idleRounds = 0
+        //   sleep(1000)
+        // }
       }
 
       // 结束检测：出现即退出（入口仍在）

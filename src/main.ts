@@ -31,7 +31,7 @@
 // import { 再别前线废土互市 } from './pages/再别前线-废土互市'
 import { mainWindow } from './MainWindow'
 import { smallWindow } from './SmallWindows'
-import { runDaily } from './daily'
+import { runDaily } from './model/daily'
 import { getRecentAppsSorted, launchPackageByShell } from './utils/app'
 import { 兑换码 } from './model/兑换码'
 import { 探索 } from './model/探索'

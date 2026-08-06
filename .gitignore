@@ -1,2 +1,6 @@
 /node_modules/*
 /dist/*
+
+# 设备同步工具与临时产物（不入库）
+/sync_8t.py
+/images_sync.zip

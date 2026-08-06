@@ -1,5 +1,5 @@
 import { BasePage } from './BasePage'
-import { createPageDetector, width, height, getTemplate, scrollFind, screen, imageNameParser, findImageMinYPoint, ocrText, toScreenX, toScreenY } from '../utils/img'
+import { createPageDetector, width, height, getTemplate, scrollFind, screen, imageNameParser, findImageMinYPoint, ocrText, toScreenX, toScreenY, ocrRegion } from '../utils/img'
 
 export class 服务器选择 extends BasePage {
   name = '服务器选择'
@@ -38,7 +38,7 @@ export class 服务器选择 extends BasePage {
     if (result) {
       //click(result.x + tpl_未选中.width / 2, result.y + tpl_未选中.height / 2)
       sleep(200)
-      let userName = ocrText(img, result.x + tpl_未选中.width, result.y, width - tpl_未选中.width - result.x, tpl_未选中.height).replace(/[\r\n]/g, '')
+      let userName = ocrRegion(img, result.x + tpl_未选中.width, result.y, width - tpl_未选中.width - result.x, tpl_未选中.height)?.text || ''
       console.log('[服务器选择] 切换到下一个服务器', userName)
       click(toScreenX(width / 4), toScreenY(searchY + 50))
       return userName
