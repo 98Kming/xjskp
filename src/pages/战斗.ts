@@ -10,6 +10,7 @@ import { 先锋宝藏 } from './先锋宝藏'
 import { 碧海凉夏 } from './碧海凉夏'
 import { 武装降临 } from './武装降临'
 import { 再别前线 } from './再别前线'
+import { 战斗中 } from './战斗中'
 
 export class 战斗 extends BasePage {
   name = '战斗'
@@ -35,6 +36,8 @@ export class 战斗 extends BasePage {
   routes(): Route[] {
     var self = this
     return [
+      // 主线关卡 → 进入战斗中
+      { target: 战斗中, action: createRouteAction('images/战斗$战斗中_1_0.9_410_1524_668_1643.png'), imagePath: 'images/战斗$战斗中_1_0.9_410_1524_668_1643.png' },
       { target: 基地, action: createRouteAction('images/$基地-未选中_0_0.8_658_2331_1080_2367.png'), imagePath: 'images/$基地-未选中_0_0.8_658_2331_1080_2367.png' },
       { target: 军团, action: createRouteAction('images/$军团-未选中_0_0.8_807_2335_1080_2367.png'), imagePath: 'images/$军团-未选中_0_0.8_807_2335_1080_2367.png' },
       {

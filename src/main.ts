@@ -29,7 +29,9 @@
 // import { 再别前线机械传说 } from './pages/再别前线-机械传说'
 // import { 再别前线太空撤离 } from './pages/再别前线-太空撤离'
 // import { 再别前线废土互市 } from './pages/再别前线-废土互市'
-import { mainWindow } from './MainWindow'
+import { mainWindow, GameType } from './MainWindow'
+import { Router } from './router/Router'
+import { 战斗中 } from './pages/战斗中'
 import { smallWindow } from './SmallWindows'
 import { runDaily } from './model/daily'
 import { getRecentAppsSorted, launchPackageByShell } from './utils/app'
@@ -76,7 +78,15 @@ var 探索运行中 = false
 var keepAlive = setInterval(function () {}, 10000)
 mainWindow.window.启动.setOnClickListener(new android.view.View.OnClickListener({
   onClick() {
-    start(runDaily)
+    // 功能页"选择功能"= 普通关卡 → 路由到战斗中（自动战斗模式）
+    if (mainWindow.window.模式.getSelectedItem() === GameType.普通关卡) {
+      start(function () {
+        // 页面实例在 daily.ts 模块加载时已注册到 Router
+        Router.getInstance().go(战斗中)
+      })
+    } else {
+      start(runDaily)
+    }
   }
 }))
 mainWindow.window.最小化.setOnClickListener(new android.view.View.OnClickListener({

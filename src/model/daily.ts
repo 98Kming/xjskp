@@ -36,6 +36,9 @@ import { 好友 } from '../pages/好友'
 import { 领取体力 } from '../pages/领取体力'
 import { 个人信息 } from '../pages/个人信息'
 import { 服务器选择 } from '../pages/服务器选择'
+import { 战斗中 } from '../pages/战斗中'
+import { 战斗结束 } from '../pages/战斗结束'
+import { 暂停战斗 } from '../pages/暂停战斗'
 
 var router = Router.getInstance()
 
@@ -70,6 +73,10 @@ var 再别前线太空撤离Page = new 再别前线太空撤离()
 var 再别前线废土互市Page = new 再别前线废土互市()
 var 好友Page = new 好友()
 var 领取体力Page = new 领取体力()
+// 暂停战斗先注册：暂停面板打开时左上角暂停按钮可能仍可见（战斗中也匹配），优先识别为暂停战斗
+var 暂停战斗Page = new 暂停战斗()
+var 战斗中Page = new 战斗中()
+var 战斗结束Page = new 战斗结束()
 
 var totalTasks = 0
 var successTasks = 0

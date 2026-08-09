@@ -1,5 +1,6 @@
 import { BasePage, Route } from './BasePage'
 import { createPageDetector, createRouteAction, imageNameParser, getTemplate, screen, toScreenX, toScreenY } from '../utils/img'
+import { 战斗中 } from './战斗中'
 
 export class 寰球远征 extends BasePage {
   name = '寰球远征'
@@ -32,6 +33,9 @@ export class 寰球远征 extends BasePage {
   }
 
   routes(): Route[] {
-    return []
+    return [
+      // 开始游戏 → 进入战斗中
+      { target: 战斗中, action: createRouteAction('images/寰球远征$$_开始游戏_1_0.9_515_1741_614_1829.png'), imagePath: 'images/寰球远征$$_开始游戏_1_0.9_515_1741_614_1829.png' },
+    ]
   }
 }
