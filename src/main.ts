@@ -37,6 +37,7 @@ import { runDaily } from './model/daily'
 import { getRecentAppsSorted, launchPackageByShell } from './utils/app'
 import { 兑换码 } from './model/兑换码'
 import { 探索 } from './model/探索'
+import { skillStrategy } from './utils/技能策略'
 
 // var router = Router.getInstance()
 
@@ -83,10 +84,19 @@ mainWindow.window.启动.setOnClickListener(new android.view.View.OnClickListene
       start(function () {
         // 页面实例在 daily.ts 模块加载时已注册到 Router
         Router.getInstance().go(战斗中)
+        // 战斗循环：技能弹窗自动选择，直到战斗结束
+        new 战斗中().自动战斗()
       })
     } else {
       start(runDaily)
     }
+  }
+}))
+mainWindow.window.重置技能优先级.setOnClickListener(new android.view.View.OnClickListener({
+  onClick() {
+    // 重新读取技能页 seekbar 权重并重置局内计数
+    skillStrategy.resetProgress()
+    toast('技能优先级已重置')
   }
 }))
 mainWindow.window.最小化.setOnClickListener(new android.view.View.OnClickListener({

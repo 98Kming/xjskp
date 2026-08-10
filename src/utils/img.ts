@@ -262,17 +262,16 @@ export interface PageDetector {
   detectImagePath: string
 }
 
-export function imageDetector(filePath: string): boolean {
+export function imageDetector(filePath: string): OpenCV.Point | null {
   var parsed = imageNameParser(filePath)
   var template = getTemplate(filePath)
   var rw = parsed.x2 - parsed.x1
   var rh = parsed.y2 - parsed.y1
   let img = screen()
-  var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-  return !!point
+  return images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
 }
 
-export function createPageDetector(filePath: string): PageDetector {
+export function createPageDetector(filePath: string, skipLuminance?: boolean): PageDetector {
   var parsed = imageNameParser(filePath)
   var template = getTemplate(filePath)
   var rw = parsed.x2 - parsed.x1
@@ -293,9 +292,9 @@ function luminanceOk(template: ImageWrapper, img: ImageWrapper, point: OpenCV.Po
     if (lum2 === 0) return false
     var percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100
     if (percentDiff < 50) {
-      log('[亮度] 模板:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5), percentDiff, filePath)
       return true
     }
+    log('[亮度] 模板不匹配:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5), percentDiff, filePath)
     return false
   } catch (e) {
     // resize 截图像素读取失败 → 跳过亮度检查
@@ -308,7 +307,7 @@ var fn = function (img: ImageWrapper): boolean {
   if (cached) {
     var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
     if (point) {
-      return luminanceOk(template, img, point, filePath)
+      return skipLuminance || luminanceOk(template, img, point, filePath)
     }
     // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
     return false
@@ -316,7 +315,7 @@ var fn = function (img: ImageWrapper): boolean {
   // 无缓存 → 全量搜索
   var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
   if (!point) return false
-  return luminanceOk(template, img, point, filePath)
+  return skipLuminance || luminanceOk(template, img, point, filePath)
 } as PageDetector
   fn.detectImagePath = filePath
   return fn

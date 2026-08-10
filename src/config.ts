@@ -1,1 +1,1 @@
-export const imageBasePath = ''
+export const imageBasePath = 'xjskp/'

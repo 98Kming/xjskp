@@ -38,7 +38,7 @@ export class 随机事件 extends BasePage {
    * 检测当前页面是否已结束（出现结束按钮）
    */
   hasEnded(): boolean {
-    return imageDetector('images/随机事件$$领取-结束_1_0.9_435_1425_654_1482.png')
+    return !!imageDetector('images/随机事件$$领取-结束_1_0.9_435_1425_654_1482.png')
   }
 
   /**
