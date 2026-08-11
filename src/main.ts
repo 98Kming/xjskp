@@ -32,6 +32,7 @@
 import { mainWindow, GameType } from './MainWindow'
 import { Router } from './router/Router'
 import { 战斗中 } from './pages/战斗中'
+import { 战斗结束 } from './pages/战斗结束'
 import { smallWindow } from './SmallWindows'
 import { runDaily } from './model/daily'
 import { getRecentAppsSorted, launchPackageByShell } from './utils/app'
@@ -82,10 +83,59 @@ mainWindow.window.启动.setOnClickListener(new android.view.View.OnClickListene
     // 功能页"选择功能"= 普通关卡 → 路由到战斗中（自动战斗模式）
     if (mainWindow.window.模式.getSelectedItem() === GameType.普通关卡) {
       start(function () {
-        // 页面实例在 daily.ts 模块加载时已注册到 Router
-        Router.getInstance().go(战斗中)
-        // 战斗循环：技能弹窗自动选择，直到战斗结束
-        new 战斗中().自动战斗()
+        // "开始游戏"开关：开启才自动点击按钮进入战斗中；关闭则等待用户手动进入
+        var 开始游戏开 = mainWindow.window.开始游戏.widget.isChecked()
+        if (开始游戏开) {
+          // 进入战斗失败（弹窗遮挡/加载慢等）重试 3 次，避免任务立即结束切回 AutoJs6
+          var 进战斗成功 = false
+          for (var 进战尝试 = 0; 进战尝试 < 3 && !进战斗成功; 进战尝试++) {
+            try {
+              // 页面实例在 daily.ts 模块加载时已注册到 Router
+              进战斗成功 = Router.getInstance().go(战斗中)
+            } catch (e: any) {
+              log('[战斗中] 进入战斗失败：' + (e.message || e) + '，重试(' + (进战尝试 + 1) + '/3)')
+              sleep(3000)
+            }
+          }
+          if (!进战斗成功) {
+            log('[战斗中] 连续 3 次无法进入战斗，停止')
+            return
+          }
+        } else {
+          log('[战斗中] "开始游戏"未开启，等待手动进入战斗')
+        }
+        // 刷局循环：战斗结束 → 自动开下一局（受"开始游戏"开关控制；未开启则打一局退出）
+        var 战斗中Page = new 战斗中()
+        var 战斗结束Page = new 战斗结束()
+        while (true) {
+          // 战斗循环：技能弹窗自动选择，战斗结束 break（此时停在战斗结束页）
+          战斗中Page.自动战斗()
+          if (!开始游戏开) break
+          log('[战斗中] 战斗结束，自动开下一局')
+          // 开下一局：结算页"再战"直接进；不可用则退出结算回准备界面走主线关卡入口。
+          // 失败重试 3 次（弹窗遮挡/加载慢等临时问题，下一轮可能恢复），不再立即停止
+          var 开下一局成功 = false
+          for (var 尝试 = 0; 尝试 < 3; 尝试++) {
+            if (战斗结束Page.再战()) {
+              开下一局成功 = true
+              break
+            }
+            log('[战斗中] 再战按钮不可用，退出结算重进')
+            战斗结束Page.back()
+            sleep(1500)
+            if (Router.getInstance().go(战斗中)) {
+              开下一局成功 = true
+              break
+            }
+            log('[战斗中] 无法进入下一局，重试(' + (尝试 + 1) + '/3)')
+            sleep(3000)
+          }
+          if (!开下一局成功) {
+            log('[战斗中] 连续 3 次无法进入下一局，停止刷局')
+            break
+          }
+          sleep(1000) // 等下一局加载
+        }
       })
     } else {
       start(runDaily)

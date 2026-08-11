@@ -78,8 +78,9 @@ var 领取体力Page = new 领取体力()
 new 选择技能()
 // 暂停战斗先注册：暂停面板打开时左上角暂停按钮可能仍可见（战斗中也匹配），优先识别为暂停战斗
 var 暂停战斗Page = new 暂停战斗()
-var 战斗中Page = new 战斗中()
+// 战斗结束先注册：结算页"战斗中"模板（暂停按钮/已激活技能弹窗图）仍可见（战斗中也匹配），优先识别为战斗结束
 var 战斗结束Page = new 战斗结束()
+var 战斗中Page = new 战斗中()
 
 var totalTasks = 0
 var successTasks = 0

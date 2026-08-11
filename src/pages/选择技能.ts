@@ -1,5 +1,5 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction, getTemplate, imageNameParser, ocrRegion, screen, toScreenX, toScreenY, width, height, imageDetector } from '../utils/img'
+import { createRouteAction, ocrRegion, screen, toScreenX, toScreenY, width, height, imageDetector } from '../utils/img'
 import { skillStrategy } from '../utils/技能策略'
 import { 战斗中 } from './战斗中'
 
@@ -12,6 +12,8 @@ var 顶部连续亮点 = 100
 // 词条底部确认：从顶部往下找第一个暗点，纵向连续 10 个暗点（卡片内短暗纹凑不满 10 个）
 var 底部连续暗点 = 10
 var 最大重试 = 5
+// 战斗中升级会连弹多组词条（每组选 2 个 + 确定后换新组），最多连选组数，防弹窗异常不关时死循环
+var 最大弹窗组数 = 6
 
 /** 明度 <= 暗阈值 → 暗点（弹窗遮罩）；img.pixel 实例方法比 images.pixel 快 ~1.2x */
 function 暗点(img: ImageWrapper, x: number, y: number): boolean {
@@ -69,7 +71,9 @@ export class 选择技能 extends BasePage {
   name = '选择技能'
   选择技能_point!: OpenCV.Point
   is(img?: ImageWrapper) {
-    let point = imageDetector('images/选择技能_0_0.8_438_729_645_1143.png')
+    // 必须传入外部 img：自行截图会回收 cache_screen_img（若传入图正是缓存图），
+    // 导致 detectCurrentPage 后续页面 is() 全部使用已回收的死图
+    let point = imageDetector('images/选择技能_0_0.8_438_729_645_1143.png', img)
     if (point) {
       this.选择技能_point = point
     }
@@ -326,62 +330,75 @@ export class 选择技能 extends BasePage {
   }
 
   /**
-   * 每组多选技能：有确定按钮的弹窗每组固定选 2 个（每轮点一张卡 + 点一次确定）。
-   * 第 1 轮确定后弹窗保持同组；第 2 轮确定后弹窗会换新一组词条（或关闭），
-   * 本方法结束返回，由上层循环（自动战斗/测试）重新检测并扫描新组。
-   * 无确定按钮的弹窗：点卡片即生效，等弹窗自动关闭。
+   * 连续选择直到弹窗关闭：战斗中升级会连弹多组词条（每组选 2 个，确定后换新组），
+   * 本方法内循环重扫直到弹窗关闭，一次调用完成全部连弹。
+   * 最大组数保护：弹窗异常不关时强制退出，交由上层兜底。
    */
   选最优技能(): boolean {
     skillStrategy.ensureProgress()
-    var cards = this.卡片列表()
-    var 评分 = this.卡片评分(cards)
-    if (评分.length === 0 || 评分[0].规则 === null) return false
-    // 打印全部候选（按优先级顺序，未选中的也显示，便于核对选卡依据）。
-    // 文 的第一行通常就是名称，名称已含在文里时不重复拼接
-    for (var p = 0; p < 评分.length; p++) {
-      var 候选卡 = cards[评分[p].序号]
-      var 展示文 = 候选卡.文
-      if (展示文.indexOf(候选卡.名) !== 0) {
-        展示文 = 候选卡.名 + ' ' + 展示文
-      }
-      log('[选择技能] 候选' + (p + 1) + ': [' + 展示文.replace(/\n/g, ' ') + '] 权重=' + 评分[p].权重)
-    }
-    for (var 轮 = 0; 轮 < 2; 轮++) {
-      // 按权重从高到低找第一个未选且有规则的卡片（评分列表已按权重降序）
-      var 候选: 评分卡 | null = null
-      for (var i = 0; i < 评分.length; i++) {
-        if (评分[i].规则 && !评分[i].已选) {
-          候选 = 评分[i]
-          break
-        }
-      }
-      if (!候选) {
-        // 本组卡片已全部选完但弹窗未关：可能弹窗已换新组，交由上层重新扫描
-        log('[选择技能] 本组 ' + 评分.length + ' 张卡片已全部选完，弹窗未关闭')
+    for (var 组 = 0; 组 < 最大弹窗组数; 组++) {
+      var cards = this.卡片列表()
+      var 评分 = this.卡片评分(cards)
+      if (评分.length === 0 || 评分[0].规则 === null) {
+        // 第 1 组就识别失败 → 正常失败；已选过组（弹窗已关）→ 成功
+        if (组 === 0) return false
+        log('[选择技能] 词条识别结束，弹窗已关闭（共选 ' + 组 + ' 组）')
         return true
       }
-      var 规则 = 候选.规则
-      if (!规则) break // 未识别到文字的卡片跳过
-      候选.已选 = true
-      // 按优先级顺序打印本轮选择（评分列表即优先级顺序）
-      log('[选择技能] 第' + (轮 + 1) + '轮选: [' + cards[候选.序号].名 + '] 权重=' + 候选.权重)
-      click(toScreenX(候选.点[0]), toScreenY(候选.点[1]))
-      // 选中后才局内降权（该技能下次出现时权重 -100）
-      skillStrategy.onSelected(规则)
-      // 找"确定"按钮：找到点击提交
-      if (this.找确定()) {
-        sleep(600) // 超过 screen() 500ms 缓存窗口，等确定提交后 UI 稳定
-        if (!this.is(screen())) return true // 弹窗已关闭 → 选择完毕
-        if (轮 === 1) return true // 第 2 轮确定后弹窗换新组，结束本轮交由上层重新扫描
-        // 第 1 轮：弹窗保持同组 → 继续选第 2 个
-      } else {
-        // 无确定按钮的弹窗点卡片即生效，等弹窗自动关闭
-        for (var j = 0; j < 4; j++) {
-          sleep(400)
-          if (!this.is(screen())) return true
+      if (组 > 0) log('[选择技能] 弹窗换新组，继续选择（第 ' + (组 + 1) + ' 组）')
+      // 打印全部候选（按优先级顺序，未选中的也显示，便于核对选卡依据）。
+      // 文 的第一行通常就是名称，名称已含在文里时不重复拼接
+      for (var p = 0; p < 评分.length; p++) {
+        var 候选卡 = cards[评分[p].序号]
+        var 展示文 = 候选卡.文
+        if (展示文.indexOf(候选卡.名) !== 0) {
+          展示文 = 候选卡.名 + ' ' + 展示文
+        }
+        log('[选择技能] 候选' + (p + 1) + ': [' + 展示文.replace(/\n/g, ' ') + '] 权重=' + 评分[p].权重)
+      }
+      for (var 轮 = 0; 轮 < 2; 轮++) {
+        // 按权重从高到低找第一个未选且有规则的卡片（评分列表已按权重降序）
+        var 候选: 评分卡 | null = null
+        for (var i = 0; i < 评分.length; i++) {
+          if (评分[i].规则 && !评分[i].已选) {
+            候选 = 评分[i]
+            break
+          }
+        }
+        if (!候选) {
+          // 本组卡片已全部选完但弹窗未关：可能弹窗已换新组，交由外层组循环重新扫描
+          log('[选择技能] 本组 ' + 评分.length + ' 张卡片已全部选完，弹窗未关闭')
+          break
+        }
+        var 规则 = 候选.规则
+        if (!规则) break // 未识别到文字的卡片跳过
+        候选.已选 = true
+        // 按优先级顺序打印本轮选择（评分列表即优先级顺序）
+        log('[选择技能] 第' + (轮 + 1) + '轮选: [' + cards[候选.序号].名 + '] 权重=' + 候选.权重)
+        click(toScreenX(候选.点[0]), toScreenY(候选.点[1]))
+        // 选中后才局内降权（该技能下次出现时权重 -100）
+        skillStrategy.onSelected(规则)
+        // 找"确定"按钮：找到点击提交
+        if (this.找确定()) {
+          sleep(600) // 超过 screen() 500ms 缓存窗口，等确定提交后 UI 稳定
+          if (!this.is(screen())) return true // 弹窗已关闭 → 选择完毕
+          if (轮 === 1) break // 第 2 轮确定后弹窗换新组 → 结束本轮，外层组循环重新扫描
+          // 第 1 轮：弹窗保持同组 → 继续选第 2 个
+        } else {
+          // 无确定按钮的弹窗点卡片即生效，等弹窗自动关闭
+          var 弹窗已关 = false
+          for (var j = 0; j < 4; j++) {
+            sleep(400)
+            if (!this.is(screen())) {
+              弹窗已关 = true
+              break
+            }
+          }
+          if (弹窗已关) return true
         }
       }
     }
+    log('[选择技能] 已达最大弹窗组数(' + 最大弹窗组数 + ')，弹窗未关闭，交由上层兜底')
     return true
   }
 

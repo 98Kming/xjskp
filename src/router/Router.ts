@@ -2,7 +2,7 @@
 // 完整 Router 路由引擎 — 单例模式，BFS 寻路，逐跳执行
 
 import { BasePage, Route, setRegisterCallback } from '../pages/BasePage'
-import { imageNameParser, pageChange, screen, tryCloseModals, PageDetector } from '../utils/img'
+import { imageNameParser, pageChange, screen, tryCloseModals, PageDetector, recycleSafe } from '../utils/img'
 import { NavigationError } from './errors'
 
 export class Router {
@@ -317,10 +317,13 @@ export class Router {
           break
         }
 
-        // 页面持续未变：首次点击可能未生效，尽快重试
+        // 页面持续未变：首次点击可能未生效，或点击已生效但被弹窗挡住
+        // （弹窗不遮识别图时页面检测不到"未知"，必须先主动试关弹窗，再重试动作）
         if (attempt >= 1 && page.name === startName) {
-          var retryClickInfo = '第' + (i + 1) + '跳: 页面未跳转，重试点击 ' + (route.imagePath || targetName)
-          log('[导航] ' + retryClickInfo)
+          if (tryCloseModals()) {
+            log('[导航] 第' + (i + 1) + '跳: 关闭遮挡弹窗')
+          }
+          log('[导航] 第' + (i + 1) + '跳: 页面未跳转，重试跳转动作')
           route.action()
         }
       }
@@ -337,25 +340,35 @@ export class Router {
         }
         this.lastFailImageInfo = timeoutInfo
         log('[导航] ' + timeoutInfo)
-        // 超时后专门检测目标页模板是否匹配
+        // 超时后专门检测目标页模板是否匹配。
+        // 仅当目标页匹配且起始页识别图已消失才算真正跳转：
+        // 技能弹窗打开时顶部"已激活技能"图标仍可见，可能误匹配"战斗中"，
+        // 起始页识别图消失才是弹窗真正关闭
         var targetPageObj = this.pageMap[targetName]
         if (targetPageObj) {
           var targetCheck = targetPageObj.is(screen())
-          var detectInfo = '[导航] 目标页"' + targetName + '"检测: ' + (targetCheck ? '匹配' : '不匹配')
-          var detectPath = (targetPageObj.is as PageDetector).detectImagePath
-          if (detectPath) {
-            try {
-              var dp = imageNameParser(detectPath)
-              detectInfo += ' | 检测模板: ' + detectPath + ' 区域[' + dp.x1 + ',' + dp.y1 + '-' + dp.x2 + ',' + dp.y2 + '] 阈值=' + dp.threshold
-            } catch (e) {
-              detectInfo += ' | 检测模板: ' + detectPath
+          var startPageObj = this.pageMap[startName]
+          var startGone = !startPageObj || !startPageObj.is(screen())
+          if (targetCheck && startGone) {
+            hopOk = true
+            log('[导航] 超时后检测到目标页"' + targetName + '"（起始页"' + startName + '"已消失），导航完成')
+          } else {
+            var detectInfo = '[导航] 目标页"' + targetName + '"检测: ' + (targetCheck ? '匹配' : '不匹配') + '，起始页"' + startName + '":' + (startGone ? '消失' : '仍在')
+            var detectPath = (targetPageObj.is as PageDetector).detectImagePath
+            if (detectPath) {
+              try {
+                var dp = imageNameParser(detectPath)
+                detectInfo += ' | 检测模板: ' + detectPath + ' 区域[' + dp.x1 + ',' + dp.y1 + '-' + dp.x2 + ',' + dp.y2 + '] 阈值=' + dp.threshold
+              } catch (e) {
+                detectInfo += ' | 检测模板: ' + detectPath
+              }
             }
+            log(detectInfo)
           }
-          log(detectInfo)
         }
 
         // 页面从已知变为未知（加载过渡），延长等待而非立即失败
-        if (landedPage === null) {
+        if (!hopOk && landedPage === null) {
           sleep(300)  // 短等页面过渡，4×800ms 轮询未识别再等多无益
           var extFrame = screen()
           var extPage = this.detectCurrentPage(extFrame)
@@ -364,7 +377,7 @@ export class Router {
             hopOk = true
           }
           if (!hopOk) return false
-        } else {
+        } else if (!hopOk) {
           tryCloseModals()
           sleep(1500)
           var timeoutImg = screen()
@@ -416,16 +429,16 @@ export class Router {
     var after = this.detectCurrentPage(afterImg)
 
     if (after && after.name !== beforeName) {
-      beforeImg.recycle()
+      recycleSafe(beforeImg)
       return after
     }
 
     if (!after) {
-      afterImg.recycle()
+      recycleSafe(afterImg)
       if (pageChange(beforeImg)) {
         log('[导航] is()未识别但截图已变化，回退生效')
         var landed = this.verifyAfterChange()
-        beforeImg.recycle()
+        recycleSafe(beforeImg)
         return landed
       }
       log('[导航] 回退无效（截图未变化），尝试级联恢复')
@@ -440,15 +453,15 @@ export class Router {
       afterImg = screen(0, false)
       after = this.detectCurrentPage(afterImg)
       if (after && after.name !== beforeName) {
-        beforeImg.recycle()
+        recycleSafe(beforeImg)
         return after
       }
       if (!after) {
-        afterImg.recycle()
+        recycleSafe(afterImg)
         if (pageChange(beforeImg)) {
           log('[导航] 关闭弹窗后截图变化，回退生效')
           var landed2 = this.verifyAfterChange()
-          beforeImg.recycle()
+          recycleSafe(beforeImg)
           return landed2
         }
       }
@@ -461,21 +474,21 @@ export class Router {
     // afterImg = screen(0, false)
     // after = this.detectCurrentPage(afterImg)
     // if (after && after.name !== beforeName) {
-    //   beforeImg.recycle()
+    //   recycleSafe(beforeImg)
     //   return after
     // }
     // if (!after) {
-    //   afterImg.recycle()
+    //   recycleSafe(afterImg)
     //   if (pageChange(beforeImg)) {
     //     log('[导航] 备选回退后截图变化，回退生效')
     //     var landed3 = this.verifyAfterChange()
-    //     beforeImg.recycle()
+    //     recycleSafe(beforeImg)
     //     return landed3
     //   }
     // }
 
     // log('[导航] 所有回退尝试均无效')
-    beforeImg.recycle()
+    recycleSafe(beforeImg)
     return null
   }
 
