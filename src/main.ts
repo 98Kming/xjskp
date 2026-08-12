@@ -79,6 +79,10 @@ var 探索运行中 = false
 var keepAlive = setInterval(function () {}, 10000)
 mainWindow.window.启动.setOnClickListener(new android.view.View.OnClickListener({
   onClick() {
+    if (mainWindow.window.tabHost.getSelectedTabPosition() == 2) {
+        start(runDaily)
+        return
+      }
     // 功能页"选择功能"= 普通关卡 → 路由到战斗中（自动战斗模式）
     if (mainWindow.window.模式.getSelectedItem() === GameType.普通关卡) {
       start(function () {
@@ -87,8 +91,6 @@ mainWindow.window.启动.setOnClickListener(new android.view.View.OnClickListene
         // 战斗循环：技能弹窗自动选择，直到战斗结束
         new 战斗中().自动战斗()
       })
-    } else {
-      start(runDaily)
     }
   }
 }))

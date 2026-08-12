@@ -659,17 +659,13 @@ export function find_队友(isLeader: boolean) {
   let j = 0
   let x
   while (true) {
-    log(2222)
     let img = screen(0)
-    log(3333)
     let template = getTemplate(isLeader ? img_组队邀请_邀请.rawFileName : img_组队邀请_接受.rawFileName)
-    log(4444)
     let result = images.matchTemplate(img, template,
       { threshold: img_组队邀请_邀请.threshold, region: [img_组队邀请_邀请.x1, img_组队邀请_邀请.y1, img_组队邀请_邀请.x2 - img_组队邀请_邀请.x1, img_组队邀请_邀请.y2 - img_组队邀请_邀请.y1] })
     let size = temps.length
-    log(result)
     let matches = uniqueDescMatches(result.matches)
-    
+    log(matches)
     let arr: Teammate[] = []
     for (let match of matches) {
       let temp
@@ -679,7 +675,7 @@ export function find_队友(isLeader: boolean) {
       // } else {
       //   temp = images.clip(img, x, match.point.y, 300, 60)
       // }
-      temp = images.clip(img, x, match.point.y, 390, isLeader ? img_组队邀请_邀请.y2 - img_组队邀请_邀请.y1 : img_组队邀请_接受.y2 - img_组队邀请_接受.y1)
+      temp = images.clip(img, x, match.point.y, 390, template.getHeight() / 2)
       let exists
       for (let it of temps) {
         if (images.findImage(it.img, temp, { threshold: 0.9 })) {
