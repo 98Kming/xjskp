@@ -639,3 +639,103 @@ export function findImageMinYPoint(img: ImageWrapper, template: ImageWrapper, x:
   }
   return topMatch.point
 }
+
+function uniqueDescMatches(matches: org.autojs.autojs.core.image.TemplateMatching.Match[]) {
+  const seen = new Set<string>();
+  return matches.filter(match => {
+    const key = match.point.y + "";
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  }).sort((a, b) => b.point.y - a.point.y);
+}
+
+const img_组队邀请_邀请 = imageNameParser("images/组队邀请-好友$$邀请好友_0_0.9_690_665_946_1700.png")
+const img_组队邀请_接受 = imageNameParser("images/组队邀请-好友$$接受邀请_0_0.9_690_660_880_1700.png")
+export function find_队友(isLeader: boolean) {
+  let temps: Teammate[] = []
+  let j = 0
+  let x
+  while (true) {
+    log(2222)
+    let img = screen(0)
+    log(3333)
+    let template = getTemplate(isLeader ? img_组队邀请_邀请.rawFileName : img_组队邀请_接受.rawFileName)
+    log(4444)
+    let result = images.matchTemplate(img, template,
+      { threshold: img_组队邀请_邀请.threshold, region: [img_组队邀请_邀请.x1, img_组队邀请_邀请.y1, img_组队邀请_邀请.x2 - img_组队邀请_邀请.x1, img_组队邀请_邀请.y2 - img_组队邀请_邀请.y1] })
+    let size = temps.length
+    log(result)
+    let matches = uniqueDescMatches(result.matches)
+    
+    let arr: Teammate[] = []
+    for (let match of matches) {
+      let temp
+      x = 300
+      // if (isLeader) {
+      //   temp = images.clip(img, x, match.point.y + 20, 300, 60)
+      // } else {
+      //   temp = images.clip(img, x, match.point.y, 300, 60)
+      // }
+      temp = images.clip(img, x, match.point.y, 390, isLeader ? img_组队邀请_邀请.y2 - img_组队邀请_邀请.y1 : img_组队邀请_接受.y2 - img_组队邀请_接受.y1)
+      let exists
+      for (let it of temps) {
+        if (images.findImage(it.img, temp, { threshold: 0.9 })) {
+          //log(ocr_zh(temp).text, "跳过", ocr_zh(it.img).text)
+          temp.recycle()
+          exists = true
+          break
+        }
+      }
+      if (exists) {
+        break
+      }
+      arr.push({ img: temp, name: ocrRegion(temp)?.text || "" })
+    }
+    for (let i = arr.length - 1; i >= 0; i--) {
+      //log(arr[i].name,x)
+      temps.push(arr[i])
+    }
+    if (size == temps.length || temps.length < 5) {
+      break
+    }
+    gesture(300, [width * 0.3, height * 0.7], [width * 0.4, height * 0.3])
+    sleep(100)
+    gesture(100, [width * 0.3, height * 0.7], [width * 0.7, height * 0.7])
+    sleep(700)
+  }
+  return temps
+}
+
+export function select_队友(teammate: Teammate): OpenCV.Point | null {
+  let last: ImageWrapper | null = null
+  while (true) {
+    let img = screen()
+    let point = images.findImageInRegion(img, teammate.img,
+      0, height * 0.1, width, height * 0.8, 0.9)
+    if (point) {
+      point.x = width - point.x
+      point.y += 30
+      return point
+    }
+    // let result = images.matchTemplate(img, img_组队邀请_战力,
+    //   { region: [width * 0.1, height * 0.1, width * 0.8, height * 0.8] })
+    // let matches = uniqueDescMatches(result.matches)
+    // if (matches.length == 0) {
+    //   return null
+    // }
+    // let temp = images.clip(img, matches[0].point.x, matches[0].point.y - 50, 300, 50)
+    // if (!temp) {
+    //   last = temp
+    // } else if (last && images.findImage(temp, last, { threshold: 0.9 })) {
+    //   // 最后一个
+    //   return null
+    // }
+    gesture(300, [width * 0.3, height * 0.7], [width * 0.4, height * 0.3])
+    sleep(200)
+    gesture(100, [width * 0.3, height * 0.7], [width * 0.7, height * 0.7])
+    sleep(700)
+  }
+}
