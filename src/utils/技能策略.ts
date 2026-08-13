@@ -16,6 +16,7 @@ interface Skill {
   priority: number // 技能优先级，优先级高的技能优先级高
   type: SKILL_TYPE
   selectNum?: number // 大于0时 局内每选择1次技能优先级priority下降一级
+  weightDecay?: number // 大于0时 每次被选中后实际权重减去该值，resetPriority 时清零
 }
 
 const STRATEGY: Skill[] = []
@@ -25,7 +26,8 @@ STRATEGY.push({ match: /.*分裂子.*生.*/, weight: 1000, priority: 1, type: SK
 STRATEGY.push({ match: /.*压.*生命.*/, weight: 1000, priority: 1, type: SKILL_TYPE.温压弹 })// [热能焚身 温压弹赋予的燃烧状态额外追加3%目标的最大生命值伤害]
 STRATEGY.push({ match: /(.*焦.策略.*)(.*车.*火.*)/, weight: 1000, priority: 1, type: SKILL_TYPE.装甲车 })// [焦土策略 将装甲车前方涂上焦油点火，可以引燃怪物]
 
-STRATEGY.push({ match: /.*每.*发.*数.*/, weight: 1000, priority: 2, type: SKILL_TYPE.子弹 })// [连发 每次射击连发数+1，伤害-20%] [连发+ 每次射击连发数+1]
+STRATEGY.push({ match: /.*每.*子.*数.*/, weight: 1000, weightDecay: 2, priority: 2, type: SKILL_TYPE.子弹 })// [连射+ 每次射击子弹数量+2]
+STRATEGY.push({ match: /.*每.*发.*数.*/, weight: 999, weightDecay: 2, priority: 2, type: SKILL_TYPE.子弹 })// [连发 每次射击连发数+1，伤害-20%] [连发+ 每次射击连发数+1]
 STRATEGY.push({ match: /.*学.*压[弹彈].*/, weight: 1000, priority: 2, type: SKILL_TYPE.温压弹 })// [温压弹 学习温压弹]
 STRATEGY.push({ match: /.*学.*冰[弹彈].*/, weight: 1000, priority: 2, type: SKILL_TYPE.干冰弹 })// [干冰弹 学习干冰弹]
 STRATEGY.push({ match: /.*学.*车.*/, weight: 1000, priority: 2, type: SKILL_TYPE.装甲车 })// [装甲车 学习裝甲车]
@@ -92,9 +94,11 @@ STRATEGY.push({ match: /.*/, weight: 1000, priority: 8, type: SKILL_TYPE.其他 
 const progressMap = new Map<SKILL_TYPE, number>()
 const cachePriorityMap = new Map<RegExp, number>()
 const cacheSelectNumMap = new Map<RegExp, number>()
+const cacheWeightDecayMap = new Map<RegExp, number>()
 STRATEGY.forEach(skill => {
   cachePriorityMap.set(skill.match, skill.priority)
   cacheSelectNumMap.set(skill.match, skill.selectNum || 0)
+  cacheWeightDecayMap.set(skill.match, 0)
 })
 
 export class skillStrategy {
@@ -120,11 +124,12 @@ export class skillStrategy {
     if (progressMap.size === 0) this.resetProgress()
   }
 
-  /** 恢复所有规则的局内计数（priority/selectNum 回到初始值） */
+  /** 恢复所有规则的局内计数（priority/selectNum/weightDecay 回到初始值） */
   static resetPriority() {
     STRATEGY.forEach(skill => {
       skill.priority = cachePriorityMap.get(skill.match)!
       skill.selectNum = cacheSelectNumMap.get(skill.match)!
+      cacheWeightDecayMap.set(skill.match, 0)
     })
   }
 
@@ -137,24 +142,29 @@ export class skillStrategy {
     return result.sort((a, b) => b.weight - a.weight)
   }
 
-  /** 计算单个技能名的权重：基础权重 - 优先级*100 - 类型进度*5（纯函数，不修改状态） */
+  /** 计算单个技能名的权重：基础权重 - 优先级*100 - 类型进度*5 - 局内累计衰减（纯函数，不修改状态） */
   static weight(text: string): Weight {
     let weight
     for (let it of STRATEGY) {
       if (it.match.test(text)) {
-        weight = { text: text, match: it.match, weight: it.weight - it.priority * 100 - (progressMap.get(it.type) || 0) * 5 }
+        weight = { text: text, match: it.match, weight: it.weight - it.priority * 100 - (progressMap.get(it.type) || 0) * 5 - cacheWeightDecayMap.get(it.match)! }
         break
       }
     }
     return weight!
   }
 
-  /** 技能被选中后调用：该规则局内降权一级（配置了 selectNum 时最多降 selectNum 次） */
+  /** 技能被选中后调用：该规则局内降权——配置了 selectNum 时 priority 降一级，配置了 weightDecay 时累计衰减该值 */
   static onSelected(match: RegExp) {
     for (let it of STRATEGY) {
-      if (it.match === match && it.selectNum && it.selectNum > 0) {
-        it.priority++
-        it.selectNum--
+      if (it.match === match) {
+        if (it.selectNum && it.selectNum > 0) {
+          it.priority++
+          it.selectNum--
+        }
+        if (it.weightDecay && it.weightDecay > 0) {
+          cacheWeightDecayMap.set(match, cacheWeightDecayMap.get(match)! + it.weightDecay)
+        }
         break
       }
     }

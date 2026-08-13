@@ -7,6 +7,7 @@ module.exports = {
     main: path.resolve(__dirname, "./src/main.ts"),
     ocr: path.resolve(__dirname, "./test/ocr.ts"),
     "skill-test": path.resolve(__dirname, "./test/skill-test.ts"),
+    "组队-test": path.resolve(__dirname, "./test/组队-test.ts"),
   },
 
   output: {

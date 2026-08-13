@@ -43,3 +43,10 @@ type Teammate = {
   img: ImageWrapper
   name: string
 }
+type SkillPoint = {
+  x: number
+  y: number
+  name?:string
+  weight?:number
+  match?:string
+}

@@ -288,8 +288,15 @@ export function imageDetector(filePath: string, img?: ImageWrapper): OpenCV.Poin
   var rw = parsed.x2 - parsed.x1
   var rh = parsed.y2 - parsed.y1
   if (!img) img = screen()
+  var cached = regionCache.get(filePath)
+  var region = cached
+  var point: OpenCV.Point | null = null
   try {
-    return images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    if (region) {
+      point = images.findImageInRegion(img, template, region.x1, region.y1, region.x2 - region.x1, region.y2 - region.y1, parsed.threshold)
+    } else {
+      point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    }
   } catch (e: any) {
     // 模板/截图被回收：重读模板 + 强制新截图，重试一次
     // （注意：is() 内调用必须传外部传入的 img，不得自行截图——screen() 超窗时会
@@ -297,8 +304,13 @@ export function imageDetector(filePath: string, img?: ImageWrapper): OpenCV.Poin
     log('[img] 识别回收异常，重读模板重试: ' + filePath + ' ' + (e.message || e))
     template = getTemplate(filePath)
     let img2 = screen(0, false)
-    return images.findImageInRegion(img2, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    if (region) {
+      point = images.findImageInRegion(img2, template, region.x1, region.y1, region.x2 - region.x1, region.y2 - region.y1, parsed.threshold)
+    } else {
+      point = images.findImageInRegion(img2, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    }
   }
+  return point
 }
 
 export function createPageDetector(filePath: string, skipLuminance?: boolean): PageDetector {
@@ -681,4 +693,78 @@ export function findImageMinYPoint(img: ImageWrapper, template: ImageWrapper, x:
     }
   }
   return topMatch.point
+}
+
+function uniqueDescMatches(matches: org.autojs.autojs.core.image.TemplateMatching.Match[]) {
+  const seen = new Set<string>();
+  return matches.filter(match => {
+    const key = match.point.y + "";
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  }).sort((a, b) => b.point.y - a.point.y);
+}
+
+const img_组队邀请_邀请 = imageNameParser("images/组队邀请-好友$$邀请好友_0_0.9_690_665_946_1700.png")
+const img_组队邀请_接受 = imageNameParser("images/组队邀请-好友$$接受邀请_0_0.9_690_660_880_1700.png")
+export function find_队友(isLeader: boolean) {
+  let temps: Teammate[] = []
+  let x
+  while (true) {
+    let img = screen(0)
+    let template = getTemplate(isLeader ? img_组队邀请_邀请.rawFileName : img_组队邀请_接受.rawFileName)
+    let result = images.matchTemplate(img, template,
+      { threshold: img_组队邀请_邀请.threshold, region: [img_组队邀请_邀请.x1, img_组队邀请_邀请.y1, img_组队邀请_邀请.x2 - img_组队邀请_邀请.x1, img_组队邀请_邀请.y2 - img_组队邀请_邀请.y1] })
+    let size = temps.length
+    let matches = uniqueDescMatches(result.matches)
+    log(matches)
+    let arr: Teammate[] = []
+    for (let match of matches) {
+      let temp
+      x = 300
+      temp = images.clip(img, x, match.point.y, 390, template.getHeight() / 2)
+      let exists
+      for (let it of temps) {
+        if (images.findImage(it.img, temp, { threshold: 0.9 })) {
+          temp.recycle()
+          exists = true
+          break
+        }
+      }
+      if (exists) {
+        break
+      }
+      arr.push({ img: temp, name: ocrRegion(temp)?.text || "" })
+    }
+    for (let i = arr.length - 1; i >= 0; i--) {
+      temps.push(arr[i])
+    }
+    if (size == temps.length || temps.length < 5) {
+      break
+    }
+    gesture(300, [width * 0.3, height * 0.7], [width * 0.4, height * 0.3])
+    sleep(100)
+    gesture(100, [width * 0.3, height * 0.7], [width * 0.7, height * 0.7])
+    sleep(700)
+  }
+  return temps
+}
+
+export function select_队友(teammate: Teammate): OpenCV.Point | null {
+  while (true) {
+    let img = screen()
+    let point = images.findImageInRegion(img, teammate.img,
+      0, height * 0.1, width, height * 0.8, 0.9)
+    if (point) {
+      point.x = width - point.x
+      point.y += 30
+      return point
+    }
+    gesture(300, [width * 0.3, height * 0.7], [width * 0.4, height * 0.3])
+    sleep(200)
+    gesture(100, [width * 0.3, height * 0.7], [width * 0.7, height * 0.7])
+    sleep(700)
+  }
 }
