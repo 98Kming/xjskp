@@ -30,8 +30,6 @@
 // import { 再别前线太空撤离 } from './pages/再别前线-太空撤离'
 // import { 再别前线废土互市 } from './pages/再别前线-废土互市'
 import { mainWindow, GameType, GameConfig } from './MainWindow'
-import { Router } from './router/Router'
-import { 战斗中 } from './pages/战斗中'
 import { smallWindow } from './SmallWindows'
 import { runDaily } from './model/daily'
 import { getRecentAppsSorted, launchPackageByShell } from './utils/app'

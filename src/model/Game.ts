@@ -1,7 +1,7 @@
 import { GameConfig, GameType } from "../MainWindow"
 import { smallWindow } from "../SmallWindows"
 import { Router } from '../router/Router'
-import { screen, width, height, toScreenX, toScreenY, tryCloseModals, select_队友, getTemplate } from '../utils/img'
+import { screen, width, height, toScreenX, toScreenY, tryCloseModals, select_队友 } from '../utils/img'
 import { skillStrategy } from '../utils/技能策略'
 import { 战斗中 } from '../pages/战斗中'
 import { 暂停战斗 } from '../pages/暂停战斗'
@@ -14,8 +14,9 @@ enum GameStatus {
   战斗中, 退出战斗, 战斗结束
 }
 export class Game {
-  static img_元素试炼_挑战 = getTemplate("images/元素试炼_挑战.png")
-  static img_元素试炼_开始游戏 = getTemplate("images/元素试炼_开始游戏.png")
+  // images.read 缺失返回 null 不抛异常(与 getTemplate 不同),模板未提供时不阻塞脚本启动
+  static img_元素试炼_挑战 = images.read("./images/元素试炼_挑战.png")
+  static img_元素试炼_开始游戏 = images.read("./images/元素试炼_开始游戏.png")
   constructor(private gameConfig: GameConfig) { }
 
   private 战斗中Page = new 战斗中()
@@ -149,6 +150,10 @@ export class Game {
     return true
   }
   prepare_元素试炼(): boolean {
+    if (!Game.img_元素试炼_挑战 || !Game.img_元素试炼_开始游戏) {
+      log("元素试炼模板缺失(待真机截图补充),跳过")
+      return false
+    }
     let point = images.findImageInRegion(screen(), Game.img_元素试炼_挑战,
       width * 0.3, height * 0.2, width * 0.4, height * 0.6)
     if (point) {
