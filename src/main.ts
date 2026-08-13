@@ -29,7 +29,7 @@
 // import { 再别前线机械传说 } from './pages/再别前线-机械传说'
 // import { 再别前线太空撤离 } from './pages/再别前线-太空撤离'
 // import { 再别前线废土互市 } from './pages/再别前线-废土互市'
-import { mainWindow, GameType } from './MainWindow'
+import { mainWindow, GameType, GameConfig } from './MainWindow'
 import { Router } from './router/Router'
 import { 战斗中 } from './pages/战斗中'
 import { smallWindow } from './SmallWindows'
@@ -37,6 +37,7 @@ import { runDaily } from './model/daily'
 import { getRecentAppsSorted, launchPackageByShell } from './utils/app'
 import { 兑换码 } from './model/兑换码'
 import { 探索 } from './model/探索'
+import { Game } from './model/Game'
 import { skillStrategy } from './utils/技能策略'
 
 // var router = Router.getInstance()
@@ -76,6 +77,25 @@ import { skillStrategy } from './utils/技能策略'
 //router.go(基地)
 var 兑换码运行中 = false
 var 探索运行中 = false
+/** 从主窗口 UI 控件读取战斗配置 */
+class UiGameConfig extends GameConfig {
+  type: GameType
+  enableStart: boolean
+  constructor() {
+    super()
+    this.type = mainWindow.window.模式.getSelectedItem() as GameType
+    this.runNum = mainWindow.window.执行次数.widget.getValue() || -1
+    this.exitLevel = mainWindow.window.退出等级.widget.getValue() || 0
+    this.timeOut = mainWindow.window.超时退出.widget.getValue() || 0
+    this.enableStart = mainWindow.window.开始游戏.widget.isChecked()
+    this.enableTeam = mainWindow.window.enable_组队.widget.isChecked()
+    this.isLeader = mainWindow.window.队长.widget.isChecked()
+    this.invite = mainWindow.window.自动邀请.widget.isChecked()
+    this.acceptInvite = mainWindow.window.自动接受邀请.widget.isChecked()
+    this.identifySkill = mainWindow.window.识别技能.widget.isChecked()
+    // TODO: teammate 由"获取队友信息"流程注入(UI 按钮未绑定,待实现)
+  }
+}
 var keepAlive = setInterval(function () {}, 10000)
 mainWindow.window.启动.setOnClickListener(new android.view.View.OnClickListener({
   onClick() {
@@ -83,15 +103,10 @@ mainWindow.window.启动.setOnClickListener(new android.view.View.OnClickListene
         start(runDaily)
         return
       }
-    // 功能页"选择功能"= 普通关卡 → 路由到战斗中（自动战斗模式）
-    if (mainWindow.window.模式.getSelectedItem() === GameType.普通关卡) {
-      start(function () {
-        // 页面实例在 daily.ts 模块加载时已注册到 Router
-        Router.getInstance().go(战斗中)
-        // 战斗循环：技能弹窗自动选择，直到战斗结束
-        new 战斗中().自动战斗()
-      })
-    }
+    // 功能页:按模式进入对应战斗
+    start(function () {
+      new Game(new UiGameConfig()).start()
+    })
   }
 }))
 mainWindow.window.重置技能优先级.setOnClickListener(new android.view.View.OnClickListener({
