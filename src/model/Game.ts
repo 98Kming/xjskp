@@ -1,7 +1,7 @@
 import { GameConfig, GameType } from "../MainWindow"
 import { smallWindow } from "../SmallWindows"
 import { Router } from '../router/Router'
-import { screen, width, height, tryCloseModals, select_队友, getTemplate } from '../utils/img'
+import { screen, width, height, toScreenX, toScreenY, tryCloseModals, select_队友, getTemplate } from '../utils/img'
 import { skillStrategy } from '../utils/技能策略'
 import { 战斗中 } from '../pages/战斗中'
 import { 暂停战斗 } from '../pages/暂停战斗'
@@ -92,10 +92,11 @@ export class Game {
         throw new Error("未选择队员")
       }
       // TODO: 退队检测(旧 退队_point)待补：已在队伍中时先退队
-      // TODO: 组队邀请页对象未建(见 2026-08-12-组队邀请页面-design.md)，需先路由到邀请页
+      // TODO: 组队邀请页对象未建(见 2026-08-12-组队邀请页面-design.md)，需先路由到邀请页；
+      //       注意 select_队友 是死循环(找不到会无限滑动)，前置导航缺失时调用会卡死
       let point = select_队友(this.gameConfig.teammate)
       if (point) {
-        click(point.x, point.y)
+        click(toScreenX(point.x), toScreenY(point.y))
         sleep(2000)
       }
     }
@@ -107,10 +108,10 @@ export class Game {
         toast("未选择队长")
         throw new Error("未选择队长")
       }
-      // TODO: 副本邀请弹窗检测(旧 副本邀请_point)待补
+      // TODO: 副本邀请弹窗检测(旧 副本邀请_point)待补；select_队友 为死循环，弹窗未出现时调用会卡死
       let point = select_队友(this.gameConfig.teammate)
       if (point) {
-        click(point.x, point.y)
+        click(toScreenX(point.x), toScreenY(point.y))
         sleep(1200)
       }
     }
@@ -151,13 +152,13 @@ export class Game {
     let point = images.findImageInRegion(screen(), Game.img_元素试炼_挑战,
       width * 0.3, height * 0.2, width * 0.4, height * 0.6)
     if (point) {
-      click(point.x, point.y)
+      click(toScreenX(point.x), toScreenY(point.y))
       sleep(500)
     }
     point = images.findImageInRegion(screen(), Game.img_元素试炼_开始游戏,
       width * 0.2, height * 0.6, width * 0.6, height * 0.3)
     if (point) {
-      return click(point.x, point.y)
+      return click(toScreenX(point.x), toScreenY(point.y))
     }
     return false
   }
