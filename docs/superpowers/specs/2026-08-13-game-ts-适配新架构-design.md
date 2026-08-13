@@ -22,7 +22,8 @@
 ### 1. 依赖与页面实例
 
 ```ts
-import { GameConfig, GameType, smallWindow } from '../MainWindow'
+import { GameConfig, GameType } from '../MainWindow'
+import { smallWindow } from '../SmallWindows'
 import { Router } from '../router/Router'
 import { screen, tryCloseModals, select_队友, getTemplate } from '../utils/img'
 import { skillStrategy } from '../utils/技能策略'
