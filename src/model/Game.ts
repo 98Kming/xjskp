@@ -30,39 +30,19 @@ export class Game {
   private runNum = 0
   private status: GameStatus = GameStatus.战斗结束
   private startTime = 0
-  倍速(img: ImageWrapper) {
+  倍速() {
     if (this.enable_倍速) return
-    if (!this.倍速_point) {
-      this.倍速_point = images.findMultiColors(img, Game.colors_倍速, Game.colors_倍速_多点,
-        { region: [0, 0, screen.width * 0.2, screen.height * 0.4], threshold: 26 })
-    }
-    if (this.倍速_point) {
-      let x = this.倍速_point.x
-      while (--x > 0) {
-        let color = images.pixel(img, x, this.倍速_point.y)
-        if (colors.isSimilar(color, "#ee8800", 10)) {
-          this.enable_倍速 = true
-          return
-        }
-      }
-      click(this.倍速_point.x + 10, this.倍速_point.y + 10)
+    if (this.战斗中Page.已开15倍速()) {
+      this.enable_倍速 = true
+    } else {
+      this.战斗中Page.开15倍速()
     }
   }
-  currentLevel(img: ImageWrapper) {
-    if (!this.level && page_战斗中.暂停_point) {
-      let temp = images.clip(img, screen.width / 2 - 50, page_战斗中.暂停_point.y, 100, page_战斗中.暂停_point.y + 100)
-      let ocrResult = ocrPointFind(ocr_zh(temp), "级")
-      temp.recycle()
-      if (ocrResult) {
-        const matchResult = ocrResult.text.match(/^[^@]+/)
-        let num = matchResult ? matchResult[0].replace(/\D/g, "") : ""
-        if (num && parseInt(num) <= 20 && parseInt(num) >= 1) {
-          this.level = parseInt(num)
-        }
-      }
+  currentLevel(): number {
+    if (!this.level && this.战斗中Page.暂停_point) {
+      this.level = this.战斗中Page.等级()
       console.log("ocr level: " + this.level)
     }
-    // console.log("level: " + this.level)
     return this.level
   }
   reset() {
@@ -77,36 +57,29 @@ export class Game {
     })
   }
 
-  battleHandler(img: ImageWrapper): boolean {
-    if (page_选择技能.is(img)) {
+  private battleHandler(img: ImageWrapper): boolean {
+    if (this.选择技能Page.is(img)) {
       // 6秒内选择技能当成头选宝石效果，不提升等级
-      page_选择技能.back(this.gameConfig.identifySkill) && Date.now() - this.startTime > 6 * 1000 && this.level && this.level++
+      this.选择技能Page.selectSkill(img, this.gameConfig.identifySkill) && Date.now() - this.startTime > 6 * 1000 && this.level && this.level++
       return true
-    } else if (page_精英掉落.is(img)) {
-      log("精英掉落中")
-      page_精英掉落.back()
-      return true
-    } else if (page_暂停.is(img)) {
+    } else if (this.暂停战斗Page.is(img)) {
       log("暂停中")
       if (this.status == GameStatus.退出战斗) {
-        page_暂停.退出()
+        this.暂停战斗Page.结束战斗()
       } else {
-        page_暂停.back()
+        this.暂停战斗Page.继续()
       }
       return true
-    } else if (page_返回.is(img)) {
+    } else if (this.战斗结束Page.is(img)) {
       log("返回中")
       // 一局结束
-      page_返回.back()
+      this.战斗结束Page.back()
       this.reset()
-    } else if (page_重新连接.is(img)) {
-      log("重新连接中")
-      page_重新连接.back()
     } else {
-      if (关闭_point(img)) {
-        log("游戏中聊天框不处理")
+      if (tryCloseModals()) {
+        log("关闭弹窗")
       } else {
-        click(screen.width / 2, screen.height - 10)
+        click(width / 2, height - 10)
         log("尝试关闭战斗中未知窗口")
       }
     }
