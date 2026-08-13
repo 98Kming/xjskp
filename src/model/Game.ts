@@ -164,8 +164,8 @@ export class Game {
   }
   start() {
     do {
-      
-      if (!page_战斗中.is(screen.capture())) {
+
+      if (!this.战斗中Page.is(screen())) {
         // 战斗前准备
         if (this.status == GameStatus.战斗结束) {
           if (this.gameConfig.type == GameType.寰球救援) {
@@ -173,17 +173,21 @@ export class Game {
           } else if (this.gameConfig.type == GameType.精英关卡) {
             this.prepare_精英关卡()
           } else if (this.gameConfig.type == GameType.普通关卡) {
-            this.gameConfig.enableStart && PageRoute.goto(page_战斗中)
+            this.gameConfig.enableStart && Router.getInstance().go(战斗中)
           } else if (this.gameConfig.type == GameType.元素试炼) {
             this.gameConfig.enableStart && this.prepare_元素试炼()
+          } else {
+            // 寰球远征_准备 等未支持模式：防死循环，提示后退出
+            log("不支持的关卡类型: " + this.gameConfig.type)
+            return
           }
         }
       }
-      let img = screen.capture()
+      let img = screen()
       this.startTime = Date.now()
       let sleepTime = 2000
-      while (this.status != GameStatus.战斗结束 || page_战斗中.is(img)) {
-        if (page_战斗中.hasUplayer(img)) {
+      while (this.status != GameStatus.战斗结束 || this.战斗中Page.is(img)) {
+        if (this.战斗中Page.hasUplayer(img)) {
           if (this.battleHandler(img)) {
             log('战斗中上层窗口处理完成')
             this.status = GameStatus.战斗中
@@ -193,23 +197,23 @@ export class Game {
           if (this.gameConfig.timeOut && Date.now() - this.startTime > this.gameConfig.timeOut * 60 * 1000) {
             log('战斗超时 返回')
             this.status = GameStatus.退出战斗
-            page_战斗中.back()
+            this.战斗中Page.暂停()
           }
           // 队长开启倍速
-          if (this.gameConfig.isLeader) this.倍速(img)
+          if (this.gameConfig.isLeader) this.倍速()
           // 开启提前退出功能
           if (this.gameConfig.exitLevel) {
             // 如果提前退出等级为1直接退出，不识别当前等级;或者当前等级大于等于提前退出等级
-            if (this.gameConfig.exitLevel == 1 || this.currentLevel(img) >= this.gameConfig.exitLevel) {
+            if (this.gameConfig.exitLevel == 1 || this.currentLevel() >= this.gameConfig.exitLevel) {
               log('提前退出')
               this.status = GameStatus.退出战斗
-              page_战斗中.back()
+              this.战斗中Page.暂停()
               sleepTime = 800
             }
           }
         }
         sleep(sleepTime)
-        img = screen.capture()
+        img = screen()
       }
       if (this.status == GameStatus.战斗结束) {
         log('游戏次数', this.runNum)
