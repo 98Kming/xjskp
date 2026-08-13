@@ -91,18 +91,13 @@ export class Game {
         toast("未选择队员")
         throw new Error("未选择队员")
       }
-      if (退队_point()) {
-        return true
+      // TODO: 退队检测(旧 退队_point)待补：已在队伍中时先退队
+      // TODO: 组队邀请页对象未建(见 2026-08-12-组队邀请页面-design.md)，需先路由到邀请页
+      let point = select_队友(this.gameConfig.teammate)
+      if (point) {
+        click(point.x, point.y)
+        sleep(2000)
       }
-      if (PageRoute.goto(page_组队邀请_好友)) {
-        do {
-          page_组队邀请_好友.click_邀请(this.gameConfig.teammate)
-          sleep(2000)
-        } while (page_组队邀请_好友.is(screen.capture()))
-      }
-    }
-    if (退队_point()) {
-      return true
     }
     return false
   }
@@ -112,13 +107,11 @@ export class Game {
         toast("未选择队长")
         throw new Error("未选择队长")
       }
-      let point = 副本邀请_point()
+      // TODO: 副本邀请弹窗检测(旧 副本邀请_point)待补
+      let point = select_队友(this.gameConfig.teammate)
       if (point) {
         click(point.x, point.y)
         sleep(1200)
-      }
-      if (page_组队邀请_接受邀请列表.is(screen.capture())) {
-        return page_组队邀请_接受邀请列表.click_接受邀请(this.gameConfig.teammate)
       }
     }
     return false
@@ -127,11 +120,11 @@ export class Game {
     if (this.gameConfig.enableTeam) {
       if (this.gameConfig.isLeader) {
         if (this.队长_准备()) {
-          return PageRoute.goto(page_战斗中, 1, 1)
+          return Router.getInstance().go(战斗中)
         }
       } else {
         if (!this.队员_准备()) {
-          return PageRoute.goto(page_战斗, 1, 1)
+          return Router.getInstance().go(战斗)
         }
       }
     }
@@ -140,29 +133,29 @@ export class Game {
   prepare_寰球救援(): boolean {
     if (this.gameConfig.enableTeam) {
       if (this.gameConfig.isLeader) {
-        if (!PageRoute.goto(page_寰球救援, 1, 1)) {
+        if (!Router.getInstance().go(寰球救援)) {
           return false
         }
         if (this.队长_准备()) {
-          return PageRoute.goto(page_战斗中, 1, 1)
+          return Router.getInstance().go(战斗中)
         }
       } else {
         if (!this.队员_准备()) {
-          return PageRoute.goto(page_寰球救援, 1, 1)
+          return Router.getInstance().go(寰球救援)
         }
       }
     }
     return true
   }
   prepare_元素试炼(): boolean {
-    let point = images.findImageInRegion(screen.capture(), Game.img_元素试炼_挑战,
-      screen.width * 0.3, screen.height * 0.2, screen.width * 0.4, screen.height * 0.6)
+    let point = images.findImageInRegion(screen(), Game.img_元素试炼_挑战,
+      width * 0.3, height * 0.2, width * 0.4, height * 0.6)
     if (point) {
       click(point.x, point.y)
       sleep(500)
     }
-    point = images.findImageInRegion(screen.capture(), Game.img_元素试炼_开始游戏,
-      screen.width * 0.2, screen.height * 0.6, screen.width * 0.6, screen.height * 0.3)
+    point = images.findImageInRegion(screen(), Game.img_元素试炼_开始游戏,
+      width * 0.2, height * 0.6, width * 0.6, height * 0.3)
     if (point) {
       return click(point.x, point.y)
     }
