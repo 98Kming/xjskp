@@ -1,7 +1,7 @@
 import { GameConfig, GameType } from "../MainWindow"
 import { smallWindow } from "../SmallWindows"
 import { Router } from '../router/Router'
-import { screen, width, height, toScreenX, toScreenY, tryCloseModals, select_队友 } from '../utils/img'
+import { screen, width, height, toScreenX, toScreenY, tryCloseModals, select_队友, createRouteAction, imageDetector } from '../utils/img'
 import { skillStrategy } from '../utils/技能策略'
 import { 战斗中 } from '../pages/战斗中'
 import { 暂停战斗 } from '../pages/暂停战斗'
@@ -76,9 +76,11 @@ export class Game {
       // 一局结束
       this.战斗结束Page.back()
       this.reset()
+    } else if (createRouteAction('images/重新连接_1_0.9_635_1460_847_1513.png')){
+      log("重新连接中")
     } else {
-      if (tryCloseModals()) {
-        log("关闭弹窗")
+      if (imageDetector('images/$关闭1_0_0.8_800_400_1020_600.png')) {
+        log("游戏中聊天框不处理")
       } else {
         click(width / 2, height - 10)
         log("尝试关闭战斗中未知窗口")

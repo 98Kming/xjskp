@@ -76,7 +76,7 @@ export class 战斗中 extends BasePage {
   /** 暂停按钮处像素不再是按钮色 → 有上层窗口遮挡（暂停面板/弹窗会使按钮变色） */
   hasUplayer(img: ImageWrapper): boolean {
     let p = this.暂停_point
-    return !!p && !colors.isSimilar(img.pixel(p.x + 18, p.y + 18), '#ffffff', 10)
+    return !!p && !colors.isSimilar(img.pixel(p.x + 6, p.y + 6), '#FEFEFC', 10)
   }
 
   // /**
