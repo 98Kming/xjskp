@@ -284,8 +284,7 @@ export class 选择技能 extends BasePage {
     let bottom = this.找词组底部(img, top)
     let left = this.找词组左边(img, (top + bottom) / 2)
     let right = this.找词组右边(img, (top + bottom) / 2)
-    // 两边的亮段宽度差 > 10px → 认为两边不对称，词组不完整
-    // 左边空隙宽 = left（最左亮点 x），右边空隙宽 = width - right（最右亮点 x）
+    // 右边空隙宽(width - right)比左边空隙宽(left)大 20px 以上 → 词条组偏左，词组不完整
     log(`[选择技能] 词条组范围：top=${top} bottom=${bottom} left=${left} right=${right}`)
     if (left + right + 20 < width) {
       log('[选择技能] 词条组不完整，不识别')
