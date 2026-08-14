@@ -109,7 +109,8 @@ mainWindow.window.启动.setOnClickListener(new android.view.View.OnClickListene
 }))
 mainWindow.window.重置技能优先级.setOnClickListener(new android.view.View.OnClickListener({
   onClick() {
-    // 重新读取技能页 seekbar 权重并重置局内计数
+    // 恢复 seekbar 到布局默认进度，再读取配置并重置局内计数
+    skillStrategy.resetUi()
     skillStrategy.resetProgress()
     toast('技能优先级已重置')
   }

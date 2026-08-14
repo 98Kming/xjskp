@@ -258,12 +258,16 @@ export class 选择技能 extends BasePage {
     for (let i = 0; i < skillPoints.length; i++) {
       let point = skillPoints[i]
       if (i < count) {
-        click(point.x, point.y)
+        //click(point.x, point.y)
+        // 选中后局内降权(priority/weightDecay),下次出现时权重降低
+        if (point.match) {
+          skillStrategy.onSelected(point.match)
+        }
         if (sure_point) {
           click(sure_point.x + 200, sure_point.y + 10)
         }
       }
-      str += `[${point.name} ${point.weight} ${point.match}]\n`
+      str += `[${point.name} ${point.weight} ${point.match ? point.match.source : ''}]\n`
     }
     log(str)
     return true
@@ -295,7 +299,7 @@ export class 选择技能 extends BasePage {
             y: top  + 100,
             name: name,
             weight: strategy.weight,
-            match: strategy.match.source
+            match: strategy.match
           })
         }
         left = gaps[i]

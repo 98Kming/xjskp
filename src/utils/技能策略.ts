@@ -10,6 +10,20 @@ enum SKILL_TYPE {
   子弹, 元素子弹, 温压弹, 干冰弹, 装甲车, 冰暴发生器, 旋风加农, 燃油弹, 无人机, 电磁穿刺, 其他
 }
 
+// seekbar 名称 → SKILL_TYPE 映射(UI 控件 id 为 {名称}_seekbar)
+const 类型表: any = {
+  子弹: SKILL_TYPE.子弹,
+  元素子弹: SKILL_TYPE.元素子弹,
+  温压弹: SKILL_TYPE.温压弹,
+  干冰弹: SKILL_TYPE.干冰弹,
+  电磁穿刺: SKILL_TYPE.电磁穿刺,
+  装甲车: SKILL_TYPE.装甲车,
+  冰暴发生器: SKILL_TYPE.冰暴发生器,
+  旋风加农: SKILL_TYPE.旋风加农,
+  燃油弹: SKILL_TYPE.燃油弹,
+  无人机: SKILL_TYPE.无人机,
+}
+
 interface Skill {
   match: RegExp
   weight: number // 技能权重，权重高的技能优先级高
@@ -102,26 +116,29 @@ STRATEGY.forEach(skill => {
 })
 
 export class skillStrategy {
-  /** 从技能页 seekbar 读取各类型权重（100-进度，进度越高该类型越不想要）并重置局内计数 */
-  static resetProgress() {
-    progressMap.clear()
-    progressMap.set(SKILL_TYPE.子弹, 100 - mainWindow.window.子弹_seekbar.widget.getProgress())
-    progressMap.set(SKILL_TYPE.元素子弹, 100 - mainWindow.window.元素子弹_seekbar.widget.getProgress())
-    progressMap.set(SKILL_TYPE.温压弹, 100 - mainWindow.window.温压弹_seekbar.widget.getProgress())
-    progressMap.set(SKILL_TYPE.干冰弹, 100 - mainWindow.window.干冰弹_seekbar.widget.getProgress())
-    progressMap.set(SKILL_TYPE.电磁穿刺, 100 - mainWindow.window.电磁穿刺_seekbar.widget.getProgress())
-    progressMap.set(SKILL_TYPE.装甲车, 100 - mainWindow.window.装甲车_seekbar.widget.getProgress())
-    progressMap.set(SKILL_TYPE.冰暴发生器, 100 - mainWindow.window.冰暴发生器_seekbar.widget.getProgress())
-    progressMap.set(SKILL_TYPE.旋风加农, 100 - mainWindow.window.旋风加农_seekbar.widget.getProgress())
-    progressMap.set(SKILL_TYPE.燃油弹, 100 - mainWindow.window.燃油弹_seekbar.widget.getProgress())
-    progressMap.set(SKILL_TYPE.无人机, 100 - mainWindow.window.无人机_seekbar.widget.getProgress())
-    progressMap.set(SKILL_TYPE.其他, 0)
-    this.resetPriority()
+  /** 恢复所有类型 seekbar 到布局默认进度(originalProgress)，须在 UI 线程调用 */
+  static resetUi() {
+    for (var key in 类型表) {
+      var view = (mainWindow.window as any)[key + '_seekbar']
+      if (view && view.widget) {
+        view.widget.reset()
+      }
+    }
   }
 
-  /** progressMap 未初始化时从 seekbar 读取（首次选技能前调用，局内不重复重置） */
-  static ensureProgress() {
-    if (progressMap.size === 0) this.resetProgress()
+  /** 从技能页 seekbar 读取各类型权重（100-进度，进度越高该类型越想要）并重置局内计数 */
+  static resetProgress() {
+    progressMap.clear()
+    for (var key in 类型表) {
+      var view = (mainWindow.window as any)[key + '_seekbar']
+      if (view && view.widget) {
+        progressMap.set(类型表[key], 100 - view.widget.getProgress())
+      } else {
+        log('[技能策略] ' + key + '_seekbar 控件不可用，跳过该类型配置')
+      }
+    }
+    progressMap.set(SKILL_TYPE.其他, 0)
+    this.resetPriority()
   }
 
   /** 恢复所有规则的局内计数（priority/selectNum/weightDecay 回到初始值） */

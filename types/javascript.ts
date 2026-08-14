@@ -48,5 +48,5 @@ type SkillPoint = {
   y: number
   name?:string
   weight?:number
-  match?:string
+  match?:RegExp
 }

@@ -8,6 +8,7 @@ module.exports = {
     ocr: path.resolve(__dirname, "./test/ocr.ts"),
     "skill-test": path.resolve(__dirname, "./test/skill-test.ts"),
     "组队-test": path.resolve(__dirname, "./test/组队-test.ts"),
+    "技能策略诊断": path.resolve(__dirname, "./test/技能策略诊断.ts"),
   },
 
   output: {

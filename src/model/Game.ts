@@ -170,6 +170,8 @@ export class Game {
     return false
   }
   start() {
+    // 每次启动重新读取技能页 seekbar 配置(拖动后再次启动要生效)并重置局内计数
+    skillStrategy.resetProgress()
     do {
 
       if (!this.战斗中Page.is(screen())) {
