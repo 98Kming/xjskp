@@ -287,7 +287,8 @@ export class 选择技能 extends BasePage {
     // 两边的亮段宽度差 > 10px → 认为两边不对称，词组不完整
     // 左边空隙宽 = left（最左亮点 x），右边空隙宽 = width - right（最右亮点 x）
     log(`[选择技能] 词条组范围：top=${top} bottom=${bottom} left=${left} right=${right}`)
-    if (Math.abs(left - (width - right)) > left) {
+    if (left + right + 20 < width) {
+      log('[选择技能] 词条组不完整，不识别')
       return []
     }
     let skillPoints: SkillPoint[] = []

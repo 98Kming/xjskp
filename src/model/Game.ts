@@ -27,12 +27,15 @@ export class Game {
   private 战斗Page = new 战斗()
 
   private enable_倍速 = false
+  private 倍速尝试 = 0 // 每局开倍速尝试次数,防找不到按钮时无限点击
   private level = 0
   private runNum = 0
   private status: GameStatus = GameStatus.战斗结束
   private startTime = 0
   倍速() {
     if (this.enable_倍速) return
+    if (this.倍速尝试 >= 3) return // 每局最多尝试 3 次
+    this.倍速尝试++
     if (this.战斗中Page.已开15倍速()) {
       this.enable_倍速 = true
     } else {
@@ -48,6 +51,7 @@ export class Game {
   }
   reset() {
     this.enable_倍速 = false
+    this.倍速尝试 = 0
     this.level = 1
     this.runNum++
     this.status = GameStatus.战斗结束
@@ -76,7 +80,7 @@ export class Game {
       // 一局结束
       this.战斗结束Page.back()
       this.reset()
-    } else if (createRouteAction('images/重新连接_1_0.9_635_1460_847_1513.png')){
+    } else if (createRouteAction('images/重新连接_1_0.9_635_1460_847_1513.png')()){
       log("重新连接中")
     } else {
       if (imageDetector('images/$关闭1_0_0.8_800_400_1020_600.png')) {
@@ -208,8 +212,8 @@ export class Game {
             this.status = GameStatus.退出战斗
             this.战斗中Page.暂停()
           }
-          // 队长开启倍速
-          if (this.gameConfig.isLeader) this.倍速()
+          // 开关开启时尝试开 15 倍速(每局最多 3 次)
+          if (this.gameConfig.倍速) this.倍速()
           // 开启提前退出功能
           if (this.gameConfig.exitLevel) {
             // 如果提前退出等级为1直接退出，不识别当前等级;或者当前等级大于等于提前退出等级

@@ -91,6 +91,7 @@ class UiGameConfig extends GameConfig {
     this.invite = mainWindow.window.自动邀请.widget.isChecked()
     this.acceptInvite = mainWindow.window.自动接受邀请.widget.isChecked()
     this.identifySkill = mainWindow.window.识别技能.widget.isChecked()
+    this.倍速 = mainWindow.window.开启倍速.widget.isChecked()
     // TODO: teammate 由"获取队友信息"流程注入(UI 按钮未绑定,待实现)
   }
 }

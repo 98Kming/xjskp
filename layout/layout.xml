@@ -15,7 +15,7 @@
         <text textSize="16sp" textColor="#000000" textStyle="bold">选择功能：</text>
         <pref-spinner id="模式" spinnerMode="dropdown" entries="普通关卡|精英关卡|寰球救援|元素试炼|寰球远征_准备" h="24"/>
       </horizontal>
-      <pref-switch id="开局闪退" text="开局闪退，需要root" layoutDirection="rtl" />
+      <pref-switch id="开启倍速" text="倍速" layoutDirection="rtl" />
       <pref-enable-num-input id="执行次数" text="执行次数：" min="1"/>
       <pref-enable-num-input id="选择关卡" text="选择关卡：" min="1"/>
       <pref-enable-num-input id="退出等级" text="退出等级：" min="1"/>

@@ -11,7 +11,6 @@ export type MainWindowView = {
   viewPager: JsViewPager
   tabHost: JsTabLayout
   模式: JsSpinner & ConfigurableView<PrefSpinner>
-  开局闪退: ConfigurableView<PrefSwitch>
   执行次数: ConfigurableView<PrefEnableNumInput>
   选择关卡: ConfigurableView<PrefEnableNumInput>
   退出等级: ConfigurableView<PrefEnableNumInput>
@@ -126,6 +125,7 @@ export abstract class GameConfig {
   acceptInvite = false
   teammate?: Teammate
   identifySkill = false // 识别技能
+  倍速 = false // 开启 15 倍速
 }
 
 ui.run(() => {
@@ -135,8 +135,8 @@ ui.run(() => {
 
 const formRules: VisibilityRule[] = [
   {
-    view: mainWindow.window.开局闪退,
-    targetKey: mainWindow.window.开局闪退.widget.getKey(),
+    view: mainWindow.window.开启倍速,
+    targetKey: mainWindow.window.开启倍速.widget.getKey(),
     shows: [GameType.普通关卡, GameType.精英关卡],
     hides: []
   },
@@ -150,26 +150,26 @@ const formRules: VisibilityRule[] = [
     view: mainWindow.window.退出等级,
     targetKey: mainWindow.window.退出等级.widget.getKey(),
     shows: [],
-    hides: [mainWindow.window.开局闪退.widget.getKey(), GameType.元素试炼]
+    hides: [GameType.元素试炼]
   },
   {
     view: mainWindow.window.超时退出,
     targetKey: mainWindow.window.超时退出.widget.getKey(),
     shows: [],
-    hides: [mainWindow.window.开局闪退.widget.getKey()]
+    hides: []
   },
   {
     view: mainWindow.window.开始游戏,
     targetKey: mainWindow.window.开始游戏.widget.getKey(),
     shows: [],
-    hides: [mainWindow.window.开局闪退.widget.getKey(), mainWindow.window.自动接受邀请.widget.getKey()]
+    hides: [mainWindow.window.自动接受邀请.widget.getKey()]
   },
 
   {
     view: mainWindow.window.enable_组队,
     targetKey: mainWindow.window.enable_组队.widget.getKey(),
     shows: [GameType.精英关卡, GameType.寰球救援],
-    hides: [mainWindow.window.开局闪退.widget.getKey()]
+    hides: []
   },
 
   {
