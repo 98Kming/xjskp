@@ -6,7 +6,7 @@ import { 战斗中 } from './战斗中'
 // 词条查找方案（用户实测特征）：
 // 技能词条位于"选择技能"标题图下方，词条组居中对齐（多词条时两边对称），
 // 词条周围（弹窗暗色遮罩）明度 < 0.03，词条卡片本身明亮 → 用明度扫描定位卡片
-var 暗阈值 = 0.03
+var 暗阈值 = 0.04
 // 词条顶部确认：从标题下方第一个暗点往下找第一个亮点行，该行横向连续 100 个亮点
 var 顶部连续亮点 = 100
 // 词条底部确认：从顶部往下找第一个暗点，纵向连续 10 个暗点（卡片内短暗纹凑不满 10 个）
@@ -161,6 +161,7 @@ export class 选择技能 extends BasePage {
     // 从暗点往下找第一个亮点行：该行横向存在 ≥100px 亮段 → 词条顶部
     while (y < height) {
       y += 2
+      if (y >= height) break // 步进后越界检查，防 img.pixel 抛异常
       if (暗点(img, x, y)) continue // 还是暗区，继续找亮点
       if (行最长亮段(img, y, 顶部连续亮点)) return y
     }
@@ -177,6 +178,7 @@ export class 选择技能 extends BasePage {
     var ey = top
     while (ey < height) {
       ey += 2
+      if (ey >= height) break // 步进后越界检查，防 img.pixel 抛异常
       if (!暗点(img, x, ey)) continue // 还在卡片内，继续找暗点
       var 暗起点 = ey
       var 连续暗 = 0
@@ -275,6 +277,10 @@ export class 选择技能 extends BasePage {
 
   entryPoints(img: ImageWrapper, identifySkill: boolean): SkillPoint[] {
     let top = this.找词组顶部(img)
+    if (top < 0) {
+      log('[选择技能] 未找到词条顶部，不识别')
+      return []
+    }
     let bottom = this.找词组底部(img, top)
     let left = this.找词组左边(img, (top + bottom) / 2)
     let right = this.找词组右边(img, (top + bottom) / 2)
