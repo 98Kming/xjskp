@@ -111,15 +111,6 @@ export function getTemplate(filePath: string): ImageWrapper {
   for (var i = 0; i < templateCache.length; i++) {
     if (templateCache[i].key === filePath) {
       var hit = templateCache[i]
-      // 模板闲置期间可能被系统 GC 回收 Bitmap（"image has been recycled"），
-      // 命中时校验有效性，失效则移除缓存重新读取
-      try {
-        hit.img.ensureNotRecycled()
-      } catch (e) {
-        log('[img] 模板已被回收，重新读取: ' + filePath)
-        templateCache.splice(i, 1)
-        break
-      }
       // 移到末尾表示最近使用
       if (i !== templateCache.length - 1) {
         templateCache.splice(i, 1)
@@ -191,17 +182,6 @@ export function screen(interval: number = 500, recycle: boolean = true): ImageWr
   }
   cache_screen_img = img
   return img
-}
-
-/**
- * 安全回收：缓存截图（cache_screen_img）由 screen() 统一管理，
- * 外部不得手动回收（否则缓存变成僵尸图，下次命中即抛 recycled 异常）。
- * 非缓存图正常 recycle 防泄漏。
- */
-export function recycleSafe(img: ImageWrapper | null | undefined): void {
-  if (!img) return
-  if (img === cache_screen_img) return
-  try { img.recycle() } catch (e) { }
 }
 
 
@@ -287,30 +267,8 @@ export function imageDetector(filePath: string, img?: ImageWrapper): OpenCV.Poin
   var template = getTemplate(filePath)
   var rw = parsed.x2 - parsed.x1
   var rh = parsed.y2 - parsed.y1
-  if (!img) img = screen()
-  var cached = regionCache.get(filePath)
-  var region = cached
-  var point: OpenCV.Point | null = null
-  try {
-    if (region) {
-      point = images.findImageInRegion(img, template, region.x1, region.y1, region.x2 - region.x1, region.y2 - region.y1, parsed.threshold)
-    } else {
-      point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-    }
-  } catch (e: any) {
-    // 模板/截图被回收：重读模板 + 强制新截图，重试一次
-    // （注意：is() 内调用必须传外部传入的 img，不得自行截图——screen() 超窗时会
-    //   回收 cache_screen_img，若传入图正是缓存图，后续 is() 将使用死图批量炸）
-    log('[img] 识别回收异常，重读模板重试: ' + filePath + ' ' + (e.message || e))
-    template = getTemplate(filePath)
-    let img2 = screen(0, false)
-    if (region) {
-      point = images.findImageInRegion(img2, template, region.x1, region.y1, region.x2 - region.x1, region.y2 - region.y1, parsed.threshold)
-    } else {
-      point = images.findImageInRegion(img2, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-    }
-  }
-  return point
+  img || (img = screen())
+  return images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
 }
 
 export function createPageDetector(filePath: string, skipLuminance?: boolean): PageDetector {
@@ -344,34 +302,21 @@ function luminanceOk(template: ImageWrapper, img: ImageWrapper, point: OpenCV.Po
   }
 }
 
-  // 模板识别（含区域缓存分支）；tpl 可变——回收异常重试时重读模板后传入
-  function 识别模板(img: ImageWrapper, tpl: ImageWrapper, cached: any): boolean {
-    if (cached) {
-      var point = images.findImageInRegion(img, tpl, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
-      if (point) {
-        return skipLuminance || luminanceOk(tpl, img, point, filePath)
-      }
-      // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
-      return false
+var fn = function (img: ImageWrapper): boolean {
+  var cached = regionCache.get(filePath)
+  if (cached) {
+    var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
+    if (point) {
+      return skipLuminance || luminanceOk(template, img, point, filePath)
     }
-    // 无缓存 → 全量搜索
-    var point2 = images.findImageInRegion(img, tpl, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-    if (!point2) return false
-    return skipLuminance || luminanceOk(tpl, img, point2, filePath)
+    // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
+    return false
   }
-
-  var fn = function (img: ImageWrapper): boolean {
-    var cached = regionCache.get(filePath)
-    try {
-      return 识别模板(img, template, cached)
-    } catch (e: any) {
-      // 模板/截图被回收（闲置 GC 或误回收）：重读模板 + 强制新截图，重试一次
-      log('[img] 识别回收异常，重读模板重试: ' + filePath + ' ' + (e.message || e))
-      template = getTemplate(filePath)
-      var img2 = screen(0, false)
-      return 识别模板(img2, template, cached)
-    }
-  } as PageDetector
+  // 无缓存 → 全量搜索
+  var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+  if (!point) return false
+  return skipLuminance || luminanceOk(template, img, point, filePath)
+} as PageDetector
   fn.detectImagePath = filePath
   return fn
 }

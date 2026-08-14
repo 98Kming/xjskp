@@ -13,7 +13,7 @@ export class 战斗中 extends BasePage {
   name = '战斗中'
   暂停_point!: OpenCV.Point
   is(img: ImageWrapper): boolean {
-    let point = imageDetector('images/战斗中$_暂停_1_0.9_66_50_102_200.png')
+    let point = imageDetector('images/战斗中$_暂停_1_0.9_66_50_102_200.png', img)
     if (point) {
       this.暂停_point = point
     }

@@ -136,7 +136,7 @@ function 行亮段总宽(img: ImageWrapper, y: number): number {
 export class 选择技能 extends BasePage {
   name = '选择技能'
   选择技能_point!: OpenCV.Point
-  is(img?: ImageWrapper) {
+  is(img: ImageWrapper) {
     // 必须传入外部 img：自行截图会回收 cache_screen_img（若传入图正是缓存图），
     // 导致 detectCurrentPage 后续页面 is() 全部使用已回收的死图
     let point = imageDetector('images/选择技能_0_0.8_438_729_645_1143.png', img)
@@ -248,7 +248,7 @@ export class 选择技能 extends BasePage {
   }
 
   selectSkill(img: ImageWrapper, identifySkill: boolean = true): boolean {
-    let sure_point = imageDetector('images/选择技能$$确定_0_0.9_531_1611_628_1656.png')
+    let sure_point = imageDetector('images/选择技能$$确定_0_0.9_531_1611_628_1656.png', img)
     let skillPoints = this.entryPoints(img, identifySkill)
     if (skillPoints.length == 0) {
       return false
