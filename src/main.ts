@@ -234,15 +234,6 @@ function start(fun: () => void, 等待熄屏: boolean = true) {
   threads.start(() => {
     try {
       sleep(500)
-      // 上次任务结束后停在 AutoJs6 等熄屏,重新启动时仅当当前前台是 AutoJs6 才切回游戏
-      // (用户在游戏里直接点启动时不需要切,避免多余跳转)
-      // if (currentPackage() == context.getPackageName()) {
-      //   var recentApps = getRecentAppsSorted(2)
-      //   if (recentApps.length >= 2) {
-      //     launchPackageByShell(recentApps[1].packageName)
-      //     sleep(1000)
-      //   }
-      // }
       fun()
       smallWindow.hide()
       // 切 AutoJs6 前台等系统超时自动熄屏(游戏窗口 KEEP_SCREEN_ON 永不超时,AutoJs6 窗口可正常超时熄灭);
