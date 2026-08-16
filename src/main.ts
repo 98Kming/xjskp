@@ -25,10 +25,9 @@
 // import { 武装降临 } from './pages/武装降临'
 // import { 武装降临任务 } from './pages/武装降临-任务'
 // import { 随机事件 } from './pages/随机事件'
-// import { 再别前线 } from './pages/再别前线'
-// import { 再别前线机械传说 } from './pages/再别前线-机械传说'
-// import { 再别前线太空撤离 } from './pages/再别前线-太空撤离'
-// import { 再别前线废土互市 } from './pages/再别前线-废土互市'
+// import { 缘聚七夕 } from './pages/缘聚七夕'
+// import { 鹊桥祈缘 } from './pages/鹊桥祈缘'
+// import { 相思赴约 } from './pages/相思赴约'
 import { mainWindow, GameType, GameConfig } from './MainWindow'
 import { smallWindow } from './SmallWindows'
 import { runDaily } from './model/daily'
@@ -37,6 +36,11 @@ import { 兑换码 } from './model/兑换码'
 import { 探索 } from './model/探索'
 import { Game } from './model/Game'
 import { skillStrategy } from './utils/技能策略'
+import { Router } from './router/Router'
+import { find_队友 } from './utils/img'
+import { 组队邀请推荐 } from './pages/组队邀请-推荐'
+import { 组队邀请好友 } from './pages/组队邀请-好友'
+import { 接受邀请列表 } from './pages/接受邀请列表'
 
 // var router = Router.getInstance()
 
@@ -67,14 +71,20 @@ import { skillStrategy } from './utils/技能策略'
 // new 武装降临()
 // new 武装降临任务()
 // new 随机事件()
-// new 再别前线()
-// new 再别前线机械传说()
-// new 再别前线太空撤离()
-// new 再别前线废土互市()
+// new 缘聚七夕()
+// new 鹊桥祈缘()
+// new 相思赴约()
 
 //router.go(基地)
+// 组队邀请页对象注册(Router 识别与寻路依赖;注册顺序靠后,识别优先级最低,不与现有页面抢识别)
+new 组队邀请推荐()
+new 组队邀请好友()
+new 接受邀请列表()
 var 兑换码运行中 = false
 var 探索运行中 = false
+// 获取队友信息选中的队友(Teammate 含截图引用,每次流程重新获取覆盖)
+let teammate: Teammate | undefined
+var 获取队友信息运行中 = false
 /** 从主窗口 UI 控件读取战斗配置 */
 class UiGameConfig extends GameConfig {
   type: GameType
@@ -92,7 +102,8 @@ class UiGameConfig extends GameConfig {
     this.acceptInvite = mainWindow.window.自动接受邀请.widget.isChecked()
     this.identifySkill = mainWindow.window.识别技能.widget.isChecked()
     this.倍速 = mainWindow.window.开启倍速.widget.isChecked()
-    // TODO: teammate 由"获取队友信息"流程注入(UI 按钮未绑定,待实现)
+    // teammate 由"获取队友信息"流程注入(模块级变量,见下方按钮绑定)
+    this.teammate = teammate
   }
 }
 var keepAlive = setInterval(function () {}, 10000)
@@ -166,24 +177,79 @@ mainWindow.window.探索.setOnClickListener(new android.view.View.OnClickListene
   }
 }))
 
-function start(fun: () => void) {
+mainWindow.window.获取队友信息.setOnClickListener(new android.view.View.OnClickListener({
+  onClick() {
+    if (获取队友信息运行中) {
+      toast('正在获取队友信息中')
+      return
+    }
+    获取队友信息运行中 = true
+    // 不等待熄屏:选人是交互流程,保持游戏前台
+    start(function () {
+      try {
+        teammate = 获取队友信息(mainWindow.window.队长.widget.isChecked())
+      } catch (e: any) {
+        console.error('[获取队友信息] 异常: ' + (e.message || e))
+      } finally {
+        获取队友信息运行中 = false
+      }
+    }, false)
+  }
+}))
+
+/** 获取队友信息:路由到邀请页(队长:组队邀请-好友 / 队员:接受邀请列表),OCR 识别队友名供选择 */
+function 获取队友信息(isLeader: boolean): Teammate | undefined {
+  let teammates: Teammate[] = []
+  do {
+    try {
+      // Router 失败抛 NavigationError(非返回 false),视为打开失败
+      Router.getInstance().go(isLeader ? 组队邀请好友 : 接受邀请列表)
+    } catch (e: any) {
+      toast('打开邀请页面失败')
+      return undefined
+    }
+    teammates = find_队友(isLeader)
+  } while (teammates.length === 0 && sleep(2000))
+  let options: string[] = []
+  teammates.forEach(it => options.push(it.name))
+  let i = dialogs.select('请选择名字相似的好友', options) as number
+  for (let j = 0; j < teammates.length; j++) {
+    if (j != i) {
+      teammates[j].img.recycle()
+    }
+  }
+  if (i < 0) {
+    // 用户取消选择(取消时上面已回收全部截图)
+    return undefined
+  }
+  let t = teammates[i]
+  ui.run(() => {
+    mainWindow.window.队友名称.setText(t.name)
+  })
+  return t
+}
+
+function start(fun: () => void, 等待熄屏: boolean = true) {
   smallWindow.show("停止")
   threads.start(() => {
     try {
       sleep(500)
       // 上次任务结束后停在 AutoJs6 等熄屏,重新启动时仅当当前前台是 AutoJs6 才切回游戏
       // (用户在游戏里直接点启动时不需要切,避免多余跳转)
-      if (currentPackage() == context.getPackageName()) {
-        var recentApps = getRecentAppsSorted(2)
-        if (recentApps.length >= 2) {
-          launchPackageByShell(recentApps[1].packageName)
-          sleep(1000)
-        }
-      }
+      // if (currentPackage() == context.getPackageName()) {
+      //   var recentApps = getRecentAppsSorted(2)
+      //   if (recentApps.length >= 2) {
+      //     launchPackageByShell(recentApps[1].packageName)
+      //     sleep(1000)
+      //   }
+      // }
       fun()
       smallWindow.hide()
-      // 切 AutoJs6 前台等系统超时自动熄屏(游戏窗口 KEEP_SCREEN_ON 永不超时,AutoJs6 窗口可正常超时熄灭)
-      launch(context.getPackageName())
+      // 切 AutoJs6 前台等系统超时自动熄屏(游戏窗口 KEEP_SCREEN_ON 永不超时,AutoJs6 窗口可正常超时熄灭);
+      // 交互流程(如获取队友信息选人)传 false,保持游戏前台
+      if (等待熄屏) {
+        launch(context.getPackageName())
+      }
     } catch (e: any) {
       log(e.javaException == "com.stardust.autojs.runtime.exception.ScriptInterruptedException", e)
       smallWindow.close()

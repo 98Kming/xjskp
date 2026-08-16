@@ -66,9 +66,8 @@ export type MainWindowView = {
   随机事件_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   寰球远征_免费: ConfigurableView<PrefSwitch> & JsCheckBox
   终末危机_扫荡: ConfigurableView<PrefSwitch> & JsCheckBox
-  再别前线_机械传说: ConfigurableView<PrefSwitch> & JsCheckBox
-  再别前线_太空撤离: ConfigurableView<PrefSwitch> & JsCheckBox
-  再别前线_废土互市: ConfigurableView<PrefSwitch> & JsCheckBox
+  缘聚七夕_鹊桥祈缘: ConfigurableView<PrefSwitch> & JsCheckBox
+  缘聚七夕_相思赴约: ConfigurableView<PrefSwitch> & JsCheckBox
 }
 export class MainWindow extends FloatWindow<MainWindowView> {
   constructor() {
@@ -137,7 +136,7 @@ const formRules: VisibilityRule[] = [
   {
     view: mainWindow.window.开启倍速,
     targetKey: mainWindow.window.开启倍速.widget.getKey(),
-    shows: [GameType.普通关卡, GameType.精英关卡],
+    shows: [GameType.普通关卡, GameType.精英关卡,GameType.寰球救援],
     hides: []
   },
   {

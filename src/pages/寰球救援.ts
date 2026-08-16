@@ -1,9 +1,12 @@
 import { BasePage, Route } from './BasePage'
 import { createPageDetector, createRouteAction, screen, width, height, getTemplate, imageNameParser, toScreenX, toScreenY } from '../utils/img'
+import { 组队邀请推荐 } from './组队邀请-推荐'
+import { 接受邀请列表 } from './接受邀请列表'
+import { 战斗中 } from './战斗中'
 
 export class 寰球救援 extends BasePage {
   name = '寰球救援'
-  is = createPageDetector('images/寰球救援_1_0.9_418_2081_472_2107.png')
+  is = createPageDetector('images/寰球救援_1_0.9_30_152_87_182.png')
   private static img_恭喜获得 = getTemplate('images/恭喜获得_1_0.85_438_602_637_656.jpg')
 
   /**
@@ -63,6 +66,13 @@ export class 寰球救援 extends BasePage {
   }
 
   routes(): Route[] {
-    return []
+    return [
+      // 队长:组队邀请弹窗(默认推荐 tab)
+      { target: 组队邀请推荐, action: createRouteAction('images/$邀请_0_0.9_806_1641_892_1686.png'), imagePath: 'images/$邀请_0_0.9_806_1641_892_1686.png' },
+      // 队员:接受邀请列表
+      { target: 接受邀请列表, action: createRouteAction('images/$副本邀请_1_0.9_854_1820_989_1856.png'), imagePath: 'images/$副本邀请_1_0.9_854_1820_989_1856.png' },
+      // 开始游戏按钮,组队完成后点击进入战斗
+      { target: 战斗中, action: createRouteAction('images/寰球救援$战斗中_1_0.9_412_2065_476_2145.png'), imagePath: 'images/寰球救援$战斗中_1_0.9_412_2065_476_2145.png' },
+    ]
   }
 }

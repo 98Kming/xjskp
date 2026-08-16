@@ -6,14 +6,14 @@ import { 战斗结束 } from './战斗结束'
 
 // 页面识别：暂停按钮 或 顶部已激活技能图标出现均算战斗中
 // skipLuminance: 暂停按钮模板左上角是深色像素，亮度对比会被误拒（模板 0.007 vs 屏幕 0.118），跳过亮度检查
-var 暂停检测 = createPageDetector('images/战斗中$_暂停_1_0.9_66_50_102_200.png', true)
+var 暂停 = 'images/战斗中$_暂停_1_0.9_66_50_102_200.png'
 var 已激活技能检测 = createPageDetector('images/战斗中_已激活技能_0_0.9_404_0_674_740.png')
 
 export class 战斗中 extends BasePage {
   name = '战斗中'
   暂停_point!: OpenCV.Point
   is(img: ImageWrapper): boolean {
-    let point = imageDetector('images/战斗中$_暂停_1_0.9_66_50_102_200.png', img)
+    let point = imageDetector(暂停, img)
     if (point) {
       this.暂停_point = point
     }
@@ -22,17 +22,17 @@ export class 战斗中 extends BasePage {
 
   /** 点击暂停按钮，弹出暂停面板 */
   暂停(): boolean {
-    return createRouteAction('images/战斗中$_暂停_1_0.9_66_50_102_200.png')()
+    return createRouteAction(暂停)()
   }
 
-  /** 开启 15 倍速（找到"15倍速-关闭"按钮时点击） */
-  开15倍速(): boolean {
-    return createRouteAction('images/战斗中$$15倍速-关闭_1_0.9_49_325_115_353.png')()
+  /** 开启倍速（找到"倍速-关闭"按钮时点击） */
+  开倍速(): boolean {
+    return createRouteAction('images/战斗中_倍速-关闭_0_0.9_45_323_80_353.png')()
   }
 
-  /** 检测 15 倍速是否已开启 */
-  已开15倍速(): boolean {
-    return !!imageDetector('images/战斗中_15倍速-开启_0_0.9_43_326_119_352.png')
+  /** 检测倍速是否已开启 */
+  已开倍速(): boolean {
+    return !!imageDetector('images/战斗中_倍速-开启_0_0.9_45_323_80_353.png')
   }
 
   /** 技能选择弹窗是否出现（弹窗标题"选择技能"识别，与选择技能页共用识别图） */
@@ -113,7 +113,7 @@ export class 战斗中 extends BasePage {
   routes(): Route[] {
     return [
       // 点暂停 → 暂停面板
-      { target: 暂停战斗, action: createRouteAction('images/战斗中$_暂停_1_0.9_66_50_102_200.png'), imagePath: 'images/战斗中$_暂停_1_0.9_66_50_102_200.png' },
+      { target: 暂停战斗, action: createRouteAction(暂停), imagePath: 暂停 },
     ]
   }
 }

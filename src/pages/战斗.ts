@@ -9,8 +9,10 @@ import { 个人信息 } from './个人信息'
 import { 先锋宝藏 } from './先锋宝藏'
 import { 碧海凉夏 } from './碧海凉夏'
 import { 武装降临 } from './武装降临'
-import { 再别前线 } from './再别前线'
+import { 缘聚七夕 } from './缘聚七夕'
 import { 战斗中 } from './战斗中'
+import { 组队邀请推荐 } from './组队邀请-推荐'
+import { 接受邀请列表 } from './接受邀请列表'
 
 export class 战斗 extends BasePage {
   name = '战斗'
@@ -84,15 +86,15 @@ export class 战斗 extends BasePage {
         }, imagePath: 'images/战斗$武装降临_0_0.8_11_382_132_411.png'
       },
       {
-        target: 再别前线, action: function (): boolean {
-          var action = createRouteAction('images/战斗$再别前线_1_0.9_24_412_82_456.png')
-          // if (action()) return true
-          // self.scrollDown()
-          // if (action()) return true
-          // self.scrollUp()
+        target: 缘聚七夕, action: function (): boolean {
+          var action = createRouteAction('images/战斗$缘聚七夕_1_0.9_45_428_122_482.png')
           return action()
-        }, imagePath: 'images/战斗$再别前线_1_0.9_24_412_82_456.png'
+        }, imagePath: 'images/战斗$缘聚七夕_1_0.9_45_428_122_482.png'
       },
+      // 队长:组队邀请弹窗(默认推荐 tab)
+      { target: 组队邀请推荐, action: createRouteAction('images/$邀请_0_0.9_806_1641_892_1686.png'), imagePath: 'images/$邀请_0_0.9_806_1641_892_1686.png' },
+      // 队员:接受邀请列表
+      { target: 接受邀请列表, action: createRouteAction('images/$副本邀请_1_0.9_854_1820_989_1856.png'), imagePath: 'images/$副本邀请_1_0.9_854_1820_989_1856.png' },
     ]
   }
 }

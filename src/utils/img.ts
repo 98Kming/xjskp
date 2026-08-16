@@ -294,7 +294,7 @@ function luminanceOk(template: ImageWrapper, img: ImageWrapper, point: OpenCV.Po
     if (percentDiff < 50) {
       return true
     }
-    log('[亮度] 模板不匹配:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5), percentDiff, filePath)
+    //log('[亮度] 模板不匹配:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5), percentDiff, filePath)
     return false
   } catch (e) {
     // resize 截图像素读取失败 → 跳过亮度检查
@@ -653,7 +653,7 @@ function uniqueDescMatches(matches: org.autojs.autojs.core.image.TemplateMatchin
 }
 
 const img_组队邀请_邀请 = imageNameParser("images/组队邀请-好友$$邀请好友_0_0.9_690_665_946_1700.png")
-const img_组队邀请_接受 = imageNameParser("images/组队邀请-好友$$接受邀请_0_0.9_690_660_880_1700.png")
+const img_组队邀请_接受 = imageNameParser("images/接受邀请列表$$_接受_0_0.9_690_660_880_1700.png")
 export function find_队友(isLeader: boolean) {
   let temps: Teammate[] = []
   let x
@@ -698,13 +698,14 @@ export function find_队友(isLeader: boolean) {
 }
 
 export function select_队友(teammate: Teammate): OpenCV.Point | null {
-  while (true) {
+  // 最多滑动 5 次,找不到返回 null(防队友不在列表时无限滑动卡死)
+  for (var i = 0; i < 5; i++) {
     let img = screen()
     let point = images.findImageInRegion(img, teammate.img,
       0, height * 0.1, width, height * 0.8, 0.9)
     if (point) {
       point.x = width - point.x
-      point.y += 30
+      point.y += 50
       return point
     }
     gesture(300, [width * 0.3, height * 0.7], [width * 0.4, height * 0.3])
@@ -712,4 +713,5 @@ export function select_队友(teammate: Teammate): OpenCV.Point | null {
     gesture(100, [width * 0.3, height * 0.7], [width * 0.7, height * 0.7])
     sleep(700)
   }
+  return null
 }

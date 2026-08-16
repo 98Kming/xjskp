@@ -7,8 +7,11 @@ import { 战斗中 } from '../pages/战斗中'
 import { 暂停战斗 } from '../pages/暂停战斗'
 import { 战斗结束 } from '../pages/战斗结束'
 import { 选择技能 } from '../pages/选择技能'
+import { 精英掉落 } from '../pages/精英掉落'
 import { 寰球救援 } from '../pages/寰球救援'
 import { 战斗 } from '../pages/战斗'
+import { 组队邀请推荐 } from '../pages/组队邀请-推荐'
+import { 组队邀请好友 } from '../pages/组队邀请-好友'
 
 enum GameStatus {
   战斗中, 退出战斗, 战斗结束
@@ -23,6 +26,7 @@ export class Game {
   private 暂停战斗Page = new 暂停战斗()
   private 战斗结束Page = new 战斗结束()
   private 选择技能Page = new 选择技能()
+  private 精英掉落Page = new 精英掉落()
   private 寰球救援Page = new 寰球救援()
   private 战斗Page = new 战斗()
 
@@ -32,14 +36,15 @@ export class Game {
   private runNum = 0
   private status: GameStatus = GameStatus.战斗结束
   private startTime = 0
+  private 已入队 = false // 队员接受邀请成功,等待队长开战,不再执行准备导航
   倍速() {
     if (this.enable_倍速) return
     if (this.倍速尝试 >= 3) return // 每局最多尝试 3 次
     this.倍速尝试++
-    if (this.战斗中Page.已开15倍速()) {
+    if (this.战斗中Page.已开倍速()) {
       this.enable_倍速 = true
     } else {
-      this.战斗中Page.开15倍速()
+      this.战斗中Page.开倍速()
     }
   }
   currentLevel(): number {
@@ -55,6 +60,7 @@ export class Game {
     this.level = 1
     this.runNum++
     this.status = GameStatus.战斗结束
+    this.已入队 = false // 新一局重新走组队准备
     // 重置技能优先级
     this.gameConfig.identifySkill && skillStrategy.resetPriority()
     ui.run(() => {
@@ -62,12 +68,21 @@ export class Game {
     })
   }
 
-  private battleHandler(img: ImageWrapper): boolean {
-    if (this.选择技能Page.is(img)) {
+  /** 检测战斗内弹窗页类型（按优先级短路），无弹窗返回 null；暂停按钮识别偶发失败时兜底信号 */
+  private 检测弹窗(img: ImageWrapper): 选择技能 | 暂停战斗 | 战斗结束 | 精英掉落 | null {
+    if (this.选择技能Page.is(img)) return this.选择技能Page
+    if (this.暂停战斗Page.is(img)) return this.暂停战斗Page
+    if (this.战斗结束Page.is(img)) return this.战斗结束Page
+    if (this.精英掉落Page.is(img)) return this.精英掉落Page
+    return null
+  }
+
+  private battleHandler(img: ImageWrapper, modalPage: 选择技能 | 暂停战斗 | 战斗结束 | 精英掉落 | null): boolean {
+    if (modalPage === this.选择技能Page) {
       // 6秒内选择技能当成头选宝石效果，不提升等级
       this.选择技能Page.selectSkill(img, this.gameConfig.identifySkill) && Date.now() - this.startTime > 6 * 1000 && this.level && this.level++
       return true
-    } else if (this.暂停战斗Page.is(img)) {
+    } else if (modalPage === this.暂停战斗Page) {
       log("暂停中")
       if (this.status == GameStatus.退出战斗) {
         this.暂停战斗Page.结束战斗()
@@ -75,11 +90,15 @@ export class Game {
         this.暂停战斗Page.继续()
       }
       return true
-    } else if (this.战斗结束Page.is(img)) {
+    } else if (modalPage === this.战斗结束Page) {
       log("返回中")
       // 一局结束
       this.战斗结束Page.back()
       this.reset()
+    } else if (modalPage === this.精英掉落Page) {
+      log("精英掉落弹窗，关闭")
+      this.精英掉落Page.关闭弹窗()
+      return true
     } else if (createRouteAction('images/重新连接_1_0.9_635_1460_847_1513.png')()){
       log("重新连接中")
     } else {
@@ -98,13 +117,31 @@ export class Game {
         toast("未选择队员")
         throw new Error("未选择队员")
       }
-      // TODO: 退队检测(旧 退队_point)待补：已在队伍中时先退队
-      // TODO: 组队邀请页对象未建(见 2026-08-12-组队邀请页面-design.md)，需先路由到邀请页；
-      //       注意 select_队友 是死循环(找不到会无限滑动)，前置导航缺失时调用会卡死
-      let point = select_队友(this.gameConfig.teammate)
-      if (point) {
-        click(toScreenX(point.x), toScreenY(point.y))
+      // 已在队伍中(退队按钮出现)→ 无需重复邀请
+      if (imageDetector('images/_退队_1_0.9_885_1620_958_1658.png')) {
+        return true
+      }
+      // 路由到组队邀请弹窗(默认推荐 tab)→ 切好友 tab
+      Router.getInstance().go(组队邀请推荐)
+      Router.getInstance().go(组队邀请好友)
+      // 循环邀请直到离开邀请页(队友确认后弹窗关闭);加次数上限防队友不在线时无限卡死
+      var 邀请次数 = 0
+      do {
+        let point = select_队友(this.gameConfig.teammate)
+        if (point) {
+          click(toScreenX(point.x), toScreenY(point.y))
+        } else {
+          // 好友列表找不到队友 → 返回关闭邀请弹窗,外层循环重新邀请
+          click(device.width / 2, device.height - 100)
+          sleep(1000)
+          break
+        }
         sleep(2000)
+        邀请次数++
+      } while (imageDetector('images/组队邀请-好友_1_0.9_409_2065_495_2103.png') && 邀请次数 < 10)
+      // 离开邀请页后确认进队
+      if (imageDetector('images/_退队_1_0.9_885_1620_958_1658.png')) {
+        return true
       }
     }
     return false
@@ -115,11 +152,18 @@ export class Game {
         toast("未选择队长")
         throw new Error("未选择队长")
       }
-      // TODO: 副本邀请弹窗检测(旧 副本邀请_point)待补；select_队友 为死循环，弹窗未出现时调用会卡死
-      let point = select_队友(this.gameConfig.teammate)
-      if (point) {
-        click(toScreenX(point.x), toScreenY(point.y))
+      // 副本邀请按钮(队长发出邀请后战斗页出现)→ 点击进入接受邀请列表
+      if (createRouteAction('images/$副本邀请_1_0.9_854_1820_989_1856.png')()) {
         sleep(1200)
+      }
+      // 在 接受邀请列表 页 → 找队长点击接受
+      if (imageDetector('images/接受邀请列表$$_接受_0_0.9_690_660_880_1700.png')) {
+        let point = select_队友(this.gameConfig.teammate)
+        if (point) {
+          click(toScreenX(point.x), toScreenY(point.y))
+          this.已入队 = true // 已接受邀请,等待队长开战
+          return true
+        }
       }
     }
     return false
@@ -128,10 +172,12 @@ export class Game {
     if (this.gameConfig.enableTeam) {
       if (this.gameConfig.isLeader) {
         if (this.队长_准备()) {
-          return Router.getInstance().go(战斗中)
+          // 仅当开启"开始游戏"才导航进战斗,否则停在组队界面
+          return this.gameConfig.enableStart && Router.getInstance().go(战斗中)
         }
       } else {
-        if (!this.队员_准备()) {
+        // 已入队(接受邀请成功)后不再执行准备/导航,只等战斗开始
+        if (!this.已入队 && !this.队员_准备()) {
           return Router.getInstance().go(战斗)
         }
       }
@@ -145,10 +191,12 @@ export class Game {
           return false
         }
         if (this.队长_准备()) {
-          return Router.getInstance().go(战斗中)
+          // 仅当开启"开始游戏"才导航进战斗,否则停在组队界面
+          return this.gameConfig.enableStart && Router.getInstance().go(战斗中)
         }
       } else {
-        if (!this.队员_准备()) {
+        // 已入队(接受邀请成功)后不再执行准备/导航,只等战斗开始
+        if (!this.已入队 && !this.队员_准备()) {
           return Router.getInstance().go(寰球救援)
         }
       }
@@ -177,8 +225,10 @@ export class Game {
     // 每次启动重新读取技能页 seekbar 配置(拖动后再次启动要生效)并重置局内计数
     skillStrategy.resetProgress()
     do {
-
-      if (!this.战斗中Page.is(screen())) {
+      // 战斗弹窗(选择技能等)只在战斗中弹出,检测到弹窗也视为已在战斗,跳过准备导航
+      var 准备img = screen()
+      var 准备弹窗 = this.检测弹窗(准备img)
+      if (!this.战斗中Page.is(准备img) && !准备弹窗) {
         // 战斗前准备
         if (this.status == GameStatus.战斗结束) {
           if (this.gameConfig.type == GameType.寰球救援) {
@@ -199,9 +249,12 @@ export class Game {
       let img = screen()
       this.startTime = Date.now()
       let sleepTime = 2000
-      while (this.status != GameStatus.战斗结束 || this.战斗中Page.is(img)) {
-        if (this.战斗中Page.hasUplayer(img)) {
-          if (this.battleHandler(img)) {
+      // 弹窗页每轮检测一次，while 条件与 battleHandler 共用（避免重复找图）；
+      // 暂停按钮识别偶发失败时，弹窗识别兜底保证仍被处理
+      var modalPage = this.检测弹窗(img)
+      while (this.status != GameStatus.战斗结束 || this.战斗中Page.is(img) || modalPage) {
+        if (modalPage || this.战斗中Page.hasUplayer(img)) {
+          if (this.battleHandler(img, modalPage)) {
             log('战斗中上层窗口处理完成')
             this.status = GameStatus.战斗中
           }
@@ -227,6 +280,7 @@ export class Game {
         }
         sleep(sleepTime)
         img = screen()
+        modalPage = this.检测弹窗(img)
       }
       if (this.status == GameStatus.战斗结束) {
         log('游戏次数', this.runNum)
