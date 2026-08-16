@@ -28,10 +28,9 @@ import { 寰球救援 } from '../pages/寰球救援'
 import { 寰球远征 } from '../pages/寰球远征'
 import { 终末危机 } from '../pages/终末危机'
 import { 食堂 } from '../pages/食堂'
-import { 再别前线 } from '../pages/再别前线'
-import { 再别前线机械传说 } from '../pages/再别前线-机械传说'
-import { 再别前线太空撤离 } from '../pages/再别前线-太空撤离'
-import { 再别前线废土互市 } from '../pages/再别前线-废土互市'
+import { 缘聚七夕 } from '../pages/缘聚七夕'
+import { 鹊桥祈缘 } from '../pages/鹊桥祈缘'
+import { 相思赴约 } from '../pages/相思赴约'
 import { 好友 } from '../pages/好友'
 import { 领取体力 } from '../pages/领取体力'
 import { 个人信息 } from '../pages/个人信息'
@@ -68,10 +67,9 @@ var 寰球救援Page = new 寰球救援()
 var 寰球远征Page = new 寰球远征()
 var 终末危机Page = new 终末危机()
 var 食堂Page = new 食堂()
-var 再别前线Page = new 再别前线()
-var 再别前线机械传说Page = new 再别前线机械传说()
-var 再别前线太空撤离Page = new 再别前线太空撤离()
-var 再别前线废土互市Page = new 再别前线废土互市()
+var 缘聚七夕Page = new 缘聚七夕()
+var 鹊桥祈缘Page = new 鹊桥祈缘()
+var 相思赴约Page = new 相思赴约()
 var 好友Page = new 好友()
 var 领取体力Page = new 领取体力()
 // 选择技能先注册：技能弹窗打开时暂停按钮仍可见（战斗中也匹配），优先识别为技能弹窗
@@ -216,31 +214,24 @@ function executeDailyTasks(): void {
     })
   }
 
-  // ======== 再别前线（限时活动：机械传说、太空撤离、废土互市） ========
-  var 再别前线可达 = false
-  var 再别前线开关开启 = isDailyEnabled('再别前线_机械传说') || isDailyEnabled('再别前线_太空撤离') || isDailyEnabled('再别前线_废土互市')
-  if (再别前线开关开启) {
-    再别前线可达 = nav(再别前线)
+  // ======== 缘聚七夕（限时活动：鹊桥祈缘、相思赴约） ========
+  var 缘聚七夕可达 = false
+  var 缘聚七夕开关开启 = isDailyEnabled('缘聚七夕_鹊桥祈缘') || isDailyEnabled('缘聚七夕_相思赴约')
+  if (缘聚七夕开关开启) {
+    缘聚七夕可达 = nav(缘聚七夕)
   }
-  if (isDailyEnabled('再别前线_机械传说')) {
-    doTask('再别前线-机械传说 免费', function (): boolean {
-      if (!再别前线可达) return false
-      if (!nav(再别前线机械传说)) return false
-      return 再别前线机械传说Page.click_免费()
+  if (isDailyEnabled('缘聚七夕_鹊桥祈缘')) {
+    doTask('缘聚七夕-鹊桥祈缘 免费', function (): boolean {
+      if (!缘聚七夕可达) return false
+      if (!nav(鹊桥祈缘)) return false
+      return 鹊桥祈缘Page.click_免费()
     })
   }
-  if (isDailyEnabled('再别前线_太空撤离')) {
-    doTask('再别前线-太空撤离 签到', function (): boolean {
-      if (!再别前线可达) return false
-      if (!nav(再别前线太空撤离)) return false
-      return 再别前线太空撤离Page.click_签到()
-    })
-  }
-  if (isDailyEnabled('再别前线_废土互市')) {
-    doTask('再别前线-废土互市 收购价', function (): boolean {
-      if (!再别前线可达) return false
-      if (!nav(再别前线废土互市)) return false
-      return 再别前线废土互市Page.收购价()
+  if (isDailyEnabled('缘聚七夕_相思赴约')) {
+    doTask('缘聚七夕-相思赴约 签到', function (): boolean {
+      if (!缘聚七夕可达) return false
+      if (!nav(相思赴约)) return false
+      return 相思赴约Page.click_签到()
     })
   }
 

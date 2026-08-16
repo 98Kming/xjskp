@@ -96,6 +96,14 @@ export class Router {
         log('[导航] 链路: ' + pageLog.join(' → '))
         return true
       }
+      // 弹窗归属：识别到"选择技能"必在"战斗中"（技能弹窗只在战斗中弹出），
+      // 视为已到达，避免无出口回退死循环。弹窗留给调用方（battleHandler 等）处理
+      if (current.hostPage && current.hostPage === targetClass) {
+        trackPage(targetName)
+        log('[导航] "' + current.name + '"为"' + targetName + '"的弹窗，视为已到达')
+        log('[导航] 链路: ' + pageLog.join(' → '))
+        return true
+      }
 
       if (totalBacks === 0) {
         log('\n[导航] 前往: ' + targetName)

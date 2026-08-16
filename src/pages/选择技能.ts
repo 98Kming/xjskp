@@ -1,253 +1,23 @@
-import { BasePage, Route } from './BasePage'
-import { createRouteAction, ocrRegion, screen, toScreenX, toScreenY, width, height, imageDetector } from '../utils/img'
+import { BasePage } from './BasePage'
+import { ocrRegion, imageDetector } from '../utils/img'
 import { skillStrategy } from '../utils/技能策略'
 import { 战斗中 } from './战斗中'
 
-// 词条查找方案（用户实测特征）：
-// 技能词条位于"选择技能"标题图下方，词条组居中对齐（多词条时两边对称），
-// 词条周围（弹窗暗色遮罩）明度 < 0.03，词条卡片本身明亮 → 用明度扫描定位卡片
-var 暗阈值 = 0.04
-// 词条顶部确认：从标题下方第一个暗点往下找第一个亮点行，该行横向连续 100 个亮点
-var 顶部连续亮点 = 100
-// 词条底部确认：从顶部往下找第一个暗点，纵向连续 10 个暗点（卡片内短暗纹凑不满 10 个）
-var 底部连续暗点 = 10
-var 最大重试 = 5
-
-/**
- * OCR 块按 x 范围嵌套：B 的 x 区间完全落在 A 内（至少一边严格）→ B 进 A.children，
- * 取 x 区间最紧（面积最小）的包含者为直接父。卡片描述块（宽）包住标题块（窄）。
- * 复制节点构建新树，不修改原 OCR 结果；同级按 y 排序，多卡时输出顺序稳定。
- */
-function 嵌套OCR块(nodes: OcrResult[]): OcrResult[] {
-  var 副本: any[] = []
-  for (var i = 0; i < nodes.length; i++) {
-    var n = nodes[i]
-    副本.push({
-      level: n.level, confidence: n.confidence, text: n.text,
-      language: n.language, bounds: n.bounds, children: []
-    })
-  }
-  var 父: (any | null)[] = []
-  for (var i = 0; i < nodes.length; i++) {
-    var b = nodes[i].bounds
-    var 直接父: any = null
-    var 最紧 = Infinity
-    for (var j = 0; j < nodes.length; j++) {
-      if (i === j) continue
-      var a = nodes[j].bounds
-      if (!a || !b) continue
-      if (a.left <= b.left && b.right <= a.right && (a.left < b.left || b.right < a.right)) {
-        var 面积 = (a.right - a.left) * (a.bottom - a.top)
-        if (面积 < 最紧) {
-          直接父 = 副本[j]
-          最紧 = 面积
-        }
-      }
-    }
-    父[i] = 直接父
-  }
-  var 根: any[] = []
-  for (var k = 0; k < nodes.length; k++) {
-    if (父[k] === null) {
-      根.push(副本[k])
-    } else {
-      父[k].children.push(副本[k])
-    }
-  }
-  // 同级按 y 排序（bounds 为 null 排最前）；副本节点可能有多级嵌套，递归排
-  var 按y = function (p: any, q: any): number {
-    return (p.bounds ? p.bounds.top : -1) - (q.bounds ? q.bounds.top : -1)
-  }
-  var 排树 = function (list: any[]): void {
-    list.sort(按y)
-    for (var s = 0; s < list.length; s++) {
-      排树(list[s].children)
-    }
-  }
-  排树(根)
-  return 根
-}
-
-/** 递归打印嵌套后的 OCR 块，子块缩进两格展示层级 */
-function 打印OCR嵌套(nodes: OcrResult[], 缩进: string): void {
-  for (var i = 0; i < nodes.length; i++) {
-    var node = nodes[i]
-    log('[选择技能] OCR识别：' + 缩进 + node.text + '，bounds' + JSON.stringify(node.bounds))
-    if (node.children && node.children.length > 0) {
-      打印OCR嵌套(node.children, 缩进 + '  ')
-    }
-  }
-}
-
-/** 明度 <= 暗阈值 → 暗点（弹窗遮罩）；img.pixel 实例方法比 images.pixel 快 ~1.2x */
-function 暗点(img: ImageWrapper, x: number, y: number): boolean {
-  return colors.luminance(img.pixel(x, y)) <= 暗阈值
-}
-
-/** y 行最长的亮段（步长 4），宽度 >= 最小宽 才返回；用于确认词条顶部并定扫描列 */
-function 行最长亮段(img: ImageWrapper, y: number, 最小宽: number): { x1: number; x2: number } | null {
-  var 最长: { x1: number; x2: number } | null = null
-  var xi = 0
-  while (xi < width) {
-    if (!暗点(img, xi, y)) {
-      var x1 = xi
-      while (xi < width && !暗点(img, xi, y)) {
-        xi += 4
-      }
-      if (xi - x1 >= 最小宽 && (!最长 || xi - x1 > 最长.x2 - 最长.x1)) {
-        最长 = { x1: x1, x2: xi }
-      }
-    } else {
-      xi += 4
-    }
-  }
-  return 最长
-}
-
-/** y 行亮段总宽（步长 2）：卡片区行总宽接近屏宽，遮罩暗行总宽接近 0，用于底部横向验证 */
-function 行亮段总宽(img: ImageWrapper, y: number): number {
-  var 总宽 = 0
-  var xi = 0
-  while (xi < width) {
-    if (!暗点(img, xi, y)) {
-      var x1 = xi
-      while (xi < width && !暗点(img, xi, y)) {
-        xi += 2
-      }
-      总宽 += xi - x1
-    } else {
-      xi += 2
-    }
-  }
-  return 总宽
-}
-
-// type 卡片 = { 名: string; 文: string; 点: [number, number] }
-// type 评分卡 = { 序号: number; 点: [number, number]; 权重: number; 规则: RegExp | null; 已选?: boolean }
-// type 段 = { x1: number; x2: number }
-// type 扫描行 = { y: number; 段: 段[] }
-// type 词条块 = { y1: number; y2: number; 行: 扫描行[] }
-// type 扫描结果 = {
-//   段: 段[]
-//   词条块: 词条块
-//   卡高: number[]
-// }
-
 export class 选择技能 extends BasePage {
   name = '选择技能'
+  // 技能弹窗只在战斗中弹出（游戏机制），识别到选择技能即处于战斗中
+  hostPage = 战斗中
   选择技能_point!: OpenCV.Point
   is(img: ImageWrapper) {
     // 必须传入外部 img：自行截图会回收 cache_screen_img（若传入图正是缓存图），
     // 导致 detectCurrentPage 后续页面 is() 全部使用已回收的死图
-    let point = imageDetector('images/选择技能_0_0.8_438_729_645_1143.png', img)
+    let point = imageDetector('images/选择技能_0_0.8_438_418_645_476.png', img)
     if (point) {
       this.选择技能_point = point
     }
     return !!point
   }
 
-  /**
-   * 找词条顶部：沿标题起点列（标题左上角 x，4 卡布局下实测落在卡2内，避开了中间缝隙）
-   * 纵向找第一个暗点（遮罩暗区），再往下找第一个亮点行（该行横向存在 ≥100px 亮段即词条顶部，
-   * 卡片顶是一整条亮线）。不用标题中心列：4 卡布局下中心列必然落在卡片缝隙
-   * （中间缝 = 屏幕中心 = 标题中心）。返回顶部 y，未找到返回 -1。
-   */
-  private 找词组顶部(img: ImageWrapper): number {
-    var x = this.选择技能_point.x
-    var y = this.选择技能_point.y + 50
-    while (y < height && !暗点(img, x, y)) {
-      y += 2
-    }
-    // 从暗点往下找第一个亮点行：该行横向存在 ≥100px 亮段 → 词条顶部
-    while (y < height) {
-      y += 2
-      if (y >= height) break // 步进后越界检查，防 img.pixel 抛异常
-      if (暗点(img, x, y)) continue // 还是暗区，继续找亮点
-      if (行最长亮段(img, y, 顶部连续亮点)) return y
-    }
-    return -1
-  }
-
-  /**
-   * 找词条底部：沿扫描列从顶部往下找第一个暗段（纵向连续 10 个暗点），
-   * 并横向验证该行亮段总宽骤降（< 30% 屏宽）——单列暗区可能是卡片内的暗色元素
-   * （图标/文字），整行变暗才是卡片区真正结束。返回底部 y，未找到返回 -1。
-   */
-  private 找词组底部(img: ImageWrapper, top: number): number {
-    var x = this.选择技能_point.x
-    var ey = top
-    while (ey < height) {
-      ey += 2
-      if (ey >= height) break // 步进后越界检查，防 img.pixel 抛异常
-      if (!暗点(img, x, ey)) continue // 还在卡片内，继续找暗点
-      var 暗起点 = ey
-      var 连续暗 = 0
-      while (ey < height && 暗点(img, x, ey)) {
-        连续暗++
-        ey += 2
-      }
-      if (连续暗 >= 底部连续暗点 && 行亮段总宽(img, 暗起点) < width * 0.3) {
-        return 暗起点 // 单列暗段 + 整行变暗 → 确认词条底部
-      }
-      // 卡内局部暗区（横向其他卡仍亮），继续往下找
-    }
-    return -1
-  }
-
-  /**
-   * (0-width,y) 从左到右扫描亮段，返回最左亮点 x，未找到返回 -1。
-   */
-  private 找词组左边(img: ImageWrapper, y: number): number {
-    if (y < 0 || y >= height) return -1 // 顶部/底部识别失败时 y 可能是负数，防越界采样
-    var x = 0
-    while (x < width && 暗点(img, x, y)) {
-      x += 2
-    }
-    return x < width ? x : -1
-  }
-
-  /**
-   * (0-width,y) 从右到左扫描亮段，返回最右亮点 x，未找到返回 -1。
-   */
-  private 找词组右边(img: ImageWrapper, y: number): number {
-    if (y < 0 || y >= height) return -1 // 顶部/底部识别失败时 y 可能是负数，防越界采样
-    var x = width - 1
-    while (x >= 0 && 暗点(img, x, y)) {
-      x -= 2
-    }
-    return x >= 0 ? x : -1
-  }
-
-  /**
-   * 用于切分词条组，分成卡片
-   * 从[left + 100, top + 10]开始左到右找到暗段
-   * 找到暗段后从上到下找，如果暗段占80%则找到一个间隔
-   * 从这个间隔开始左到右找到亮段，如果亮段 > 100 则重复上面步骤
-   */
-  private 找词组间隔(img: ImageWrapper, left: number, right: number, top: number, bottom: number): number[] {
-    var 间隔: number[] = []
-    var x = left + 100
-    var 扫描y = top + 10 // 卡片顶边亮线下沿，避开顶边亮线本身的宽度影响
-    while (x < right - 100) {
-      // 跳过暗区找亮段起点
-      while (x < right && 暗点(img, x, 扫描y)) x++
-      if (x >= right) break
-      var 亮起点 = x
-      // 亮段终点 = 暗段起点
-      while (x < right && !暗点(img, x, 扫描y)) x++
-      if (x - 亮起点 < 100) continue // 亮段 < 100 视为碎块（文字笔画/装饰），继续找下一个亮段
-      if (x >= right) break
-      // 暗段列纵向验证：暗点占比 >= 80% → 卡片缝隙（贯穿卡片全高的暗柱）
-      var 暗数 = 0
-      var 总 = 0
-      for (var y = top; y <= bottom; y += 2) {
-        总++
-        if (暗点(img, x, y)) 暗数++
-      }
-      if (总 > 0 && 暗数 / 总 >= 0.8) 间隔.push(x)
-    }
-    return 间隔
-  }
 
   selectSkill(img: ImageWrapper, identifySkill: boolean = true): boolean {
     let sure_point = imageDetector('images/选择技能$$确定_0_0.9_531_1611_628_1656.png', img)
@@ -260,7 +30,7 @@ export class 选择技能 extends BasePage {
     for (let i = 0; i < skillPoints.length; i++) {
       let point = skillPoints[i]
       if (i < count) {
-        //click(point.x, point.y)
+        click(point.x, point.y)
         // 选中后局内降权(priority/weightDecay),下次出现时权重降低
         if (point.match) {
           skillStrategy.onSelected(point.match)
@@ -275,44 +45,133 @@ export class 选择技能 extends BasePage {
     return true
   }
 
-  entryPoints(img: ImageWrapper, identifySkill: boolean): SkillPoint[] {
-    let top = this.找词组顶部(img)
-    if (top < 0) {
-      log('[选择技能] 未找到词条顶部，不识别')
-      return []
+  findSkillCard(img: ImageWrapper, _top: number): Rect[] {
+    // ── 第一步：裁剪+灰度+二值化全 Mat 原生（submat 零拷贝视图）+ 行和定位两端 ──
+    // 注意：roi 是 img.mat 的视图，img 被回收后数据失效（调用链中 OCR 也在用 img，安全）
+    let roi = img.mat.submat(_top, img.mat.rows(), 0, img.mat.cols())
+    let th = new org.opencv.core.Mat()
+    org.opencv.imgproc.Imgproc.cvtColor(roi, th, org.opencv.imgproc.Imgproc.COLOR_BGR2GRAY) // 4通道→灰度（AutoJs6 的 grayscale 即此 code）
+    org.opencv.imgproc.Imgproc.threshold(th, th, 0, 255, org.opencv.imgproc.Imgproc.THRESH_OTSU) // 原位二值化
+    let cols = th.cols()
+    let rowSum = new org.opencv.core.Mat()
+    org.opencv.core.Core.reduce(th, rowSum, 1, org.opencv.core.Core.REDUCE_SUM, org.opencv.core.CvType.CV_32S)
+    let mask = new org.opencv.core.Mat()
+    org.opencv.core.Core.compare(rowSum, new org.opencv.core.Scalar(102 * cols), mask, org.opencv.core.Core.CMP_GT) // 白像素>40% ⟺ 行和>102*cols
+    let pts = new org.opencv.core.Mat()
+    org.opencv.core.Core.findNonZero(mask, pts) // CV_32SC2，按行扫描序 → 天然有序
+    let top = pts.rows() > 0 ? pts.get(0, 0)[1] : -1
+    let bottom = pts.rows() > 0 ? pts.get(pts.rows() - 1, 0)[1] : -1
+    if (top >= 0) {
+      // 第二轮复用前先回收第一轮掩码/点集（否则丢引用泄漏 ~1MB）
+      mask.release()
+      pts.release()
+      // ── 第二步：复用 th（submat 不拷贝像素），两端间列和 → 黑列段（卡片缝隙）──
+      let region = th.submat(top, bottom + 1, 0, cols)
+      let colSum = new org.opencv.core.Mat()
+      org.opencv.core.Core.reduce(region, colSum, 0, org.opencv.core.Core.REDUCE_SUM, org.opencv.core.CvType.CV_32S)
+      let rows = region.rows()
+      let whiteNum = 0.02 * 255 * rows // 黑占比 > 98% ⟺ 白像素 < 2%
+      mask = new org.opencv.core.Mat()
+      org.opencv.core.Core.compare(colSum, new org.opencv.core.Scalar(whiteNum), mask, org.opencv.core.Core.CMP_LT)
+      pts = new org.opencv.core.Mat()
+      org.opencv.core.Core.findNonZero(mask, pts)
+
+      // 连续黑列合并成段，只保留每段的起始 x
+      let gaps = [] // 每个元素 = 一个连续黑段的起始 x
+      let lastX = -2 // 当前段末尾 x（初始 -2，保证第 1 个点必开新段）
+      for (let i = 0; i < pts.rows(); i++) {
+        let x = pts.get(i, 0)[0]
+        if (x > lastX + 1) gaps.push(x) // 与上一黑列不连续 → 开新段，记录起始
+        lastX = x // 更新当前段末尾
+      }
+      let cards: Rect[] = []
+      for (let i = 1; i < gaps.length; i++) {
+        cards.push({
+          left: gaps[i - 1],
+          right: gaps[i],
+          top: top + _top,
+          bottom: bottom + _top
+        })
+      }
+      th.release(); rowSum.release(); mask.release(); pts.release()
+      roi.release(); region.release(); colSum.release() // 视图 release 只减引用计数，不影响原图
+      return cards
     }
-    let bottom = this.找词组底部(img, top)
-    let left = this.找词组左边(img, (top + bottom) / 2)
-    let right = this.找词组右边(img, (top + bottom) / 2)
-    // 右边空隙宽(width - right)比左边空隙宽(left)大 20px 以上 → 词条组偏左，词组不完整
-    log(`[选择技能] 词条组范围：top=${top} bottom=${bottom} left=${left} right=${right}`)
-    if (left + right + 20 < width) {
-      log('[选择技能] 词条组不完整，不识别')
+    th.release(); rowSum.release(); mask.release(); pts.release()
+    roi.release()
+    return []
+  }
+
+  entryPoints(img: ImageWrapper, identifySkill: boolean): SkillPoint[] {
+
+    // OTSU 模式要求单通道图（CV_8UC1），截图是 4 通道 RGBA（CV_8UC4）会抛异常，
+    // 先 images.grayscale 转灰度（AutoJs6 文档「images.grayscale」）；OTSU 自动算阈值，120 参数被忽略
+    // let tmp1 = images.grayscale(img)
+    // let t = Date.now()
+    // let tmp = images.threshold(tmp1, 0, 255, "OTSU")
+    // log(tmp.getBitmap())
+    // log(`OTSU 耗时：${Date.now() - t} ms`)
+    // tmp1.recycle()
+    // let top = this.找词组顶部(tmp)
+    // if (top < 0) {
+    //   log('[选择技能] 未找到词条顶部，不识别')
+    //   return []
+    // }
+    // let bottom = this.找词组底部(tmp, top)
+    // let left = this.找词组左边(tmp, (top + bottom) / 2)
+    // let right = this.找词组右边(tmp, (top + bottom) / 2)
+    // // 右边空隙宽(width - right)比左边空隙宽(left)大 20px 以上 → 词条组偏左，词组不完整
+    // log(`[选择技能] 词条组范围：top=${top} bottom=${bottom} left=${left} right=${right}`)
+    // if (left + right + 20 < width) {
+    //   log('[选择技能] 词条组不完整，不识别')
+    //   tmp.recycle()
+    //   return []
+    // }
+
+    let cards = this.findSkillCard(img, this.选择技能_point.y + 50)
+    if (cards.length == 0) {
       return []
     }
     let skillPoints: SkillPoint[] = []
     if (identifySkill) {
-      let gaps = this.找词组间隔(img, left, right, top, bottom)
-      log(gaps)
-      gaps.push(right)
-      for (let i = 0; i < gaps.length; i++) {
-        let ocrResult = ocrRegion(img, left, top, gaps[i] - left, bottom - top)
-        if(ocrResult?.children) {
+      cards.forEach(card => {
+        let ocrResult = ocrRegion(img, card.left, card.top, card.right - card.left, card.bottom - card.top)
+        if (ocrResult?.children) {
           let name = ocrResult?.children?.map(node => node.text.replace(/\n/g, "")).join(' ')
           let strategy = skillStrategy.weight(name)
           skillPoints.push({
-            x: left + 100,
-            y: top  + 100,
+            x: card.left + 100,
+            y: card.top + 100,
             name: name,
             weight: strategy.weight,
             match: strategy.match
           })
         }
-        left = gaps[i]
-      }
+      })
+      // let gaps = this.找词组间隔(tmp, left, right, top, bottom)
+      // tmp.recycle()
+      // if (gaps.length < 2) {
+      //   log('[选择技能] 词条组不完整，不识别')
+      // }
+      // log(gaps)
+      // gaps.push(right)
+      // for (let i = 0; i < gaps.length; i++) {
+      //   let ocrResult = ocrRegion(img, left, top, gaps[i] - left, bottom - top)
+      //   if (ocrResult?.children) {
+      //     let name = ocrResult?.children?.map(node => node.text.replace(/\n/g, "")).join(' ')
+      //     let strategy = skillStrategy.weight(name)
+      //     skillPoints.push({
+      //       x: left + 100,
+      //       y: top + 100,
+      //       name: name,
+      //       weight: strategy.weight,
+      //       match: strategy.match
+      //     })
+      //   }
+      //   left = gaps[i]
       return skillPoints.sort((a, b) => b.weight! - a.weight!)
     }
-    return [{ x: left + 50, y: top + 50 }]
+    return [{ x: cards[0].left + 50, y: cards[0].top + 50 }]
   }
 
 

@@ -23,6 +23,8 @@ export interface Route {
 export abstract class BasePage {
   abstract name: string
   abstract is(img: ImageWrapper): boolean
+  /** 弹窗页归属页面：识别到该页时必在其归属页面中（如 选择技能 必在 战斗中），导航到达归属页时视为已到达 */
+  hostPage?: typeof BasePage
 
   constructor() {
     if (registerFn) {
