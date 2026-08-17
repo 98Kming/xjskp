@@ -57,13 +57,13 @@ export class 战斗 extends BasePage {
       { target: 个人信息, action: function (): boolean { click(toScreenX(100), toScreenY(200)); return true } },
       {
         target: 先锋宝藏, action: function (): boolean {
-          var action = createRouteAction('images/战斗$先锋宝藏_0_0.8_64_1010_118_1049.png')
+          var action = createRouteAction('images/战斗$先锋宝藏_0_0.8_64_500_118_1049.png')
           if (action()) return true
           self.scrollDown()
           if (action()) return true
           self.scrollUp()
           return action()
-        }, imagePath: 'images/战斗$先锋宝藏_0_0.8_64_1010_118_1049.png'
+        }, imagePath: 'images/战斗$先锋宝藏_0_0.8_64_500_118_1049.png'
       },
       {
         target: 碧海凉夏, action: function (): boolean {
@@ -87,9 +87,9 @@ export class 战斗 extends BasePage {
       },
       {
         target: 缘聚七夕, action: function (): boolean {
-          var action = createRouteAction('images/战斗$缘聚七夕_1_0.9_45_428_122_482.png')
+          var action = createRouteAction('images/战斗$缘聚七夕_1_0.8_45_428_122_482.png')
           return action()
-        }, imagePath: 'images/战斗$缘聚七夕_1_0.9_45_428_122_482.png'
+        }, imagePath: 'images/战斗$缘聚七夕_1_0.8_45_428_122_482.png'
       },
       // 队长:组队邀请弹窗(默认推荐 tab)
       { target: 组队邀请推荐, action: createRouteAction('images/$邀请_0_0.9_806_1641_892_1686.png'), imagePath: 'images/$邀请_0_0.9_806_1641_892_1686.png' },
