@@ -383,6 +383,7 @@ detectCurrentPage(screen())
 | — | **过渡等待 3s→1s**：`!retryCurrent` 时 sleep 缩短 | 每轮省 2s |
 | — | **maxAttempts 6→4**：轮询次数缩减 | 每轮省 1.6s |
 | — | **重试点击提前**：attempt>=1 即重试，不等 attempt=3 | 寰球救援 6s→3.5s |
+| 2026-08-17 | **切服等待循环移除**：daily.ts 删除 30×1s 等"战斗"页循环，加载期未知页面直接交给 Router 回退兜底 | 切服后加载超 30s 白等 37s 仍识别不到战斗页，Router 一次回退即恢复；等待循环成了纯负资产 |
 
 ### pageChange 加速尝试（已全部回退）
 
