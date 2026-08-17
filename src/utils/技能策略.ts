@@ -7,7 +7,7 @@ type Weight = {
 }
 
 enum SKILL_TYPE {
-  子弹, 元素子弹, 温压弹, 干冰弹, 装甲车, 冰暴发生器, 旋风加农, 燃油弹, 无人机, 电磁穿刺, 其他
+  子弹, 元素子弹, 温压弹, 干冰弹, 装甲车, 冰暴发生器, 旋风加农, 燃油弹, 无人机, 电磁穿刺, 时空裂隙, 生化矩阵, 其他
 }
 
 // seekbar 名称 → SKILL_TYPE 映射(UI 控件 id 为 {名称}_seekbar)
@@ -22,6 +22,8 @@ const 类型表: any = {
   旋风加农: SKILL_TYPE.旋风加农,
   燃油弹: SKILL_TYPE.燃油弹,
   无人机: SKILL_TYPE.无人机,
+  时空裂隙: SKILL_TYPE.时空裂隙,
+  生化矩阵: SKILL_TYPE.生化矩阵,
 }
 
 interface Skill {
@@ -38,7 +40,7 @@ const STRATEGY: Skill[] = []
 STRATEGY.push({ match: /.*回.*生命.*/, weight: 10000, priority: 1, type: SKILL_TYPE.其他 })// [分裂子弹四射 子弹命中后,生成4个次级子弹并向4个方向发射]
 STRATEGY.push({ match: /.*分裂子.*生.*/, weight: 1000, priority: 1, type: SKILL_TYPE.子弹 })// [分裂子弹四射 子弹命中后,生成4个次级子弹并向4个方向发射]
 STRATEGY.push({ match: /.*压.*生命.*/, weight: 1000, priority: 1, type: SKILL_TYPE.温压弹 })// [热能焚身 温压弹赋予的燃烧状态额外追加3%目标的最大生命值伤害]
-STRATEGY.push({ match: /(.*焦.策略.*)(.*车.*火.*)/, weight: 1000, priority: 1, type: SKILL_TYPE.装甲车 })// [焦土策略 将装甲车前方涂上焦油点火，可以引燃怪物]
+STRATEGY.push({ match: /(.*车.*火.*)/, weight: 1000, priority: 1, type: SKILL_TYPE.装甲车 })// [焦土策略 将装甲车前方涂上焦油点火，可以引燃怪物]
 
 STRATEGY.push({ match: /.*每.*子.*数.*/, weight: 1000, weightDecay: 2, priority: 2, type: SKILL_TYPE.子弹 })// [连射+ 每次射击子弹数量+2]
 STRATEGY.push({ match: /.*每.*发.*数.*/, weight: 999, weightDecay: 2, priority: 2, type: SKILL_TYPE.子弹 })// [连发 每次射击连发数+1，伤害-20%] [连发+ 每次射击连发数+1]
@@ -49,6 +51,7 @@ STRATEGY.push({ match: /.*学.*风.*/, weight: 1000, priority: 2, type: SKILL_TY
 STRATEGY.push({ match: /.*学.*机.*/, weight: 1000, priority: 2, type: SKILL_TYPE.无人机 })// [无人机 学习无人机]
 STRATEGY.push({ match: /.*学.*电磁.*/, weight: 1000, priority: 2, type: SKILL_TYPE.电磁穿刺 })// [电磁穿刺 学习电磁穿刺]
 STRATEGY.push({ match: /.*学.*油.*/, weight: 1000, priority: 2, type: SKILL_TYPE.燃油弹 })// [燃油弹 学习燃油弹]
+STRATEGY.push({ match: /.*学.*时空.*/, weight: 1000, priority: 2, type: SKILL_TYPE.时空裂隙 })// [时空裂隙 学习时空裂隙]
 
 STRATEGY.push({ match: /.*齐射.*子.*/, weight: 1000, priority: 2, type: SKILL_TYPE.子弹 })// [齐射 子弹弹道数量+1 伤害-20%] [齐射+ 子弹弹道数量+1]
 STRATEGY.push({ match: /.*分裂子.*放.*/, weight: 999, priority: 2, type: SKILL_TYPE.子弹 })// 分裂子弹 子弹命中怪物后释放2个次级子弹
@@ -65,6 +68,10 @@ STRATEGY.push({ match: /.*个.*风加.*/, weight: 999, priority: 2, type: SKILL_
 STRATEGY.push({ match: /.*电.*命.*子.*/, weight: 1000, priority: 2, type: SKILL_TYPE.电磁穿刺 })//[电磁裂变 电磁穿刺命中后产生6个方向穿透5的电粒子]
 STRATEGY.push({ match: /.*电磁分.*.*/, weight: 999, priority: 2, type: SKILL_TYPE.电磁穿刺 })// [电磁分流 电磁穿刺额外释放1次]
 STRATEGY.push({ match: /.*多.油.*/, weight: 1000, priority: 2, type: SKILL_TYPE.燃油弹 })// [多重油弹 释放次数+1灼烧伤害-25%]
+STRATEGY.push({match: /.*域个.*/, weight: 1000, priority: 2, type: SKILL_TYPE.时空裂隙}) // [多重坍塌 坍塌领域个数+1]
+STRATEGY.push({match: /.*生.*时.*/, weight: 1000, priority: 2, type: SKILL_TYPE.生化矩阵}) // [矩阵脉冲 生化矩阵生成时，对范围内的目标造成150%伤害并附加1层【基因污染】持续5秒，额外提高100层污染上限]
+STRATEGY.push({match: /.*生.*合并.*/, weight: 999, priority: 2, type: SKILL_TYPE.生化矩阵}) // [矩阵毒素 生化矩阵合并时使目标附加1层【基因污染】持续5秒，额外提高100层污染上限]
+STRATEGY.push({match: /.*合成.*标.*/, weight: 998, priority: 2, type: SKILL_TYPE.生化矩阵}) // [熵增回响 合成最大矩阵时辐射范围内所有目标，5秒后爆发造成400%伤害，并附加1层【基因污染】持续5秒，额外提高100层污染上限]
 
 STRATEGY.push({ match: /.{0,2}子..炸.*命中.*/, weight: 1000, priority: 3, type: SKILL_TYPE.子弹 })// [子弹爆炸 子弹命中怪物后爆炸]
 STRATEGY.push({ match: /.*分裂子.*命中.*/, weight: 999, priority: 3, type: SKILL_TYPE.子弹 })// [分裂子弹爆炸 次级子弹命中后爆炸]
@@ -78,15 +85,23 @@ STRATEGY.push({ match: /.*车.*减速.*/, weight: 1000, priority: 3, type: SKILL
 STRATEGY.push({ match: /.*冰.发生.*持续.*/, weight: 1000, priority: 3, type: SKILL_TYPE.冰暴发生器 })// [冰暴延续 冰雹发生器持续时间+2秒，伤害-50%]
 STRATEGY.push({ match: /.*冰.发生.*冷却.*/, weight: 999, priority: 3, type: SKILL_TYPE.冰暴发生器 })// [冰系缩减 干冰弹，冰暴发生器冷却时间-25%]
 STRATEGY.push({ match: /.*区.*动.*/, weight: 1000, priority: 3, type: SKILL_TYPE.燃油弹 })// [燃油凝滞 灼烧区域怪物移动速度-50%]
+STRATEGY.push({match: /.*次元.*/, weight: 1000, priority: 3, type: SKILL_TYPE.时空裂隙}) // [次元裂隙 时空裂隙升级为次元裂隙]
+STRATEGY.push({match: /.*相.*大.*/, weight: 1000, priority: 3, type: SKILL_TYPE.生化矩阵}) // [相变迷宫 路径区域伤害与矩阵合并伤害+20%，可进阶合成更大矩阵]
+STRATEGY.push({match: /.*发.*合并.*/, weight: 999, priority: 3, type: SKILL_TYPE.生化矩阵}) // [潜能爆发 矩阵合并伤害+100%]
+
 
 STRATEGY.push({ match: /.*急.*子[弹彈].*/, weight: 1000, priority: 3, type: SKILL_TYPE.元素子弹 })
 STRATEGY.push({ match: /.*火.*子[弹彈].*/, weight: 999, priority: 3, type: SKILL_TYPE.元素子弹 })
 STRATEGY.push({ match: /.*电.*子[弹彈].*/, weight: 998, priority: 3, type: SKILL_TYPE.元素子弹 })
 
+STRATEGY.push({match: /.*时空.*个.*/, weight: 1000, priority: 4, type: SKILL_TYPE.时空裂隙}) // [多重裂隙+ 时空裂隙裂隙个数+1]
+STRATEGY.push({match: /.*时空.*范围.*/, weight: 998, priority: 3, type: SKILL_TYPE.时空裂隙}) // [裂隙扩张+ 时空裂隙范围+60%]
+STRATEGY.push({match: /.*时空.*时间.*/, weight: 997, priority: 3, type: SKILL_TYPE.时空裂隙}) // [相对稳定 时空裂隙持续时间+50%]
 STRATEGY.push({ match: /.*车伤害.*/, weight: 1000, priority: 4, type: SKILL_TYPE.装甲车 })// [增伤装置 装甲车伤害+60%]
 STRATEGY.push({ match: /.*车速度.*/, weight: 999, priority: 4, type: SKILL_TYPE.装甲车 })// [极速冲锋 装甲车速度+15%，冷却时间-25%]
 STRATEGY.push({ match: /.*富燃料填充.*/, weight: 1000, priority: 4, type: SKILL_TYPE.温压弹 })// [富燃料填充 温压弹伤害+20%]
 STRATEGY.push({ match: /.*冰.*冷却.*/, weight: 1000, priority: 4, type: SKILL_TYPE.干冰弹 })// [冰系缩减]
+STRATEGY.push({ match: /.*[干千]冰[弹彈].*小.*/, weight: 1000, priority: 4, type: SKILL_TYPE.干冰弹 })// [散射小冰弹 干冰弹首次命中后分裂为3个小冰弹]
 STRATEGY.push({ match: /.*风加农持续.*/, weight: 1000, priority: 4, type: SKILL_TYPE.旋风加农 })// [延长气流 旋风加农持续时间+100%]
 STRATEGY.push({ match: /.*风力增强.*/, weight: 999, priority: 4, type: SKILL_TYPE.旋风加农 })// [风力增强 旋风加农伤害+60%]
 STRATEGY.push({ match: /.*风加.*范围.*/, weight: 998, priority: 4, type: SKILL_TYPE.旋风加农 })//[气旋扩展 旋风加农范围+60%，伤害-20%]

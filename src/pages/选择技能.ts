@@ -1,5 +1,5 @@
 import { BasePage } from './BasePage'
-import { ocrRegion, imageDetector } from '../utils/img'
+import { ocrRegion, imageDetector, width } from '../utils/img'
 import { skillStrategy } from '../utils/技能策略'
 import { 战斗中 } from './战斗中'
 
@@ -11,7 +11,7 @@ export class 选择技能 extends BasePage {
   is(img: ImageWrapper) {
     // 必须传入外部 img：自行截图会回收 cache_screen_img（若传入图正是缓存图），
     // 导致 detectCurrentPage 后续页面 is() 全部使用已回收的死图
-    let point = imageDetector('images/选择技能_0_0.8_438_418_645_476.png', img)
+    let point = imageDetector('images/选择技能_0_0.8_438_418_645_618.png', img)
     if (point) {
       this.选择技能_point = point
     }
@@ -36,7 +36,7 @@ export class 选择技能 extends BasePage {
           skillStrategy.onSelected(point.match)
         }
         if (sure_point) {
-          click(sure_point.x + 200, sure_point.y + 10)
+          click(sure_point.x, sure_point.y + 10)
         }
       }
       str += `[${point.name} ${point.weight} ${point.match ? point.match.source : ''}]\n`
@@ -78,10 +78,10 @@ export class 选择技能 extends BasePage {
 
       // 连续黑列合并成段，只保留每段的起始 x
       let gaps = [] // 每个元素 = 一个连续黑段的起始 x
-      let lastX = -2 // 当前段末尾 x（初始 -2，保证第 1 个点必开新段）
+      let lastX = -51 // 当前段末尾 x（初始 -2，保证第 1 个点必开新段）
       for (let i = 0; i < pts.rows(); i++) {
         let x = pts.get(i, 0)[0]
-        if (x > lastX + 1) gaps.push(x) // 与上一黑列不连续 → 开新段，记录起始
+        if (x > lastX + 50) gaps.push(x) // 与上一黑列不连续,且小于50的容错 → 开新段，记录起始
         lastX = x // 更新当前段末尾
       }
       let cards: Rect[] = []
@@ -129,7 +129,7 @@ export class 选择技能 extends BasePage {
     // }
 
     let cards = this.findSkillCard(img, this.选择技能_point.y + 50)
-    if (cards.length == 0) {
+    if (cards.length == 0 || cards[cards.length - 1].right < width - 30) {
       return []
     }
     let skillPoints: SkillPoint[] = []

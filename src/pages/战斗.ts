@@ -20,7 +20,7 @@ export class 战斗 extends BasePage {
   private 七日突围Action = createRouteAction('images/战斗$$七日突围_0_0.9_987_976_1051_1022.png')
 
   click_七日突围(): boolean {
-    return this.七日突围Action() && (sleep(1200), this.back(), sleep(800), true)
+    return this.七日突围Action() && (sleep(1200), this.back(), sleep(800), this.back(), sleep(800), true)
   }
 
   scrollDown() {

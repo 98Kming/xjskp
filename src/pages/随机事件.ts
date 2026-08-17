@@ -103,6 +103,7 @@ export class 随机事件 extends BasePage {
         claimed = true
         found = true
         idleRounds = 0
+        sleep(800)
       }
 
       if (!found) {

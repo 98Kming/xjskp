@@ -44,7 +44,7 @@ export class Game {
     if (this.战斗中Page.已开倍速()) {
       this.enable_倍速 = true
     } else {
-      this.战斗中Page.开倍速()
+      log('开启倍速', this.战斗中Page.开倍速())
     }
   }
   currentLevel(): number {
@@ -79,6 +79,7 @@ export class Game {
 
   private battleHandler(img: ImageWrapper, modalPage: 选择技能 | 暂停战斗 | 战斗结束 | 精英掉落 | null): boolean {
     if (modalPage === this.选择技能Page) {
+      log("选择技能中")
       // 6秒内选择技能当成头选宝石效果，不提升等级
       this.选择技能Page.selectSkill(img, this.gameConfig.identifySkill) && Date.now() - this.startTime > 6 * 1000 && this.level && this.level++
       return true
@@ -95,19 +96,24 @@ export class Game {
       // 一局结束
       this.战斗结束Page.back()
       this.reset()
+      return false
     } else if (modalPage === this.精英掉落Page) {
       log("精英掉落弹窗，关闭")
       this.精英掉落Page.关闭弹窗()
       return true
-    } else if (createRouteAction('images/重新连接_1_0.9_635_1460_847_1513.png')()){
+    } else if (createRouteAction('images/重新连接_1_0.9_635_1460_847_1513.png')()) {
       log("重新连接中")
+      return false
+    }
+    let 已激活技能_point = imageDetector('images/战斗中_已激活技能_0_0.9_404_0_674_740.png')
+    if (已激活技能_point) {
+      click(toScreenX(已激活技能_point.x), toScreenY(已激活技能_point.y) - 100)
+      log('已激活技能')
+    } else if (imageDetector('images/$关闭1_0_0.8_800_400_1020_600.png')) {
+      log("游戏中聊天框不处理")
     } else {
-      if (imageDetector('images/$关闭1_0_0.8_800_400_1020_600.png')) {
-        log("游戏中聊天框不处理")
-      } else {
-        click(width / 2, height - 10)
-        log("尝试关闭战斗中未知窗口")
-      }
+      click(width / 2, height - 10)
+      log("尝试关闭战斗中未知窗口")
     }
     return false
   }

@@ -51,6 +51,8 @@
           <pref-num-seekbar id="旋风加农_seekbar" text="旋风加农" min="0" max="100" progress="97"/>
           <pref-num-seekbar id="燃油弹_seekbar" text="燃油弹" min="0" max="100" progress="96"/>
           <pref-num-seekbar id="无人机_seekbar" text="无人机" min="0" max="100" progress="96"/>
+          <pref-num-seekbar id="时空裂隙_seekbar" text="时空裂隙" min="0" max="100" progress="98"/>
+          <pref-num-seekbar id="生化矩阵_seekbar" text="生化矩阵" min="0" max="100" progress="98"/>
         </vertical>
       </scroll>
       <horizontal>

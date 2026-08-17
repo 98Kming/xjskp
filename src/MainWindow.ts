@@ -40,6 +40,8 @@ export type MainWindowView = {
   旋风加农_seekbar: ConfigurableView<PrefNumSeekBar> & JsSeekBar
   燃油弹_seekbar: ConfigurableView<PrefNumSeekBar> & JsSeekBar
   无人机_seekbar: ConfigurableView<PrefNumSeekBar> & JsSeekBar
+  时空裂隙_seekbar: ConfigurableView<PrefNumSeekBar> & JsSeekBar
+  生化矩阵_seekbar: ConfigurableView<PrefNumSeekBar> & JsSeekBar
   重置技能优先级: View
   邮件: ConfigurableView<PrefSwitch> & JsCheckBox
   好友_领取体力: ConfigurableView<PrefSwitch> & JsCheckBox

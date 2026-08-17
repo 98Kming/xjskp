@@ -6,8 +6,7 @@ import { 战斗结束 } from './战斗结束'
 
 // 页面识别：暂停按钮 或 顶部已激活技能图标出现均算战斗中
 // skipLuminance: 暂停按钮模板左上角是深色像素，亮度对比会被误拒（模板 0.007 vs 屏幕 0.118），跳过亮度检查
-var 暂停 = 'images/战斗中$_暂停_1_0.9_66_50_102_200.png'
-var 已激活技能检测 = createPageDetector('images/战斗中_已激活技能_0_0.9_404_0_674_740.png')
+var 暂停 = 'images/战斗中$_暂停_1_0.85_66_50_102_200.png'
 
 export class 战斗中 extends BasePage {
   name = '战斗中'
@@ -27,31 +26,12 @@ export class 战斗中 extends BasePage {
 
   /** 开启倍速（找到"倍速-关闭"按钮时点击） */
   开倍速(): boolean {
-    return createRouteAction('images/战斗中_倍速-关闭_0_0.9_45_323_80_353.png')()
+    return createRouteAction('images/战斗中_倍速-关闭_0_0.9_45_323_80_440.png')()
   }
 
   /** 检测倍速是否已开启 */
   已开倍速(): boolean {
-    return !!imageDetector('images/战斗中_倍速-开启_0_0.9_45_323_80_353.png')
-  }
-
-  /** 技能选择弹窗是否出现（弹窗标题"选择技能"识别，与选择技能页共用识别图） */
-  技能弹窗出现(): boolean {
-    return !!imageDetector('images/选择技能_0_0.8_438_729_645_1143.png')
-  }
-
-  /** 已激活技能（顶部技能图标）出现时点击其匹配点上方 20px */
-  点击已激活技能(): boolean {
-    var filePath = 'images/战斗中_已激活技能_0_0.9_404_0_674_740.png'
-    var parsed = imageNameParser(filePath)
-    var template = getTemplate(filePath)
-    var rw = parsed.x2 - parsed.x1
-    var rh = parsed.y2 - parsed.y1
-    var img = screen()
-    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-    if (!point) return false
-    click(toScreenX(point.x + template.width / 2), toScreenY(point.y - 20))
-    return true
+    return !!imageDetector('images/战斗中_倍速-开启_0_0.9_45_323_80_440.png')
   }
 
   /** 确定（技能弹窗确认按钮） */

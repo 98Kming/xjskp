@@ -71,8 +71,10 @@ export class Router {
         trackPage('未知')
         log('[导航] 无法识别当前页面，尝试关闭弹窗')
         tryCloseModals()
-        // 轮询检测弹窗关闭后的页面，不盲目等足 1.5s
-        for (var _cw = 0; _cw < 5; _cw++) {
+        // 轮询检测弹窗关闭后的页面。用 tryCloseModals 返回值门控轮询次数：
+        // 点到弹窗 → 等关闭动画，轮询 5 次；没点到 → 页面不会因弹窗变化，2 次兜底即可
+        var closedModal = tryCloseModals()
+        for (var _cw = 0, _maxWait = closedModal ? 5 : 2; _cw < _maxWait; _cw++) {
           sleep(300)
           current = this.detectCurrentPage(screen())
           if (current) break
