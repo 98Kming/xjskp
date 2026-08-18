@@ -39,6 +39,8 @@ import { 战斗中 } from '../pages/战斗中'
 import { 战斗结束 } from '../pages/战斗结束'
 import { 暂停战斗 } from '../pages/暂停战斗'
 import { 选择技能 } from '../pages/选择技能'
+import { 观影签到 } from '../pages/观影签到'
+import { 观影便利店 } from '../pages/观影便利店'
 
 var router = Router.getInstance()
 
@@ -70,6 +72,8 @@ var 食堂Page = new 食堂()
 var 缘聚七夕Page = new 缘聚七夕()
 var 鹊桥祈缘Page = new 鹊桥祈缘()
 var 相思赴约Page = new 相思赴约()
+var 观影签到Page = new 观影签到()
+var 观影便利店Page = new 观影便利店()
 var 好友Page = new 好友()
 var 领取体力Page = new 领取体力()
 // 选择技能先注册：技能弹窗打开时暂停按钮仍可见（战斗中也匹配），优先识别为技能弹窗
@@ -232,6 +236,21 @@ function executeDailyTasks(): void {
       if (!缘聚七夕可达) return false
       if (!nav(相思赴约)) return false
       return 相思赴约Page.click_签到()
+    })
+  }
+
+  // ======== 观影签到（限时活动：签到、观影便利店） ========
+  if (isDailyEnabled('观影签到_签到')) {
+    doTask('观影签到 签到', function (): boolean {
+      if (!nav(观影签到)) return false
+      return 观影签到Page.免费领取()
+    })
+  }
+  if (isDailyEnabled('观影签到_观影便利店')) {
+    doTask('观影便利店 免费', function (): boolean {
+      if (!nav(观影签到)) return false
+      if (!nav(观影便利店)) return false
+      return 观影便利店Page.免费()
     })
   }
 
