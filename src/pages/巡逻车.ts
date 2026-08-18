@@ -6,7 +6,7 @@ export class 巡逻车 extends BasePage {
   is = createPageDetector('images/巡逻车_1_0.9_298_1017_502_1066.png')
 
   领取(): boolean {
-    return createRouteAction('images/巡逻车$$领取_1_0.9_733_1756_830_1807.png')() && (sleep(1600), this.back(), sleep(800), this.back(), sleep(800), true)
+    return createRouteAction('images/巡逻车$$领取_1_0.9_733_1756_830_1807.png')() && (click(device.width / 2, device.height - 10), sleep(300), click(device.width / 2, device.height - 10), sleep(200), true)
   }
 
   routes(): Route[] {

@@ -18,6 +18,9 @@ export class 异域挑战 extends BasePage {
       createRouteAction('images/异域挑战$$_扫荡_1_0.9_338_2263_462_2317.png')()
       sleep(1000)
       this.确认Action()
+      sleep(800)
+      this.back()
+      sleep(800)
     }
     return ok
   }

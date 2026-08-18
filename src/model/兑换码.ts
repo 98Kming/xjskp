@@ -43,7 +43,7 @@ export class 兑换码 {
   static 恭喜获得_point?: { x: number, y: number }
   static img_兑换 = getTemplate("images/兑换码_兑换_1_0.9_758_1198_849_1245.png");
   static img_兑换码_领取过 = getTemplate("images/兑换码_兑换码领取过_1_0.9_80_925_981_992.jpg")
-  static img_兑换码_恭喜获得 = getTemplate("images/恭喜获得_1_0.85_438_602_637_656.jpg")
+  static img_兑换码_恭喜获得 = getTemplate("images/_恭喜获得_0_0.85_437_895_641_948.png")
   static img_兑换码_冷却 = getTemplate("images/兑换码_兑换冷却_1_0.9_80_925_981_992.jpg")
   static img_兑换码_过期 = getTemplate("images/兑换码_兑换码过期_1_0.9_80_925_981_992.jpg")
   static img_兑换码_不存在 = getTemplate("images/兑换码_兑换码不存在_1_0.9_80_925_981_992.jpg")

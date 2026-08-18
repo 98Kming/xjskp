@@ -13,6 +13,7 @@ import { 缘聚七夕 } from './缘聚七夕'
 import { 战斗中 } from './战斗中'
 import { 组队邀请推荐 } from './组队邀请-推荐'
 import { 接受邀请列表 } from './接受邀请列表'
+import { 观影签到 } from './观影签到'
 
 export class 战斗 extends BasePage {
   name = '战斗'
@@ -84,6 +85,16 @@ export class 战斗 extends BasePage {
           self.scrollUp()
           return action()
         }, imagePath: 'images/战斗$武装降临_0_0.8_11_382_132_411.png'
+      },
+      {
+        target: 观影签到, action: function (): boolean {
+          var action = createRouteAction('images/战斗$观影签到_0_0.8_37_350_115_1200.png')
+          if (action()) return true
+          self.scrollDown()
+          if (action()) return true
+          self.scrollUp()
+          return action()
+        }, imagePath: 'images/战斗$观影签到_0_0.8_37_350_115_1200.png'
       },
       {
         target: 缘聚七夕, action: function (): boolean {

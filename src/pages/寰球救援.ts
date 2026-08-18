@@ -7,7 +7,7 @@ import { 战斗中 } from './战斗中'
 export class 寰球救援 extends BasePage {
   name = '寰球救援'
   is = createPageDetector('images/寰球救援_1_0.9_30_152_87_182.png')
-  private static img_恭喜获得 = getTemplate('images/恭喜获得_1_0.85_438_602_637_656.jpg')
+  private static img_恭喜获得 = getTemplate('images/_恭喜获得_0_0.85_437_895_641_948.png')
 
   /**
    * 广告门票:点击后看广告,40 秒内出现"恭喜获得"即视为成功。
@@ -33,10 +33,8 @@ export class 寰球救援 extends BasePage {
         width * 0.3, height * 0.2, width * 0.4, height * 0.3, 0.85)
       if (point) {
         log('[寰球救援] 广告门票领取成功(恭喜获得)')
-        click(toScreenX(point.x), toScreenY(point.y - 200))
-        sleep(800)
-        this.back()
-        sleep(800)
+        click(device.width / 2, device.height - 10)
+        sleep(300)
         return true
       }
     }
@@ -48,19 +46,19 @@ export class 寰球救援 extends BasePage {
     var action = createRouteAction('images/寰球救援$$免费_1_0.8_48_713_118_773.png')
     for (var i = 0; i < 3; i++) {
       if (action()) {
-        sleep(1000)
-        this.back()
-        //tryCloseModals()
-        sleep(500)
+        click(device.width / 2, device.height - 10)
+        sleep(300)
+        click(device.width / 2, device.height - 10)
+        sleep(200)
         if (action()) {
-          sleep(1000)
-          this.back()
-          //tryCloseModals()
-          sleep(500)
+          click(device.width / 2, device.height - 10)
+          sleep(300)
+          click(device.width / 2, device.height - 10)
+          sleep(200)
         }
         return true
       }
-      sleep(1000)
+      sleep(800)
     }
     return false
   }

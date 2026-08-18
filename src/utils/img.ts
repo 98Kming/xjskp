@@ -85,7 +85,7 @@ export function ocrRegion(img: ImageWrapper, x: number = 0, y: number = 0, w: nu
   var c = images.clip(img, x, y, w, h)
   if (c) {
     try {
-      let result =  gmlkit.ocr(c, 'zh')
+      let result = gmlkit.ocr(c, 'zh')
       // 结果处理，识别结果重复区域大于50%且内容被包含，则去掉重复区域，避免父子层级冗余
       return removeOcrRedundant(result)
     } finally {
@@ -265,9 +265,14 @@ export interface PageDetector {
 export function imageDetector(filePath: string, img?: ImageWrapper): OpenCV.Point | null {
   var parsed = imageNameParser(filePath)
   var template = getTemplate(filePath)
-  var rw = parsed.x2 - parsed.x1
-  var rh = parsed.y2 - parsed.y1
   img || (img = screen())
+  // 搜索区域放大到不小于模板尺寸：模板比区域大时 matchTemplate 结果尺寸为负，
+  // OpenCV 抛 "(-215:Assertion failed) s >= 0 function 'setSize'" 直接崩掉整个脚本
+  var rw = Math.max(parsed.x2 - parsed.x1, template.width)
+  var rh = Math.max(parsed.y2 - parsed.y1, template.height)
+  if (parsed.x1 + rw > img.width || parsed.y1 + rh > img.height){
+    throw new Error('搜索区域小于模板尺寸，请检查')
+  }
   return images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
 }
 
@@ -277,46 +282,46 @@ export function createPageDetector(filePath: string, skipLuminance?: boolean): P
   var rw = parsed.x2 - parsed.x1
   var rh = parsed.y2 - parsed.y1
 
-/**
- * 模板亮度一致性检查：模板与匹配点亮度差 <50% 才接受。
- * AutoX.js 对 images.resize 后的截图在 y>=1500 区域调 pixel 会抛 NPE
- * （"Attempt to read from null array"），此时跳过检查直接接受匹配，
- * findImageInRegion 的阈值匹配已足够可靠，亮度检查只是防黑屏误匹配的附加防护。
- */
-function luminanceOk(template: ImageWrapper, img: ImageWrapper, point: OpenCV.Point, filePath: string): boolean {
-  try {
-    var tplPixel = images.pixel(template, 0, 0)
-    var scrPixel = images.pixel(img, point.x, point.y)
-    var lum1 = colors.luminance(tplPixel)
-    var lum2 = colors.luminance(scrPixel)
-    if (lum2 === 0) return false
-    var percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100
-    if (percentDiff < 50) {
+  /**
+   * 模板亮度一致性检查：模板与匹配点亮度差 <50% 才接受。
+   * AutoX.js 对 images.resize 后的截图在 y>=1500 区域调 pixel 会抛 NPE
+   * （"Attempt to read from null array"），此时跳过检查直接接受匹配，
+   * findImageInRegion 的阈值匹配已足够可靠，亮度检查只是防黑屏误匹配的附加防护。
+   */
+  function luminanceOk(template: ImageWrapper, img: ImageWrapper, point: OpenCV.Point, filePath: string): boolean {
+    try {
+      var tplPixel = images.pixel(template, 0, 0)
+      var scrPixel = images.pixel(img, point.x, point.y)
+      var lum1 = colors.luminance(tplPixel)
+      var lum2 = colors.luminance(scrPixel)
+      if (lum2 === 0) return false
+      var percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100
+      if (percentDiff < 50) {
+        return true
+      }
+      //log('[亮度] 模板不匹配:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5), percentDiff, filePath)
+      return false
+    } catch (e) {
+      // resize 截图像素读取失败 → 跳过亮度检查
       return true
     }
-    //log('[亮度] 模板不匹配:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5), percentDiff, filePath)
-    return false
-  } catch (e) {
-    // resize 截图像素读取失败 → 跳过亮度检查
-    return true
   }
-}
 
-var fn = function (img: ImageWrapper): boolean {
-  var cached = regionCache.get(filePath)
-  if (cached) {
-    var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
-    if (point) {
-      return skipLuminance || luminanceOk(template, img, point, filePath)
+  var fn = function (img: ImageWrapper): boolean {
+    var cached = regionCache.get(filePath)
+    if (cached) {
+      var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
+      if (point) {
+        return skipLuminance || luminanceOk(template, img, point, filePath)
+      }
+      // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
+      return false
     }
-    // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
-    return false
-  }
-  // 无缓存 → 全量搜索
-  var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-  if (!point) return false
-  return skipLuminance || luminanceOk(template, img, point, filePath)
-} as PageDetector
+    // 无缓存 → 全量搜索
+    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    if (!point) return false
+    return skipLuminance || luminanceOk(template, img, point, filePath)
+  } as PageDetector
   fn.detectImagePath = filePath
   return fn
 }
