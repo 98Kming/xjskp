@@ -1,5 +1,6 @@
 import { BasePage } from './BasePage'
-import { createPageDetector, width, height, getTemplate, scrollFind, screen, imageNameParser, findImageMinYPoint, ocrText, toScreenX, toScreenY, ocrRegion } from '../utils/img'
+import { createPageDetector, width, height, getTemplate, screen, imageNameParser, findImageMinYPoint, ocrText, toScreenX, toScreenY, ocrRegion } from '../utils/img'
+import { scrollFind } from '../utils/scroll'
 
 export class 服务器选择 extends BasePage {
   name = '服务器选择'
@@ -14,7 +15,8 @@ export class 服务器选择 extends BasePage {
     var imgPath_未选中 = 'images/服务器选择_未选中_0_0.9_92_250_106_1882.png'
 
     // 1. scrollFind 向上滚动找选中标识
-    var point = scrollFind(imgPath_选中, width / 2, height * 0.7, width / 2, height * 0.3, width / 3)
+    //var point = scrollFind(imgPath_选中, width / 2, height * 0.7, width / 2, height * 0.3, width / 3)
+    var point = scrollFind(imgPath_选中, "top", 200, 550, 450, 1800)
     if (!point) {
       console.log('[服务器选择] 未找到当前选中服务器')
       return null

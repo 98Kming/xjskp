@@ -127,7 +127,7 @@ export function getTemplate(filePath: string): ImageWrapper {
   if (template == null) {
     template = images.read(imageBasePath + filePath)
     if (template == null) {
-      throw new Error(`模板图片不存在: ${filePath}`)
+      throw new Error(`模板图片不存在: ${files.cwd()}${filePath}`)
     }
   }
   templateCache.push({ key: filePath, img: template })
@@ -270,7 +270,7 @@ export function imageDetector(filePath: string, img?: ImageWrapper): OpenCV.Poin
   // OpenCV 抛 "(-215:Assertion failed) s >= 0 function 'setSize'" 直接崩掉整个脚本
   var rw = Math.max(parsed.x2 - parsed.x1, template.width)
   var rh = Math.max(parsed.y2 - parsed.y1, template.height)
-  if (parsed.x1 + rw > img.width || parsed.y1 + rh > img.height){
+  if (parsed.x1 + rw > img.width || parsed.y1 + rh > img.height) {
     throw new Error('搜索区域小于模板尺寸，请检查')
   }
   return images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
@@ -465,18 +465,14 @@ export function createMirroredAction(filePath: string): () => boolean {
  * 入场券镜像点击（含已售罄检测）：
  * 找入场券图片，若找到则在入场券右侧区域查找已售罄，
  * 已售罄则返回 false（跳过），否则执行镜像坐标点击。
- * ticketPath 按标准图片命名解析；soldOutPath 先直读（兼容非标准命名），失败再走 getTemplate。
+ * ticketPath 按标准图片命名解析；soldOutPath 走 getTemplate（先直读，失败再拼 imageBasePath）。
  */
 export function createTicketAction(ticketPath: string, soldOutPath: string): () => boolean {
   var parsed = imageNameParser(ticketPath)
   var template = getTemplate(ticketPath)
   var rw = parsed.x2 - parsed.x1
   var rh = parsed.y2 - parsed.y1
-  // soldOut图片可能不在标准路径下，先直读，失败再走 getTemplate 的双路径尝试
-  var soldOutTemplate = images.read(soldOutPath)
-  if (soldOutTemplate == null) {
-    soldOutTemplate = images.read(imageBasePath + soldOutPath)
-  }
+  var soldOutTemplate = getTemplate(soldOutPath)
 
   return function (): boolean {
     var img = screen()
@@ -591,43 +587,6 @@ export function pageChange(beforeImg: ImageWrapper): boolean {
 }
 
 
-export function scrollFind(imgPath: string, x1: number, y1: number, x2: number, y2: number, x3: number, maxScroll: number = 20): OpenCV.Point | null {
-  var parsed = imageNameParser(imgPath)
-  var rw = parsed.x2 - parsed.x1
-  var rh = parsed.y2 - parsed.y1
-  var template = getTemplate(imgPath)
-  for (var i = 0; i < maxScroll; i++) {
-    var img = screen()
-    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-    if (point) {
-      // var cx = point.x + template.width + 60
-      // var cy = point.y + template.height + 10
-      // console.log('[服务器选择] 找到选中标识 坐标:(' + point.x + ',' + point.y + ') 点击:(' + cx + ',' + cy + ')')
-      return point
-    }
-    // 向上滚动：从屏幕下方滑到上方
-    swipe(toScreenX(x1), toScreenY(y1), toScreenX(x2), toScreenY(y2), 300)
-    swipe(toScreenX(x2), toScreenY(y2), toScreenX(x3), toScreenY(y2), 300)
-    sleep(800)
-    var afterImg = screen(0, false)
-    let x = Math.min(x1, x2, x3)
-    let y = Math.min(y1, y2)
-    let w = Math.max(x1, x2, x3) - x
-    let h = Math.max(y1, y2) - y
-    let clipImg = images.clip(afterImg, x, y, w, h)
-    if (images.findImageInRegion(img, clipImg, x, y, w, h, 0.99)) {
-      clipImg.recycle()
-      img.recycle()
-      // 滑动后未发生页面变化，说明已滑到底部，停止滚动
-      console.log('[服务器选择] 滑动后未发生页面变化，已滑到底部，停止滚动')
-      break
-    }
-    clipImg.recycle()
-    img.recycle()
-  }
-  return null
-}
-
 export function findImageMinYPoint(img: ImageWrapper, template: ImageWrapper, x: number, y: number, w: number, h: number, threshold: number) {
   // 在标识下方区域找目标按钮，取最上方的一个
   var targetResult = images.matchTemplate(img, template, {
@@ -719,4 +678,25 @@ export function select_队友(teammate: Teammate): OpenCV.Point | null {
     sleep(700)
   }
   return null
+}
+
+export function waitObtain(timeout: number): boolean {
+  var beginTime = Date.now()
+  while (true) {
+    let now = Date.now()
+    if(now < timeout + beginTime) {
+      sleep(1000)
+    }
+    var point = imageDetector('images/_恭喜获得_0_0.85_437_895_641_948.png')
+    if (point) {
+      log('[waitObtain] 恭喜获得出现，领取成功')
+      click(toScreenX(point.x), toScreenY(point.y + 100))
+      sleep(200)
+      click(device.width / 2, device.height - 10)
+      return true
+    }
+    if(now >= timeout + beginTime) {
+      return false
+    }
+  }
 }

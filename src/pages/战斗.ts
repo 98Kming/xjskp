@@ -14,6 +14,8 @@ import { 战斗中 } from './战斗中'
 import { 组队邀请推荐 } from './组队邀请-推荐'
 import { 接受邀请列表 } from './接受邀请列表'
 import { 观影签到 } from './观影签到'
+import { scrollFind } from '../utils/scroll'
+import { 影映观礼 } from './影映观礼'
 
 export class 战斗 extends BasePage {
   name = '战斗'
@@ -88,13 +90,33 @@ export class 战斗 extends BasePage {
       },
       {
         target: 观影签到, action: function (): boolean {
-          var action = createRouteAction('images/战斗$观影签到_0_0.8_37_350_115_1200.png')
-          if (action()) return true
-          self.scrollDown()
-          if (action()) return true
-          self.scrollUp()
-          return action()
+          let point = scrollFind('images/战斗$观影签到_0_0.8_37_350_115_1200.png', 'top', 20, 500, 140, 1200, 8)
+          if(point) {
+            click(toScreenX(point.x), toScreenY(point.y))
+            return true
+          }
+          point = scrollFind('images/战斗$观影签到_0_0.8_37_350_115_1200.png', 'bottom', 20, 500, 140, 1200, 8)
+          if(point) {
+            click(toScreenX(point.x), toScreenY(point.y))
+            return true
+          }
+          return false
         }, imagePath: 'images/战斗$观影签到_0_0.8_37_350_115_1200.png'
+      },
+      {
+        target: 影映观礼, action: function (): boolean {
+          let point = scrollFind('images/战斗$影映观礼_0_0.8_49_350_113_1200.png', 'top', 20, 500, 140, 1200, 8)
+          if(point) {
+            click(toScreenX(point.x), toScreenY(point.y))
+            return true
+          }
+          point = scrollFind('images/战斗$影映观礼_0_0.8_49_350_113_1200.png', 'bottom', 20, 500, 140, 1200, 8)
+          if(point) {
+            click(toScreenX(point.x), toScreenY(point.y))
+            return true
+          }
+          return false
+        }, imagePath: 'images/战斗$影映观礼_0_0.8_49_350_113_1200.png'
       },
       {
         target: 缘聚七夕, action: function (): boolean {

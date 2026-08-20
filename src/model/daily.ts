@@ -41,6 +41,7 @@ import { 暂停战斗 } from '../pages/暂停战斗'
 import { 选择技能 } from '../pages/选择技能'
 import { 观影签到 } from '../pages/观影签到'
 import { 观影便利店 } from '../pages/观影便利店'
+import { 影映观礼 } from '../pages/影映观礼'
 
 var router = Router.getInstance()
 
@@ -74,6 +75,7 @@ var 鹊桥祈缘Page = new 鹊桥祈缘()
 var 相思赴约Page = new 相思赴约()
 var 观影签到Page = new 观影签到()
 var 观影便利店Page = new 观影便利店()
+var 影映观礼Page = new 影映观礼()
 var 好友Page = new 好友()
 var 领取体力Page = new 领取体力()
 // 选择技能先注册：技能弹窗打开时暂停按钮仍可见（战斗中也匹配），优先识别为技能弹窗
@@ -253,7 +255,12 @@ function executeDailyTasks(): void {
       return 观影便利店Page.免费()
     })
   }
-
+  if (isDailyEnabled('观影签到_影映观礼')) {
+    doTask('影映观礼 免费', function (): boolean {
+      if (!nav(影映观礼)) return false
+      return 影映观礼Page.领取()
+    })
+  }
   // ======== 基地（入口：历练大厅、食堂） ========
   if (isDailyEnabled('寰球救援_领票')) {
     doTask('寰球救援 免费', function (): boolean {
