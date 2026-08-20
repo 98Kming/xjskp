@@ -10,7 +10,12 @@ export class 终末危机 extends BasePage {
     var ok = createRouteAction('images/终末危机$$_扫荡_1_0.9_269_2085_371_2139.png')()
     if (ok) {
       sleep(1000)
-      this.确认Action()
+      if(this.确认Action()) {
+        click(device.width / 2, device.height - 10)
+        sleep(300)
+        click(device.width / 2, device.height - 10)
+        sleep(200)
+      }
     }
     return ok
   }

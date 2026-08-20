@@ -41,6 +41,7 @@ import { find_队友 } from './utils/img'
 import { 组队邀请推荐 } from './pages/组队邀请-推荐'
 import { 组队邀请好友 } from './pages/组队邀请-好友'
 import { 接受邀请列表 } from './pages/接受邀请列表'
+import { 鹊渡仙途 } from './pages/鹊渡仙途'
 
 // var router = Router.getInstance()
 
@@ -167,7 +168,7 @@ mainWindow.window.探索.setOnClickListener(new android.view.View.OnClickListene
     探索运行中 = true
     start(function () {
       try {
-        new 探索().start()
+        new 鹊渡仙途().run()
       } catch (e: any) {
         console.error('[探索] 异常: ' + (e.message || e))
       } finally {

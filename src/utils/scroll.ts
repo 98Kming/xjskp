@@ -33,7 +33,7 @@ export function scroll(direction: 'left' | 'right' | 'top' | 'bottom', x1: numbe
   var afterImg = screen(0, false)
   let clipImg = images.clip(afterImg, x1, y1, x2 - x1,  y2 - y1)
   // 在滚动前截图 img 中找滚动后的裁剪图：找到说明页面未变化(已滑到底)，找不到说明滚动生效
-  var changed = !images.findImageInRegion(img, clipImg, x1, y1, x2 - x1,  y2 - y1, 0.99)
+  var changed = !images.findImageInRegion(img, clipImg, x1, y1, x2 - x1,  y2 - y1, 0.95)
   // 无论是否变化都要回收：滚动成功的分支此前漏回收 img/clipImg，循环滚动会泄漏 Bitmap
   clipImg.recycle()
   img.recycle()

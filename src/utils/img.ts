@@ -326,7 +326,7 @@ export function createPageDetector(filePath: string, skipLuminance?: boolean): P
   return fn
 }
 
-export function createRouteAction(filePath: string): () => boolean {
+export function createRouteAction(filePath: string): (img?: ImageWrapper) => boolean {
   var parsed = imageNameParser(filePath)
   var rw = parsed.x2 - parsed.x1
   var rh = parsed.y2 - parsed.y1
@@ -334,10 +334,10 @@ export function createRouteAction(filePath: string): () => boolean {
 
   // cache=1: 带区域缓存，首次匹配后缩小搜索范围（避免盲点，兼顾速度）
   if (parsed.cache === 1) {
-    return function (): boolean {
+    return function (img?: ImageWrapper): boolean {
       var cached = regionCache.get(filePath)
       if (cached) {
-        var img = screen()
+        img || (img = screen())
         var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
         if (point) {
           click(toScreenX(point.x + template.width / 2), toScreenY(point.y + template.height / 2))
@@ -346,7 +346,7 @@ export function createRouteAction(filePath: string): () => boolean {
         // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
         return false
       }
-      var img = screen()
+      img || (img = screen())
       var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
       //log('尝试匹配模板:', filePath, `[${parsed.x1},${parsed.y1}-${parsed.x2},${parsed.y2}]`, point ? `结果: 找到坐标(${point.x}, ${point.y})` : '结果: 未找到')
       if (!point) return false
@@ -364,8 +364,8 @@ export function createRouteAction(filePath: string): () => boolean {
   }
 
   // cache=0: 每次重新截图匹配
-  return function (): boolean {
-    var img = screen()
+  return function (img?: ImageWrapper): boolean {
+    img || (img = screen())
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false
     click(toScreenX(point.x + template.width / 2), toScreenY(point.y + template.height / 2))
@@ -680,14 +680,14 @@ export function select_队友(teammate: Teammate): OpenCV.Point | null {
   return null
 }
 
-export function waitObtain(timeout: number): boolean {
+export function waitObtain(timeout: number, interval: number = 1000): boolean {
   var beginTime = Date.now()
   while (true) {
     let now = Date.now()
     if(now < timeout + beginTime) {
-      sleep(1000)
+      sleep(interval)
     }
-    var point = imageDetector('images/_恭喜获得_0_0.85_437_895_641_948.png')
+    var point = imageDetector('images/_恭喜获得_0_0.85_437_895_641_948.png', screen(interval))
     if (point) {
       log('[waitObtain] 恭喜获得出现，领取成功')
       click(toScreenX(point.x), toScreenY(point.y + 100))

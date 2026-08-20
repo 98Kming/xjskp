@@ -4,7 +4,7 @@
 
 import { mainWindow } from "../MainWindow"
 import { Router } from '../router/Router'
-import { createTicketAction, getTemplate, imageDetector, imageNameParser, screen, toScreenX, toScreenY, tryCloseModals } from '../utils/img'
+import { createTicketAction, getTemplate, imageDetector, imageNameParser, screen } from '../utils/img'
 import { scroll } from '../utils/scroll'
 import { BasePage } from '../pages/BasePage'
 import { 基地 } from '../pages/基地'
@@ -109,13 +109,24 @@ function isDailyEnabled(id: string): boolean {
   return false
 }
 
+/** 手动停止异常:ScriptInterruptedException,或 click 等阻塞调用被中断包装的 InterruptedException */
+function isStopException(e: any): boolean {
+  var msg = e && e.message ? e.message : (e ? String(e) : '')
+  if (msg.indexOf('InterruptedException') >= 0) return true
+  if (e && e.javaException && e.javaException.toString) {
+    var jm = e.javaException.toString()
+    if (jm.indexOf('InterruptedException') >= 0) return true
+  }
+  return false
+}
+
 /** 导航到目标页 */
 function nav(target: any): boolean {
   try {
     return router.go(target)
   } catch (e: any) {
     // 手动停止时立即终止
-    if (e.message && e.message.indexOf('ScriptInterruptedException') >= 0) throw e
+    if (isStopException(e)) throw e
     var serverTag = currentServer ? ' [' + currentServer + ']' : ''
     console.log('[日常] ⚠ 导航异常: ' + (e.message || e) + serverTag)
     // 打印完整堆栈定位异常源头
@@ -153,7 +164,7 @@ function doTask(label: string, action: () => boolean): boolean {
     return false
   } catch (e: any) {
     // 手动停止时立即终止
-    if (e.message && e.message.indexOf('InterruptedException') >= 0) throw e
+    if (isStopException(e)) throw e
     var elapsed = ((Date.now() - start) / 1000).toFixed(1)
     var serverTag = currentServer ? ' [' + currentServer + ']' : ''
     console.log(serverTag + '[日常] ❌ ' + label + ' — ' + (e.message || e) + ' (' + elapsed + 's)')
@@ -382,21 +393,6 @@ interface 活动目标 {
   执行: () => boolean
 }
 
-/** 点击入口后轮询等待目标页出现，弹窗遮挡时尝试关闭 */
-function 等待进入页面(页: BasePage): boolean {
-  for (var i = 0; i < 6; i++) {
-    sleep(800)
-    if (页.is(screen())) return true
-  }
-  if (tryCloseModals()) {
-    for (var j = 0; j < 3; j++) {
-      sleep(800)
-      if (页.is(screen())) return true
-    }
-  }
-  return false
-}
-
 /** 按开关过滤构建批量目标列表 */
 function 构建活动目标列表(): 活动目标[] {
   var 列表: 活动目标[] = []
@@ -457,7 +453,6 @@ function 批量执行活动(): void {
   for (var t = 0; t < 8; t++) {
     if (!scroll('bottom', 20, 500, 140, 1200)) break
   }
-
   while (目标列表.length > 0) {
     // 当前画面找最上方的可见目标入口
     var img = screen()
@@ -473,10 +468,12 @@ function 批量执行活动(): void {
     if (best) {
       var 目标 = 目标列表[best.索引]
       目标列表.splice(best.索引, 1)
-      click(toScreenX(best.x + best.模板宽 / 2), toScreenY(best.y + best.模板高 / 2))
-      if (!等待进入页面(目标.页)) {
+      // 复用 Router 导航:重试点击/弹窗关闭/偏离检测;失败时可能已回退,恢复战斗页避免滚动错位
+      // 注意传类(router.go 用 constructor 与路由表严格比较),实例会使 findPath 永远找不到路径
+      if (!nav(目标.页.constructor as any)) {
         console.log('[日常] ❌ ' + 目标.名 + ' — 入口点击后未进入页面')
         failTasks++
+        nav(战斗)
         continue
       }
       doTask(目标.名, 目标.执行)
