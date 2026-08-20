@@ -4,7 +4,9 @@
 
 import { mainWindow } from "../MainWindow"
 import { Router } from '../router/Router'
-import { createTicketAction, imageDetector } from '../utils/img'
+import { createTicketAction, getTemplate, imageDetector, imageNameParser, screen, toScreenX, toScreenY, tryCloseModals } from '../utils/img'
+import { scroll } from '../utils/scroll'
+import { BasePage } from '../pages/BasePage'
 import { 基地 } from '../pages/基地'
 import { 随机事件 } from '../pages/随机事件'
 import { 战斗 } from '../pages/战斗'
@@ -42,6 +44,8 @@ import { 选择技能 } from '../pages/选择技能'
 import { 观影签到 } from '../pages/观影签到'
 import { 观影便利店 } from '../pages/观影便利店'
 import { 影映观礼 } from '../pages/影映观礼'
+import { 武装降临 } from '../pages/武装降临'
+import { 武装降临任务 } from '../pages/武装降临-任务'
 
 var router = Router.getInstance()
 
@@ -61,7 +65,7 @@ var 异域挑战个人奖励Page = new 异域挑战个人奖励()
 new 军团商店()
 var 道具购买Page = new 道具购买()
 var 玩法商店Page = new 玩法商店()
-new 幸运锦鲤()
+var 幸运锦鲤Page = new 幸运锦鲤()
 var 幸运锦鲤免费福利Page = new 幸运锦鲤免费福利()
 var 邮件Page = new 邮件()
 var 巡逻车Page = new 巡逻车()
@@ -76,6 +80,8 @@ var 相思赴约Page = new 相思赴约()
 var 观影签到Page = new 观影签到()
 var 观影便利店Page = new 观影便利店()
 var 影映观礼Page = new 影映观礼()
+var 武装降临任务Page = new 武装降临任务()
+var 武装降临Page = new 武装降临()
 var 好友Page = new 好友()
 var 领取体力Page = new 领取体力()
 // 选择技能先注册：技能弹窗打开时暂停按钮仍可见（战斗中也匹配），优先识别为技能弹窗
@@ -173,24 +179,10 @@ function executeDailyTasks(): void {
       return 战斗Page.click_七日突围()
     })
   }
-  if (isDailyEnabled('先锋宝藏_免费抽')) {
-    doTask('先锋宝藏 免费', function (): boolean {
-      if (!nav(先锋宝藏)) return false
-      return 先锋宝藏Page.免费()
-    })
-  }
-  if (isDailyEnabled('碧海凉夏_免费抽')) {
-    doTask('碧海凉夏 免费', function (): boolean {
-      if (!nav(碧海凉夏)) return false
-      return 碧海凉夏Page.免费()
-    })
-  }
-  if (isDailyEnabled('幸运锦鲤_免费福利')) {
-    doTask('免费福利 领取', function (): boolean {
-      if (!nav(幸运锦鲤)) return false
-      if (!nav(幸运锦鲤免费福利)) return false
-      return 幸运锦鲤免费福利Page.领取奖励()
-    })
+  if (isDailyEnabled('先锋宝藏_免费抽') || isDailyEnabled('碧海凉夏_免费抽') || isDailyEnabled('幸运锦鲤_免费福利') ||
+    isDailyEnabled('观影签到_签到') || isDailyEnabled('观影签到_观影便利店') || isDailyEnabled('影映观礼_领取') ||
+    isDailyEnabled('武装降临_领取')) {
+    批量执行活动()
   }
   if (isDailyEnabled('邮件')) {
     doTask('邮件 一键领取', function (): boolean {
@@ -241,26 +233,6 @@ function executeDailyTasks(): void {
     })
   }
 
-  // ======== 观影签到（限时活动：签到、观影便利店） ========
-  if (isDailyEnabled('观影签到_签到')) {
-    doTask('观影签到 签到', function (): boolean {
-      if (!nav(观影签到)) return false
-      return 观影签到Page.免费领取()
-    })
-  }
-  if (isDailyEnabled('观影签到_观影便利店')) {
-    doTask('观影便利店 免费', function (): boolean {
-      if (!nav(观影签到)) return false
-      if (!nav(观影便利店)) return false
-      return 观影便利店Page.免费()
-    })
-  }
-  if (isDailyEnabled('观影签到_影映观礼')) {
-    doTask('影映观礼 免费', function (): boolean {
-      if (!nav(影映观礼)) return false
-      return 影映观礼Page.领取()
-    })
-  }
   // ======== 基地（入口：历练大厅、食堂） ========
   if (isDailyEnabled('寰球救援_领票')) {
     doTask('寰球救援 免费', function (): boolean {
@@ -397,6 +369,130 @@ function executeDailyTasks(): void {
   // TODO: 先锋宝藏_特惠战令 — 需实现 先锋宝藏Page.特惠战令()
   // TODO: 作战计划_签到 — 需实现 作战计划Page.签到()
   // TODO: 兑换码 — 需实现 兑换码Page.兑换()
+}
+
+// ======== 战斗页活动批量 ========
+// 幸运锦鲤、先锋宝藏、碧海凉夏、武装降临、观影签到、影映观礼入口在同一活动列表，
+// 批量滚动扫描一次做完，避免每个任务各自滚动（观影签到/影映观礼原先最多来回滚 8 次）
+
+interface 活动目标 {
+  名: string
+  页: BasePage
+  入口图: string
+  执行: () => boolean
+}
+
+/** 点击入口后轮询等待目标页出现，弹窗遮挡时尝试关闭 */
+function 等待进入页面(页: BasePage): boolean {
+  for (var i = 0; i < 6; i++) {
+    sleep(800)
+    if (页.is(screen())) return true
+  }
+  if (tryCloseModals()) {
+    for (var j = 0; j < 3; j++) {
+      sleep(800)
+      if (页.is(screen())) return true
+    }
+  }
+  return false
+}
+
+/** 按开关过滤构建批量目标列表 */
+function 构建活动目标列表(): 活动目标[] {
+  var 列表: 活动目标[] = []
+  if (isDailyEnabled('先锋宝藏_免费抽')) {
+    列表.push({ 名: '先锋宝藏 免费', 页: 先锋宝藏Page, 入口图: 'images/战斗$先锋宝藏_0_0.8_64_500_118_1049.png', 执行: function (): boolean { return 先锋宝藏Page.免费() } })
+  }
+  if (isDailyEnabled('碧海凉夏_免费抽')) {
+    列表.push({ 名: '碧海凉夏 免费', 页: 碧海凉夏Page, 入口图: 'images/战斗$碧海凉夏_0_0.8_45_398_112_1200.png', 执行: function (): boolean { return 碧海凉夏Page.免费() } })
+  }
+  if (isDailyEnabled('幸运锦鲤_免费福利')) {
+    列表.push({ 名: '免费福利 领取', 页: 幸运锦鲤Page, 入口图: 'images/战斗$幸运锦鲤_0_0.7_30_542_118_617.png', 执行: function (): boolean {
+      if (!nav(幸运锦鲤免费福利)) return false
+      return 幸运锦鲤免费福利Page.领取奖励()
+    } })
+  }
+  if (isDailyEnabled('武装降临_领取')) {
+    列表.push({ 名: '武装降临 领取', 页: 武装降临Page, 入口图: 'images/战斗$武装降临_0_0.8_11_382_132_411.png', 执行: function (): boolean {
+      if (!nav(武装降临任务)) return false
+      return 武装降临任务Page.领取()
+    } })
+  }
+  if (isDailyEnabled('观影签到_签到') || isDailyEnabled('观影签到_观影便利店')) {
+    列表.push({ 名: '观影签到', 页: 观影签到Page, 入口图: 'images/战斗$观影签到_0_0.8_37_350_115_1200.png', 执行: function (): boolean {
+      var ok = true
+      if (isDailyEnabled('观影签到_签到')) {
+        ok = doTask('观影签到 签到', function (): boolean { return 观影签到Page.免费领取() })
+      }
+      if (isDailyEnabled('观影签到_观影便利店')) {
+        var ok2 = doTask('观影便利店 免费', function (): boolean {
+          if (!nav(观影便利店)) return false
+          return 观影便利店Page.免费()
+        })
+        return ok && ok2
+      }
+      return ok
+    } })
+  }
+  if (isDailyEnabled('影映观礼_领取')) {
+    列表.push({ 名: '影映观礼 免费', 页: 影映观礼Page, 入口图: 'images/战斗$影映观礼_0_0.8_49_350_113_1200.png', 执行: function (): boolean { return 影映观礼Page.领取() } })
+  }
+  return 列表
+}
+
+/**
+ * 批量执行战斗页活动列表任务：进战斗页一次，滚动扫描列表，
+ * 当前画面可见的目标入口依次点击做任务，只滚一轮。
+ */
+function 批量执行活动(): void {
+  if (!nav(战斗)) {
+    console.log('[日常] ❌ 战斗页活动批量 — 无法进入战斗页')
+    failTasks++
+    return
+  }
+  var 目标列表 = 构建活动目标列表()
+  if (目标列表.length === 0) return
+
+  // 滚到列表顶部，保证从固定位置开始扫描
+  for (var t = 0; t < 8; t++) {
+    if (!scroll('bottom', 20, 500, 140, 1200)) break
+  }
+
+  while (目标列表.length > 0) {
+    // 当前画面找最上方的可见目标入口
+    var img = screen()
+    var best: { 索引: number; x: number; y: number; 模板宽: number; 模板高: number } | null = null
+    for (var i = 0; i < 目标列表.length; i++) {
+      var parsed = imageNameParser(目标列表[i].入口图)
+      var template = getTemplate(目标列表[i].入口图)
+      var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, parsed.x2 - parsed.x1, parsed.y2 - parsed.y1, parsed.threshold)
+      if (point && (!best || point.y < best.y)) {
+        best = { 索引: i, x: point.x, y: point.y, 模板宽: template.width, 模板高: template.height }
+      }
+    }
+    if (best) {
+      var 目标 = 目标列表[best.索引]
+      目标列表.splice(best.索引, 1)
+      click(toScreenX(best.x + best.模板宽 / 2), toScreenY(best.y + best.模板高 / 2))
+      if (!等待进入页面(目标.页)) {
+        console.log('[日常] ❌ ' + 目标.名 + ' — 入口点击后未进入页面')
+        failTasks++
+        continue
+      }
+      doTask(目标.名, 目标.执行)
+      if (!nav(战斗)) {
+        console.log('[日常] ❌ 战斗页活动批量 — 无法返回战斗页')
+        failTasks++
+        return
+      }
+      continue
+    }
+    // 当前画面无可见目标，向下滚动；已滚到底则结束
+    if (!scroll('top', 20, 500, 140, 1200)) {
+      console.log('[日常] 活动列表已滚到底，未找到剩余目标')
+      break
+    }
+  }
 }
 
 export function runDaily(): void {
