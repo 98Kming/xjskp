@@ -415,7 +415,7 @@ export class Router {
       if (!page.back()) {
         log('[导航] page.back()未找到按钮')
       } else {
-        sleep(1500)
+        sleep(800)
       }
     } else {
       click(100, device.height - 100)

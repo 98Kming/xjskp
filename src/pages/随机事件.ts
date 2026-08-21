@@ -1,6 +1,6 @@
 import { currentServer } from '../model/daily'
 import { BasePage, Route } from './BasePage'
-import { screen, createPageDetector, createRouteAction, getTemplate, imageDetector, imageNameParser, tryCloseModals, ocrText } from '../utils/img'
+import { screen, createPageDetector, createRouteAction, getTemplate, imageDetector, imageNameParser, tryCloseModals, ocrText, waitObtain, waitScreen } from '../utils/img'
 
 export class 随机事件 extends BasePage {
   name = '随机事件'
@@ -19,7 +19,6 @@ export class 随机事件 extends BasePage {
     createRouteAction('images/随机事件$$领取-允许进入_1_0.9_641_1434_814_1478.png'),
     createRouteAction('images/随机事件$$领取-出兵支援_1_0.9_269_1432_444_1482.png'),
     createRouteAction('images/随机事件$$领取-收留驯养_1_0.9_263_1432_445_1482.png'),
-    createRouteAction('images/随机事件$$领取-欣然接受_1_0.9_452_1434_630_1479.png'),
     createRouteAction('images/随机事件$$领取-监听情报_1_0.9_269_1434_441_1477.png'),
     createRouteAction('images/随机事件$$领取-保留药品_1_0.9_638_1432_817_1479.png'),
     createRouteAction('images/随机事件$$领取-冒险搜查_1_0.9_266_1435_444_1479.png'),
@@ -33,6 +32,7 @@ export class 随机事件 extends BasePage {
   private 委婉拒绝Action = createRouteAction('images/随机事件$$领取-委婉拒绝_1_0.9_254_1139_451_1192.png')
   private 确定Action = createRouteAction('images/随机事件$$领取-确定_1_0.9_478_1134_613_1192.png')
   private 低价买入Action = createRouteAction('images/随机事件$$领取-低价买入_1_0.9_641_1142_813_1186.png')
+  private 欣然接受Action = createRouteAction('images/随机事件$$领取-欣然接受_1_0.9_452_1434_630_1479.png')
 
   /**
    * 检测当前页面是否已结束（出现结束按钮）
@@ -49,74 +49,46 @@ export class 随机事件 extends BasePage {
    * 出现结束、或出现焕新试剂的退出循环，这种情况随机事件的入口还会存在
    */
   领取(): boolean {
-    var claimed = false
-    var idleRounds = 0
-
-    while (true) {
-      var found = false
-      let filePath = 'images/_焕新试剂_0_0.9_0_0_w_h.png'
-      // 焕新试剂检测：出现即退出（入口仍在）
-      var parsed = imageNameParser(filePath)
-      var template = getTemplate(filePath)
-      var rw = parsed.x2 - parsed.x1
-      var rh = parsed.y2 - parsed.y1
-      let img = screen()
-      var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-      if (point) {
-        let tmp = images.clip(img,point.x, point.y, template.width + 10, template.height + 10)
-        images.save(tmp, '/sdcard/' + (currentServer ? currentServer + '_' : '') + Date.now() + '.png')
-        log("★ 焕新试剂", gmlkit.ocr(tmp, 'zh'),point.x, point.y, template.width + 10, template.height + 10)
-        tmp.recycle()
-        break
-        // // 点击低价买入(购买焕新试剂),不直接 break,继续领取其他按钮
-        // if (this.低价买入Action()) {
-        //   claimed = true
-        //   found = true
-        //   idleRounds = 0
-        //   sleep(1000)
-        // }
+    var found = false
+    while (!this.hasEnded()) {
+      var tmpFound = false
+      if (this.焕新试剂Action() || this.委婉拒绝Action() || this.欣然接受Action()) {
+        found = true
+        tmpFound = true
+        waitObtain(2000)
+        sleep(800)
       }
-
-      // 结束检测：出现即退出（入口仍在）
-      if (this.hasEnded()) {
-        break
-      }
-
       for (var i = 0; i < this.领取列表.length; i++) {
         if (this.领取列表[i]()) {
-          sleep(1000)
-          claimed = true
-          found = true
-          idleRounds = 0
-          break  // 扫到就点，下一轮从头再扫
+          sleep(800)
+          if (this.确定Action()) {
+            found = true
+            tmpFound = true
+            waitObtain(2000)
+            sleep(800)
+          }
         }
       }
-
-      if (this.确定Action()) {
-        sleep(1000)
-        this.back()
-        sleep(800)
-      }
-
-      // 委婉拒绝按钮（焕新试剂不存在时 — 上面已 break，此处 flag 必为 false）
-      if (this.委婉拒绝Action()) {
-        claimed = true
-        found = true
-        idleRounds = 0
-        sleep(800)
-      }
-
-      if (!found) {
-        if (claimed) {
-          log('[随机事件] 无新按钮，可能有未添加模板的按钮等待收录')
-          break
-        }
-        idleRounds++
-        if (idleRounds >= 5) break  // 等约 4 秒仍无按钮 → 放弃
-        sleep(800)                  // 还没出现过，等入口
+      if(!tmpFound) {
+        break
       }
     }
-    return claimed
+    return found
+  }
+
+  private 焕新试剂Action() {
+    let 焕新试剂_img = 'images/_焕新试剂_0_0.9_0_0_w_h.png'
+    var template = getTemplate(焕新试剂_img)
+    let img = screen(0)
+    var point = imageDetector(焕新试剂_img, img)
+    if (point) {
+      let tmp = images.clip(img, point.x, point.y, template.width + 30, template.height + 10)
+      images.save(tmp, '/sdcard/' + (currentServer ? currentServer + '_' : '') + Date.now() + '.png')
+      log("★ 焕新试剂", gmlkit.ocr(tmp, 'zh')?.text, point.x, point.y, template.width + 10, template.height + 10)
+      tmp.recycle()
+      return this.低价买入Action(img)
+    }
+    return false
   }
 
   routes(): Route[] {

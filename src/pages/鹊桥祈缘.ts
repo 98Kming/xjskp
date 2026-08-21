@@ -7,6 +7,7 @@ export class 鹊桥祈缘 extends BasePage {
   private 免费Action = createRouteAction('images/鹊桥祈缘$$免费_1_0.9_220_2062_339_2113.png')
 
   click_免费(): boolean {
+    sleep(300)
     return this.免费Action() && (sleep(1200), this.back(), sleep(1200), true)
   }
 

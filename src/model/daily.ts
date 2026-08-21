@@ -291,30 +291,8 @@ function executeDailyTasks(): void {
   }
   if (isDailyEnabled('随机事件_领取')) {
     doTask('随机事件 领取', function (): boolean {
-      // 直接 go 随机事件(BFS 自动寻路),循环内会 nav(基地) 回入口页等待
-      var anyClaimed = false
-      while (true) {
-        if (!nav(随机事件)) {
-          if (anyClaimed) break  // 已领过，入口消失 → 正常结束
-          return false           // 从未出现过入口 → 跳过
-        }
-        // 检测结束状态（已领完/需看广告），正常结束
-        if (随机事件Page.hasEnded()) {
-          if (!anyClaimed) {
-            console.log('[日常] 随机事件 已结束')
-            return true
-          }
-          break
-        }
-        var ok = 随机事件Page.领取()
-        if (!ok) {
-          if (!anyClaimed) throw new Error('到达随机事件但领取失败')
-          break
-        }
-        anyClaimed = true
-        nav(基地)  // 回基地等下轮入口
-      }
-      return true
+      if (!nav(随机事件)) return false
+      return 随机事件Page.领取()
     })
   }
   // ======== 玩法商店（从基地进入） ========
@@ -512,6 +490,7 @@ export function runDaily(): void {
       console.log('')
       console.log('--- 切换服务器: ' + server + ' ---')
       console.log('')
+      sleep(800)
       // 不等待加载完成：切服加载期识别不可靠，直接交给 Router 的未知页面回退机制兜底
       executeDailyTasks()
       sleep(1000)
