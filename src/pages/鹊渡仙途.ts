@@ -1,5 +1,5 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction, imageDetector, screen, waitObtain } from '../utils/img'
+import { createPageDetector, createRouteAction, imageDetector, screen, waitObtain, waitScreen } from '../utils/img'
 
 export class 鹊渡仙途 extends BasePage {
   name = '鹊桥祈缘'
@@ -17,37 +17,31 @@ export class 鹊渡仙途 extends BasePage {
     while (true) {
       click(device.width / 2, device.height - 100)
       click(device.width / 2, device.height - 100)
-      sleep(100)
       log('抽奖')
-      if (imageDetector('images/_道具不足_1_0.9_402_1226_656_1274.png', screen(0))) {
+      if (imageDetector('images/_道具不足_1_0.9_402_1226_656_1274.png', waitScreen(100))) {
         let flag = false
         log('道具不足')
         if (this.任务1()) {
           log('任务1')
-          sleep(500)
           let point
-          while (point = imageDetector('images/鹊渡仙途$$领取_1_0.9_759_804_863_855.png', screen(0))) {
+          while (point = imageDetector('images/鹊渡仙途$$领取_1_0.9_759_804_863_855.png', waitScreen(500))) {
             flag = true
             log('领取道具')
             click(point.x, point.y)
             sleep(500)
             if (waitObtain(2000, 200)) {
               log('领取道具[✅]')
-              sleep(100)
             }
           }
         }
         if(!flag) {
           log('任务1无可领取道具')
           click(device.width / 2, device.height - 100)
-          sleep(100)
         }
-        if (this.任务2(screen(0))) {
+        if (this.任务2(waitScreen(100))) {
           log('任务2')
-          sleep(800)
-          if (this.任务2_领取(screen(0))) {
+          if (this.任务2_领取(waitScreen(800))) {
             log('领取道具')
-            sleep(500)
             if (waitObtain(2000, 200)) {
               flag = true
               log('领取道具[✅]')

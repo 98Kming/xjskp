@@ -184,6 +184,17 @@ export function screen(interval: number = 500, recycle: boolean = true): ImageWr
   return img
 }
 
+/** 等待距上次截图至少 interval 后强制截新图。
+ *  screen() 默认 500ms 缓存窗口会返回旧帧，等画面稳定后再看、或页面刚操作过要看新画面的场景用它 */
+export function waitScreen(interval: number = 500): ImageWrapper {
+  var elapsed = Date.now() - last_capture_time
+  var remain = interval - elapsed
+  if (remain > 0) {
+    sleep(remain)
+  }
+  return screen(0)
+}
+
 
 export function imageNameParser(filePath: string): ImageParseResult {
   // 从完整路径中提取文件名
@@ -687,7 +698,7 @@ export function waitObtain(timeout: number, interval: number = 1000): boolean {
     if(now < timeout + beginTime) {
       sleep(interval)
     }
-    var point = imageDetector('images/_恭喜获得_0_0.85_437_895_641_948.png', screen(interval))
+    var point = imageDetector('images/_恭喜获得_0_0.85_437_895_641_948.png', screen(0))
     if (point) {
       log('[waitObtain] 恭喜获得出现，领取成功')
       click(toScreenX(point.x), toScreenY(point.y + 100))

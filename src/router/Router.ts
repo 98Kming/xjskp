@@ -2,7 +2,7 @@
 // 完整 Router 路由引擎 — 单例模式，BFS 寻路，逐跳执行
 
 import { BasePage, Route, setRegisterCallback } from '../pages/BasePage'
-import { imageNameParser, pageChange, screen, tryCloseModals, PageDetector } from '../utils/img'
+import { imageNameParser, pageChange, screen, tryCloseModals, waitScreen, PageDetector } from '../utils/img'
 import { NavigationError } from './errors'
 
 export class Router {
@@ -77,8 +77,7 @@ export class Router {
         while (_modalTries < 5) {
           if (!tryCloseModals()) break
           _modalTries++
-          sleep(300)
-          var img = screen(300)
+          var img = waitScreen(300)
           current = this.detectCurrentPage(img)
           if (current) break
         }
@@ -369,8 +368,8 @@ export class Router {
 
         // 页面从已知变为未知（加载过渡），延长等待而非立即失败
         if (landedPage === null) {
-          sleep(300)  // 短等页面过渡，4×800ms 轮询未识别再等多无益
-          var extFrame = screen()
+          // 短等页面过渡，4×800ms 轮询未识别再等多无益
+          var extFrame = waitScreen(300)
           var extPage = this.detectCurrentPage(extFrame)
           if (extPage && extPage.constructor === route.target) {
             log('[导航] 过渡加载完成，到达目标页:', extPage.name)
@@ -512,8 +511,7 @@ export class Router {
 
   /** pageChange 判定后二次确认页面身份，返回检测到的页面（可能 null） */
   private verifyAfterChange(): BasePage | null {
-    sleep(300)
-    var vPage = this.detectCurrentPage(screen())
+    var vPage = this.detectCurrentPage(waitScreen(300))
     if (vPage) {
       log('[导航] 页面识别为: ' + vPage.name)
     }
