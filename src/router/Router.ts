@@ -70,13 +70,16 @@ export class Router {
       if (!current) {
         trackPage('未知')
         log('[导航] 无法识别当前页面，尝试关闭弹窗')
-        tryCloseModals()
-        // 轮询检测弹窗关闭后的页面。用 tryCloseModals 返回值门控轮询次数：
-        // 点到弹窗 → 等关闭动画，轮询 5 次；没点到 → 页面不会因弹窗变化，2 次兜底即可
-        var closedModal = tryCloseModals()
-        for (var _cw = 0, _maxWait = closedModal ? 5 : 2; _cw < _maxWait; _cw++) {
+        // 关弹窗 + 识别：点到弹窗 → 等关闭动画后识别；
+        // 没点到 → 立即逐层回退，不干等轮询；连续点 5 次仍识别不出 → 同样走回退，
+        // 靠 unknownBacks 上限(6)退出外层 while，防止关弹窗成功但识别不出时死循环
+        var _modalTries = 0
+        while (_modalTries < 5) {
+          if (!tryCloseModals()) break
+          _modalTries++
           sleep(300)
-          current = this.detectCurrentPage(screen())
+          var img = screen(300)
+          current = this.detectCurrentPage(img)
           if (current) break
         }
         if (!current) {

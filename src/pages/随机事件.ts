@@ -64,7 +64,7 @@ export class 随机事件 extends BasePage {
       var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
       if (point) {
         let tmp = images.clip(img,point.x, point.y, template.width + 10, template.height + 10)
-        images.save(tmp, '/sdcard/' + (currentServer ? currentServer.replace(/[\r\n\t\f\v\\\/:\*\?"<>\|]+/g, '').replace(/\s+/g, ' ').trim() + '_' : '') + Date.now() + '.png')
+        images.save(tmp, '/sdcard/' + (currentServer ? currentServer + '_' : '') + Date.now() + '.png')
         log("★ 焕新试剂", gmlkit.ocr(tmp, 'zh'),point.x, point.y, template.width + 10, template.height + 10)
         tmp.recycle()
         break

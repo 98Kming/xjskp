@@ -7,13 +7,15 @@ export class 观影签到 extends BasePage {
   is = createPageDetector('images/观影签到_1_0.9_599_2278_681_2327.png')
 
   免费领取(): boolean {
-    while(createRouteAction('images/观影签到$$免费领取_0_0.9_794_500_961_1200.png')()) {
+    let flag = false
+    while(createRouteAction('images/观影签到$$免费领取_0_0.9_794_500_961_2000.png')()) {
+      flag = true
       click(device.width / 2, device.height - 10)
       sleep(300)
       click(device.width / 2, device.height - 10)
       sleep(200)
     }
-    return true
+    return flag
   }
 
   routes(): Route[] {

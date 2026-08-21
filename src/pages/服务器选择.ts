@@ -43,7 +43,7 @@ export class 服务器选择 extends BasePage {
       let userName = ocrRegion(img, result.x + tpl_未选中.width, result.y, width - tpl_未选中.width - result.x, tpl_未选中.height)?.text || ''
       console.log('[服务器选择] 切换到下一个服务器', userName)
       click(toScreenX(width / 4), toScreenY(searchY + 50))
-      return userName
+      return userName.replace(/[\r\n\t\f\v\\\/:\*\?"<>\|]+/g, '').replace(/\s+/g, ' ').trim()
     }
     // 3. 下方没有（当前在列表末尾），再滚动一次
     swipe(toScreenX(width / 2), toScreenY(height * 0.7), toScreenX(width / 2), toScreenY(height * 0.3), 300)
@@ -64,7 +64,7 @@ export class 服务器选择 extends BasePage {
         let userName2 = ocrText(img2, result2.x + tpl_未选中.width, result2.y, width - tpl_未选中.width - result2.x, tpl_未选中.height).replace(/[\r\n]/g, '')
         console.log('[服务器选择] 切换到下一个服务器', userName2)
         click(toScreenX(width / 4), toScreenY(searchY2 + 50))
-        return userName2
+        return userName2.replace(/[\r\n\t\f\v\\\/:\*\?"<>\|]+/g, '').replace(/\s+/g, ' ').trim()
       }
     }
     console.log('[服务器选择] 未找到可切换的服务器')

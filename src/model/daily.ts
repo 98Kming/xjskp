@@ -173,9 +173,6 @@ function doTask(label: string, action: () => boolean): boolean {
   }
 }
 
-export function setCurrentServer(name: string | null): void {
-  currentServer = name
-}
 
 new 个人信息()
 var 服务器选择Page = new 服务器选择()
