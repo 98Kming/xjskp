@@ -3,7 +3,7 @@ import { createPageDetector, createRouteAction, getTemplate, imageNameParser, sc
 
 export class 玩法商店 extends BasePage {
   name = '玩法商店'
-  is = createPageDetector('images/玩法商店_1_0.9_108_1732_291_1779.png')
+  is = createPageDetector('images/玩法商店_1_0.9_108_2024_291_2071.png')
 
   back(): boolean {
     return createRouteAction('images/$关闭1_0_0.8_800_400_1020_600.png')()
@@ -29,7 +29,7 @@ export class 玩法商店 extends BasePage {
     sleep(1500)
 
     // 最大
-    var maxAction = createRouteAction('images/道具购买$$最大_1_0.9_751_1127_810_1161.png')
+    var maxAction = createRouteAction('images/道具购买$$最大_1_0.9_751_1418_810_1452.png')
     for (var i = 0; i < 3; i++) {
       if (maxAction()) break
       sleep(800)

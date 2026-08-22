@@ -194,8 +194,38 @@ export function waitScreen(interval: number = 500): ImageWrapper {
   }
   return screen(0)
 }
-
-
+interface ImgP {
+  filePath: string,
+  point1: number[],
+  point2: OpenCV.Point,
+}
+export const imgMap = new Map<string, ImgP>()
+function a(filePath: string, point: OpenCV.Point) {
+  // 从完整路径中提取文件名
+  const baseName = filePath.split('/').pop()!.replace(/\.[^.]+$/, '')
+  // 优先匹配完整 6 段后缀: _cache_threshold_x1_y1_x2_y2
+  const fullRegex = /_([01])_([01](?:\.\d+)?)_([^_]+)_([^_]+)_([^_]+)_([^_]+)$/
+  const fullMatch = baseName.match(fullRegex)
+  if (fullMatch) {
+    const [, cacheStr, thresholdStr, x1Str, y1Str, x2Str, y2Str] = fullMatch
+    const parseCoordinate = (value: string): number => {
+      if (value === 'w') return width
+      if (value === 'h') return height
+      const num = parseInt(value);
+      if (isNaN(num)) throw new Error(`无效的坐标值: ${value}`)
+      return num;
+    }
+    const x1 = parseCoordinate(x1Str)
+    const y1 = parseCoordinate(y1Str)
+    const x2 = parseCoordinate(x2Str)
+    const y2 = parseCoordinate(y2Str)
+    // let img = getTemplate(filePath)
+    // log(y2-y1-img.getHeight(),y2,y1,img.getHeight())
+    //if(Math.abs(y2-y1-img.getHeight()) < 20) {
+      imgMap.set(filePath, { filePath, point1: [x1, y1], point2: point })
+    //}
+  }
+}
 export function imageNameParser(filePath: string): ImageParseResult {
   // 从完整路径中提取文件名
   const baseName = filePath.split('/').pop()!.replace(/\.[^.]+$/, '')
@@ -239,19 +269,26 @@ export function imageNameParser(filePath: string): ImageParseResult {
 }
 
 var refWidth = 1080
-var refHeight = 1920
+var refHeight = 2400
 
 function expandRegion(x1: number, y1: number, x2: number, y2: number): [number, number, number, number] {
-  x1 = Math.max(x1 - 10, 0)
-  // 纵向扩展 300px：refHeight=1920, 按 2400 作为实际屏高基数计算偏移
-  // (2400/10)*1.25 = 300px，覆盖底部状态栏/导航栏差异
-  y1 = Math.max(y1 - (2400 / 10) * 1.25, 0)
-  x2 = Math.min(x2 + 10, width)
-  if (y2 > refHeight) {
-    y1 = Math.min(height - (y2 - y1), y1)
-    y2 = height
-  } else {
-    y2 = Math.min(y2 + height - refHeight + 5, height)
+  x1 = Math.max(x1 - 5, 0)
+  x2 = Math.min(x2 + 5, width)
+  let h = y2 - y1
+  if (height > refHeight) {
+    y2 = Math.min(y2 + height - refHeight, height)
+  } else if (height < refHeight) {
+    y1 = Math.max(y1 - refHeight + height, 0)
+    y2 = Math.min(y2, height)
+  }
+  y1 = Math.max(y1 - 5, 0)
+  y2 = Math.min(y2 + 5, height)
+  if(y2 - y1 < h) {
+   if(y1 > 0) {
+     y1 = Math.max(y1 - h, 0)
+   } else {
+     y2 = Math.min(y2 + h, height)
+   }
   }
   return [x1, y1, x2, y2]
 }
@@ -279,12 +316,16 @@ export function imageDetector(filePath: string, img?: ImageWrapper): OpenCV.Poin
   img || (img = screen())
   // 搜索区域放大到不小于模板尺寸：模板比区域大时 matchTemplate 结果尺寸为负，
   // OpenCV 抛 "(-215:Assertion failed) s >= 0 function 'setSize'" 直接崩掉整个脚本
-  var rw = Math.max(parsed.x2 - parsed.x1, template.width)
-  var rh = Math.max(parsed.y2 - parsed.y1, template.height)
-  if (parsed.x1 + rw > img.width || parsed.y1 + rh > img.height) {
-    throw new Error('搜索区域小于模板尺寸，请检查')
+  var rw = parsed.x2 - parsed.x1
+  var rh = parsed.y2 - parsed.y1
+  // if (parsed.x1 + rw > img.width || parsed.y1 + rh > img.height) {
+  //   throw new Error('搜索区域小于模板尺寸，请检查' + filePath)
+  // }
+  let point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+  if (point) {
+    a(filePath, point)
   }
-  return images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+  return point
 }
 
 export function createPageDetector(filePath: string, skipLuminance?: boolean): PageDetector {
@@ -331,7 +372,11 @@ export function createPageDetector(filePath: string, skipLuminance?: boolean): P
     // 无缓存 → 全量搜索
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false
-    return skipLuminance || luminanceOk(template, img, point, filePath)
+    if (skipLuminance || luminanceOk(template, img, point, filePath)) {
+      a(filePath, point)
+      return true
+    }
+    return false
   } as PageDetector
   fn.detectImagePath = filePath
   return fn
@@ -349,9 +394,11 @@ export function createRouteAction(filePath: string): (img?: ImageWrapper) => boo
       var cached = regionCache.get(filePath)
       if (cached) {
         img || (img = screen())
+        
         var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
         if (point) {
           click(toScreenX(point.x + template.width / 2), toScreenY(point.y + template.height / 2))
+          a(filePath, point)
           return true
         }
         // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
@@ -370,6 +417,7 @@ export function createRouteAction(filePath: string): (img?: ImageWrapper) => boo
         y2: Math.min(point.y + template.height + 5, height)
       })
       click(cx, cy)
+      a(filePath, point)
       return true
     }
   }
@@ -380,6 +428,7 @@ export function createRouteAction(filePath: string): (img?: ImageWrapper) => boo
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false
     click(toScreenX(point.x + template.width / 2), toScreenY(point.y + template.height / 2))
+    a(filePath, point)
     return true
   }
 }
@@ -598,21 +647,32 @@ export function pageChange(beforeImg: ImageWrapper): boolean {
 }
 
 
-export function findImageMinYPoint(img: ImageWrapper, template: ImageWrapper, x: number, y: number, w: number, h: number, threshold: number) {
+export function findImageMinYPoint(filePath: string, startY: number = -1, img?: ImageWrapper) {
+  var parsed = imageNameParser(filePath)
+  var template = getTemplate(filePath)
+  img || (img = screen())
   // 在标识下方区域找目标按钮，取最上方的一个
-  var targetResult = images.matchTemplate(img, template, {
-    region: [x, y, w, h,],
-    threshold: threshold,
-    max: 20
-  })
-  if (!targetResult || !targetResult.matches || targetResult.matches.length === 0) return false
-  var topMatch = targetResult.matches[0]
-  for (var mi = 1; mi < targetResult.matches.length; mi++) {
-    if (targetResult.matches[mi].point.y < topMatch.point.y) {
-      topMatch = targetResult.matches[mi]
-    }
+  if(startY === -1) {
+    startY = parsed.y1
   }
-  return topMatch.point
+  let imgHeight = Math.max(parsed.y2 - startY, template.getHeight())
+  log(imgHeight, startY)
+  if(imgHeight + startY > height) {
+    return null;
+  }
+  return images.matchTemplate(img, template, {
+    region: [parsed.x1, startY, parsed.x2 - parsed.x1, imgHeight],
+    threshold: parsed.threshold,
+    max: 20
+  }).topmost()?.point
+  // if (!targetResult || !targetResult.matches || targetResult.matches.length === 0) return false
+  // var topMatch = targetResult.matches[0]
+  // for (var mi = 1; mi < targetResult.matches.length; mi++) {
+  //   if (targetResult.matches[mi].point.y < topMatch.point.y) {
+  //     topMatch = targetResult.matches[mi]
+  //   }
+  // }
+  // return topMatch.point
 }
 
 function uniqueDescMatches(matches: org.autojs.autojs.core.image.TemplateMatching.Match[]) {
@@ -695,7 +755,7 @@ export function waitObtain(timeout: number, interval: number = 1000): boolean {
   var beginTime = Date.now()
   while (true) {
     let now = Date.now()
-    if(now < timeout + beginTime) {
+    if (now < timeout + beginTime) {
       sleep(interval)
     }
     var point = imageDetector('images/_恭喜获得_0_0.85_437_895_641_948.png', screen(0))
@@ -706,7 +766,7 @@ export function waitObtain(timeout: number, interval: number = 1000): boolean {
       click(device.width / 2, device.height - 10)
       return true
     }
-    if(now >= timeout + beginTime) {
+    if (now >= timeout + beginTime) {
       return false
     }
   }

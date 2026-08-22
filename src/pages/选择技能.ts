@@ -11,7 +11,7 @@ export class 选择技能 extends BasePage {
   is(img: ImageWrapper) {
     // 必须传入外部 img：自行截图会回收 cache_screen_img（若传入图正是缓存图），
     // 导致 detectCurrentPage 后续页面 is() 全部使用已回收的死图
-    let point = imageDetector('images/选择技能_0_0.8_438_418_645_618.png', img)
+    let point = imageDetector('images/选择技能_0_0.8_438_724_645_782.png', img)
     if (point) {
       this.选择技能_point = point
     }
@@ -20,7 +20,7 @@ export class 选择技能 extends BasePage {
 
 
   selectSkill(img: ImageWrapper, identifySkill: boolean = true): boolean {
-    let sure_point = imageDetector('images/选择技能$$确定_0_0.9_531_1611_628_1656.png', img)
+    let sure_point = imageDetector('images/选择技能$$确定_0_0.9_531_1902_628_1947.png', img)
     let skillPoints = this.entryPoints(img, identifySkill)
     if (skillPoints.length == 0) {
       return false
@@ -399,7 +399,7 @@ export class 选择技能 extends BasePage {
 
   // /** 找"确定"按钮：找到则点击提交（弹窗关闭），没找到返回 false */
   // private 找确定(): boolean {
-  //   return createRouteAction('images/选择技能$$确定_0_0.9_531_1611_628_1656.png')()
+  //   return createRouteAction('images/选择技能$$确定_0_0.9_531_1902_628_1947.png')()
   // }
 
   // /**

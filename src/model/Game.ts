@@ -124,7 +124,7 @@ export class Game {
         throw new Error("未选择队员")
       }
       // 已在队伍中(退队按钮出现)→ 无需重复邀请
-      if (imageDetector('images/_退队_1_0.9_885_1620_958_1658.png')) {
+      if (imageDetector('images/_退队_1_0.9_885_1620_958_1860.png')) {
         return true
       }
       // 路由到组队邀请弹窗(默认推荐 tab)→ 切好友 tab
@@ -146,7 +146,7 @@ export class Game {
         邀请次数++
       } while (imageDetector('images/组队邀请-好友_1_0.9_409_2065_495_2103.png') && 邀请次数 < 10)
       // 离开邀请页后确认进队
-      if (imageDetector('images/_退队_1_0.9_885_1620_958_1658.png')) {
+      if (imageDetector('images/_退队_1_0.9_885_1620_958_1860.png')) {
         return true
       }
     }
@@ -159,7 +159,7 @@ export class Game {
         throw new Error("未选择队长")
       }
       // 副本邀请按钮(队长发出邀请后战斗页出现)→ 点击进入接受邀请列表
-      if (createRouteAction('images/$副本邀请_1_0.9_854_1820_989_1856.png')()) {
+      if (createRouteAction('images/$副本邀请_0_0.9_854_1632_989_1856.png')()) {
         sleep(1200)
       }
       // 在 接受邀请列表 页 → 找队长点击接受

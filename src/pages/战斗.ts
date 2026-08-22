@@ -42,31 +42,31 @@ export class 战斗 extends BasePage {
     var self = this
     return [
       // 主线关卡 → 进入战斗中
-      { target: 战斗中, action: createRouteAction('images/战斗$战斗中_1_0.9_410_1524_668_1643.png'), imagePath: 'images/战斗$战斗中_1_0.9_410_1524_668_1643.png' },
+      { target: 战斗中, action: createRouteAction('images/战斗$战斗中_1_0.9_410_1816_668_1935.png'), imagePath: 'images/战斗$战斗中_1_0.9_410_1816_668_1935.png' },
       { target: 基地, action: createRouteAction('images/$基地-未选中_0_0.8_658_2331_1080_2367.png'), imagePath: 'images/$基地-未选中_0_0.8_658_2331_1080_2367.png' },
       { target: 军团, action: createRouteAction('images/$军团-未选中_0_0.8_807_2335_1080_2367.png'), imagePath: 'images/$军团-未选中_0_0.8_807_2335_1080_2367.png' },
       {
         target: 幸运锦鲤, action: function (): boolean {
-          var action = createRouteAction('images/战斗$幸运锦鲤_0_0.7_30_542_118_617.png')
+          var action = createRouteAction('images/战斗$幸运锦鲤_0_0.7_30_398_118_1200.png')
           if (action()) return true
           self.scrollDown()
           if (action()) return true
           self.scrollUp()
           return action()
-        }, imagePath: 'images/战斗$幸运锦鲤_0_0.7_30_542_118_617.png'
+        }, imagePath: 'images/战斗$幸运锦鲤_0_0.7_30_398_118_1200.png'
       },
       { target: 侧栏, action: createRouteAction('images/战斗$侧栏_1_0.9_974_378_1040_447.png'), imagePath: 'images/战斗$侧栏_1_0.9_974_378_1040_447.png' },
       { target: 巡逻车, action: createRouteAction('images/战斗$巡逻车_1_0.7_58_1917_169_1955.png'), imagePath: 'images/战斗$巡逻车_1_0.7_58_1917_169_1955.png' },
       { target: 个人信息, action: function (): boolean { click(toScreenX(100), toScreenY(200)); return true } },
       {
         target: 先锋宝藏, action: function (): boolean {
-          var action = createRouteAction('images/战斗$先锋宝藏_0_0.8_64_500_118_1049.png')
+          var action = createRouteAction('images/战斗$先锋宝藏_0_0.8_64_398_118_1200.png')
           if (action()) return true
           self.scrollDown()
           if (action()) return true
           self.scrollUp()
           return action()
-        }, imagePath: 'images/战斗$先锋宝藏_0_0.8_64_500_118_1049.png'
+        }, imagePath: 'images/战斗$先锋宝藏_0_0.8_64_398_118_1200.png'
       },
       {
         target: 碧海凉夏, action: function (): boolean {
@@ -125,9 +125,9 @@ export class 战斗 extends BasePage {
         }, imagePath: 'images/战斗$缘聚七夕_1_0.8_45_428_122_482.png'
       },
       // 队长:组队邀请弹窗(默认推荐 tab)
-      { target: 组队邀请推荐, action: createRouteAction('images/$邀请_0_0.9_806_1641_892_1686.png'), imagePath: 'images/$邀请_0_0.9_806_1641_892_1686.png' },
+      { target: 组队邀请推荐, action: createRouteAction('images/$邀请_0_0.9_806_1641_892_1887.png'), imagePath: 'images/$邀请_0_0.9_806_1641_892_1887.png' },
       // 队员:接受邀请列表
-      { target: 接受邀请列表, action: createRouteAction('images/$副本邀请_1_0.9_854_1820_989_1856.png'), imagePath: 'images/$副本邀请_1_0.9_854_1820_989_1856.png' },
+      { target: 接受邀请列表, action: createRouteAction('images/$副本邀请_0_0.9_854_1632_989_1856.png'), imagePath: 'images/$副本邀请_0_0.9_854_1632_989_1856.png' },
     ]
   }
 }

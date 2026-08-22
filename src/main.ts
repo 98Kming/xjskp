@@ -37,7 +37,7 @@ import { 探索 } from './model/探索'
 import { Game } from './model/Game'
 import { skillStrategy } from './utils/技能策略'
 import { Router } from './router/Router'
-import { find_队友 } from './utils/img'
+import { find_队友, imgMap } from './utils/img'
 import { 组队邀请推荐 } from './pages/组队邀请-推荐'
 import { 组队邀请好友 } from './pages/组队邀请-好友'
 import { 接受邀请列表 } from './pages/接受邀请列表'
@@ -245,6 +245,12 @@ function start(fun: () => void, 等待熄屏: boolean = true) {
     } catch (e: any) {
       log(e.javaException == "com.stardust.autojs.runtime.exception.ScriptInterruptedException", e)
       smallWindow.close()
+      // 按ImgP.point1.y 从小到大遍历输出imgMap，格式log(ImgP.filePath,ImgP.point1,'[', ImgP.point2.x,ImgP.point2.y,']')
+      var imgPs = Array.from(imgMap.values())
+      imgPs.sort(function (a, b) { return a.point1[1] - b.point1[1] })
+      imgPs.forEach(function (it) {
+        log(it.filePath, it.point1, '[', it.point2.x, it.point2.y, ']')
+      })
     } finally {
 
     }

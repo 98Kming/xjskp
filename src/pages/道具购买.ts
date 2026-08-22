@@ -3,10 +3,10 @@ import { createPageDetector, createRouteAction } from '../utils/img'
 
 export class 道具购买 extends BasePage {
   name = '道具购买'
-  is = createPageDetector('images/道具购买_1_0.8_453_565_629_617.png')
+  is = createPageDetector('images/道具购买_1_0.8_453_856_629_908.png')
 
   最大(): boolean {
-    var action = createRouteAction('images/道具购买$$最大_1_0.9_751_1127_810_1161.png')
+    var action = createRouteAction('images/道具购买$$最大_1_0.9_751_1418_810_1452.png')
     for (var i = 0; i < 3; i++) {
       if (action()) return true
       sleep(800)
@@ -15,8 +15,8 @@ export class 道具购买 extends BasePage {
   }
 
   购买(): boolean {
-    var maxAction = createRouteAction('images/道具购买$$最大_1_0.9_751_1127_810_1161.png')
-    var buyAction = createRouteAction('images/道具购买$$购买_1_0.8_400_1232_528_1311.png')
+    var maxAction = createRouteAction('images/道具购买$$最大_1_0.9_751_1418_810_1452.png')
+    var buyAction = createRouteAction('images/道具购买$$购买_1_0.8_400_1524_528_1603.png')
 
     for (var i = 0; i < 3; i++) {
       if (maxAction()) break

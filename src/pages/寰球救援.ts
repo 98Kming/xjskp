@@ -1,5 +1,5 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction, screen, getTemplate, imageNameParser, toScreenX, toScreenY, waitObtain } from '../utils/img'
+import { createPageDetector, createRouteAction, screen, getTemplate, imageNameParser, toScreenX, toScreenY, waitObtain, imageDetector } from '../utils/img'
 import { 组队邀请推荐 } from './组队邀请-推荐'
 import { 接受邀请列表 } from './接受邀请列表'
 import { 战斗中 } from './战斗中'
@@ -13,7 +13,7 @@ export class 寰球救援 extends BasePage {
    */
   广告门票(): boolean {
     // 点击广告门票按钮中心上方 20px
-    var filePath = 'images/寰球救援$$广告门票_1_0.9_25_651_88_707.png'
+    var filePath = 'images/寰球救援$$广告门票_1_0.9_25_754_88_990.png'
     var parsed = imageNameParser(filePath)
     var tpl = getTemplate(filePath)
     var rw = parsed.x2 - parsed.x1
@@ -31,7 +31,7 @@ export class 寰球救援 extends BasePage {
   }
 
   免费(): boolean {
-    var action = createRouteAction('images/寰球救援$$免费_1_0.8_48_713_118_773.png')
+    var action = createRouteAction('images/寰球救援$$免费_1_0.8_48_728_118_788.png')
     for (var i = 0; i < 3; i++) {
       if (action()) {
         click(device.width / 2, device.height - 10)
@@ -54,9 +54,9 @@ export class 寰球救援 extends BasePage {
   routes(): Route[] {
     return [
       // 队长:组队邀请弹窗(默认推荐 tab)
-      { target: 组队邀请推荐, action: createRouteAction('images/$邀请_0_0.9_806_1641_892_1686.png'), imagePath: 'images/$邀请_0_0.9_806_1641_892_1686.png' },
+      { target: 组队邀请推荐, action: createRouteAction('images/$邀请_0_0.9_806_1641_892_1887.png'), imagePath: 'images/$邀请_0_0.9_806_1641_892_1887.png' },
       // 队员:接受邀请列表
-      { target: 接受邀请列表, action: createRouteAction('images/$副本邀请_1_0.9_854_1820_989_1856.png'), imagePath: 'images/$副本邀请_1_0.9_854_1820_989_1856.png' },
+      { target: 接受邀请列表, action: createRouteAction('images/$副本邀请_0_0.9_854_1632_989_1856.png'), imagePath: 'images/$副本邀请_0_0.9_854_1632_989_1856.png' },
       // 开始游戏按钮,组队完成后点击进入战斗
       { target: 战斗中, action: createRouteAction('images/寰球救援$战斗中_1_0.9_412_2065_476_2145.png'), imagePath: 'images/寰球救援$战斗中_1_0.9_412_2065_476_2145.png' },
     ]

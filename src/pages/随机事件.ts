@@ -4,14 +4,14 @@ import { screen, createPageDetector, createRouteAction, getTemplate, imageDetect
 
 export class 随机事件 extends BasePage {
   name = '随机事件'
-  is = createPageDetector('images/随机事件_1_0.9_441_624_637_682.png')
+  is = createPageDetector('images/随机事件_1_0.9_441_915_637_973.png')
 
   private 领取列表 = [
-    createRouteAction('images/随机事件$$领取-答应交易_1_0.9_263_1138_444_1192.png'),
-    createRouteAction('images/随机事件$$领取-立即隔离_1_0.9_254_1139_451_1192.png'),
+    createRouteAction('images/随机事件$$领取-答应交易_1_0.9_263_1429_444_1483.png'),
+    createRouteAction('images/随机事件$$领取-立即隔离_1_0.9_254_1430_451_1483.png'),
     createRouteAction('images/随机事件$$领取-立即净化_1_0.9_264_1432_445_1480.png'),
     createRouteAction('images/随机事件$$领取-批准进入_1_0.9_269_1432_444_1482.png'),
-    createRouteAction('images/随机事件$$领取-加强巡逻_1_0.9_637_1134_816_1192.png'),
+    createRouteAction('images/随机事件$$领取-加强巡逻_1_0.9_637_1425_816_1483.png'),
     createRouteAction('images/随机事件$$领取-优先民生_1_0.9_639_1434_817_1479.png'),
     createRouteAction('images/随机事件$$领取-前往搜救_1_0.9_266_1434_441_1481.png'),
     createRouteAction('images/随机事件$$领取-暂时收留_1_0.9_641_1434_814_1478.png'),
@@ -29,9 +29,9 @@ export class 随机事件 extends BasePage {
     createRouteAction('images/随机事件$$领取-允许入内_1_0.9_268_1434_439_1477.png'),
   ]
 
-  private 委婉拒绝Action = createRouteAction('images/随机事件$$领取-委婉拒绝_1_0.9_254_1139_451_1192.png')
-  private 确定Action = createRouteAction('images/随机事件$$领取-确定_1_0.9_478_1134_613_1192.png')
-  private 低价买入Action = createRouteAction('images/随机事件$$领取-低价买入_1_0.9_641_1142_813_1186.png')
+  private 委婉拒绝Action = createRouteAction('images/随机事件$$领取-委婉拒绝_1_0.9_254_1430_451_1483.png')
+  private 确定Action = createRouteAction('images/随机事件$$领取-确定_1_0.9_478_1425_613_1483.png')
+  private 低价买入Action = createRouteAction('images/随机事件$$领取-低价买入_1_0.9_641_1433_813_1477.png')
   private 欣然接受Action = createRouteAction('images/随机事件$$领取-欣然接受_1_0.9_452_1434_630_1479.png')
 
   /**
@@ -70,6 +70,10 @@ export class 随机事件 extends BasePage {
         }
       }
       if(!tmpFound) {
+        if(this.is(screen())) {
+          log('[随机事件] 有未添加的按钮等待收录')
+          found = false
+        }
         break
       }
     }

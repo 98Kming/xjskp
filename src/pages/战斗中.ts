@@ -26,17 +26,17 @@ export class 战斗中 extends BasePage {
 
   /** 开启倍速（找到"倍速-关闭"按钮时点击） */
   开倍速(): boolean {
-    return createRouteAction('images/战斗中_倍速-关闭_0_0.9_45_323_80_440.png')()
+    return createRouteAction('images/战斗中_倍速-关闭_0_0.9_45_513_80_543.png')()
   }
 
   /** 检测倍速是否已开启 */
   已开倍速(): boolean {
-    return !!imageDetector('images/战斗中_倍速-开启_0_0.9_45_323_80_440.png')
+    return !!imageDetector('images/战斗中_倍速-开启_0_0.9_45_513_80_543.png')
   }
 
   /** 确定（技能弹窗确认按钮） */
   确定(): boolean {
-    return createRouteAction('images/选择技能$$确定_0_0.9_531_1611_628_1656.png')()
+    return createRouteAction('images/选择技能$$确定_0_0.9_531_1902_628_1947.png')()
   }
 
   等级(): number {

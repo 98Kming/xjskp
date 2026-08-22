@@ -9,7 +9,7 @@ export class 每日一刀 extends BasePage {
   砍一刀(): boolean {
     // 优先找砍一刀按钮，找不到则尝试零元购
     return (createRouteAction('images/每日一刀$$砍一刀_1_0.9_462_2022_621_2088.png')()
-      || createRouteAction('images/每日一刀$$零元购_1_0.9_477_1728_609_1796.png')())
+      || createRouteAction('images/每日一刀$$零元购_1_0.9_477_2020_609_2088.png')())
       && (sleep(800), this.back(), sleep(800), true)
   }
 

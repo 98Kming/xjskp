@@ -4,10 +4,10 @@ import { 战斗中 } from './战斗中'
 
 export class 寰球远征 extends BasePage {
   name = '寰球远征'
-  is = createPageDetector('images/寰球远征$$_开始游戏_1_0.9_515_1741_614_1829.png')
+  is = createPageDetector('images/寰球远征$$_开始游戏_1_0.9_515_2220_614_2308.png')
 
   免费(): boolean {
-    var filePath = 'images/寰球远征$$免费_1_0.8_50_812_109_827.png'
+    var filePath = 'images/寰球远征$$免费_1_0.8_50_915_109_930.png'
     var parsed = imageNameParser(filePath)
     var rw = parsed.x2 - parsed.x1
     var rh = parsed.y2 - parsed.y1
@@ -28,14 +28,14 @@ export class 寰球远征 extends BasePage {
   }
 
   开始游戏(): boolean {
-    var action = createRouteAction('images/寰球远征$$_开始游戏_1_0.9_515_1741_614_1829.png')
+    var action = createRouteAction('images/寰球远征$$_开始游戏_1_0.9_515_2220_614_2308.png')
     return action()
   }
 
   routes(): Route[] {
     return [
       // 开始游戏 → 进入战斗中
-      { target: 战斗中, action: createRouteAction('images/寰球远征$$_开始游戏_1_0.9_515_1741_614_1829.png'), imagePath: 'images/寰球远征$$_开始游戏_1_0.9_515_1741_614_1829.png' },
+      { target: 战斗中, action: createRouteAction('images/寰球远征$$_开始游戏_1_0.9_515_2220_614_2308.png'), imagePath: 'images/寰球远征$$_开始游戏_1_0.9_515_2220_614_2308.png' },
     ]
   }
 }
