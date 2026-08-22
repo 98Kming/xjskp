@@ -292,8 +292,16 @@ function executeDailyTasks(): void {
   if (isDailyEnabled('随机事件_领取')) {
     doTask('随机事件 领取', function (): boolean {
       if (!nav(基地)) return false
-      // 随机事件入口非必现,入口未出现时跳过任务
-      if (!imageDetector('images/基地$随机事件_0_0.6_69_1964_126_2026.png')) {
+      // 随机事件入口非必现且延迟出现,重试等入口出现(与Router executePath 的3次重试对齐)
+      var 入口出现 = false
+      for (var i = 0; i < 3; i++) {
+        if (imageDetector('images/基地$随机事件_0_0.6_69_1964_126_2026.png')) {
+          入口出现 = true
+          break
+        }
+        if (i < 2) sleep(800)
+      }
+      if (!入口出现) {
         console.log('[日常]   随机事件入口未出现')
         return false
       }

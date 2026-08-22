@@ -271,6 +271,13 @@ export function imageNameParser(filePath: string): ImageParseResult {
 var refWidth = 1080
 var refHeight = 2400
 
+/**
+ * 搜索区域扩展。
+ * 基准 refHeight=2400：重裁图片均按 2400 屏高裁剪。
+ * - 低屏(如 1920)：假设 UI 顶部对齐(底部为导航栏/状态栏差异)，内容整体上移 (2400-height)px
+ * - 高屏(>2400)：假设底部对齐，向下扩展 (height-2400)px
+ * 若游戏实际按等比缩放布局，此固定偏移模型会错位，需改为乘法换算。
+ */
 function expandRegion(x1: number, y1: number, x2: number, y2: number): [number, number, number, number] {
   x1 = Math.max(x1 - 5, 0)
   x2 = Math.min(x2 + 5, width)
@@ -316,11 +323,11 @@ export function imageDetector(filePath: string, img?: ImageWrapper): OpenCV.Poin
   img || (img = screen())
   // 搜索区域放大到不小于模板尺寸：模板比区域大时 matchTemplate 结果尺寸为负，
   // OpenCV 抛 "(-215:Assertion failed) s >= 0 function 'setSize'" 直接崩掉整个脚本
-  var rw = parsed.x2 - parsed.x1
-  var rh = parsed.y2 - parsed.y1
-  // if (parsed.x1 + rw > img.width || parsed.y1 + rh > img.height) {
-  //   throw new Error('搜索区域小于模板尺寸，请检查' + filePath)
-  // }
+  var rw = Math.max(parsed.x2 - parsed.x1, template.width)
+  var rh = Math.max(parsed.y2 - parsed.y1, template.height)
+  if (parsed.x1 + rw > img.width || parsed.y1 + rh > img.height) {
+    throw new Error('搜索区域小于模板尺寸，请检查' + filePath)
+  }
   let point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
   if (point) {
     a(filePath, point)
@@ -656,7 +663,6 @@ export function findImageMinYPoint(filePath: string, startY: number = -1, img?: 
     startY = parsed.y1
   }
   let imgHeight = Math.max(parsed.y2 - startY, template.getHeight())
-  log(imgHeight, startY)
   if(imgHeight + startY > height) {
     return null;
   }

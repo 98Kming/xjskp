@@ -28,7 +28,6 @@ export class 服务器选择 extends BasePage {
       img = screen()
       // 重新找选中（一次滚动不会滚出屏幕），在其下方找未选中
       point = imageDetector(imgPath_选中, img)
-      log('选中', point)
       if (point) {
         return this.goNextServer(point, img)
       }
