@@ -13,6 +13,7 @@ export class Router {
   private _backLoopPage: string = ''
   private _backLoopCount = 0
   private _fatalUnknown = false       // 致命未知：页面完全无法识别时终止后续导航
+  private _lastFailStart: BasePage | null = null  // 路径执行失败跳的起点页，回退与"入口不存在"判断的基准
   private constructor() {}
 
   static getInstance(): Router {
@@ -37,6 +38,7 @@ export class Router {
   go(targetClass: { new(...args: any[]): BasePage }): boolean {
     // 每次 go() 调用重置死循环计数器和致命未知标记，防止跨调用泄漏
     this._fatalUnknown = false
+    this._lastFailStart = null
     this.clearBackDeadLoop()
     var targetName = (targetClass as any).name
     var pageLog: string[] = []                // 页面轨迹，用于最终打印完整链路
@@ -143,7 +145,9 @@ export class Router {
         // 按钮未找到 + 页面未变 → 按钮入口真的不存在，回退无意义
         var nullImg = screen()
         var nullPage = this.detectCurrentPage(nullImg)
-        if (nullPage && current && nullPage === current) {
+        // 失败跳起点页（多跳路径下 current 停留在路径起点，不能作为基准）
+        var failStart = this._lastFailStart || current
+        if (nullPage && failStart && nullPage === failStart) {
           log('[导航] 链路: ' + pageLog.join(' → '))
           var errMsg = '按钮不存在，无法到达' + targetName + '，入口可能未开放'
           if (this.lastFailImageInfo) {
@@ -151,10 +155,10 @@ export class Router {
           }
           throw new NavigationError(errMsg)
         }
-        // 页面变了（过渡动画残留），回退重试
+        // 页面变了（过渡动画残留），回退重试；回退基准优先用最新真实页面
+        var backName = nullPage ? nullPage.name : (failStart ? failStart.name : '')
         log('[导航] 按钮不可达，回退重试(' + (timeoutBacks + 1) + '/' + maxTimeoutBacks + ')')
-        var backName = current ? current.name : ''
-        current = this.performBack(current)
+        current = this.performBack(nullPage || failStart)
         if (!current) {
           if (backName) this.checkBackDeadLoop(backName)
         } else {
@@ -280,6 +284,14 @@ export class Router {
       }
 
       if (!actionOk) {
+        // 记录失败跳起点页：多跳路径下 go() 的 current 停留在路径起点，
+        // 必须用本跳起点判断"入口不存在"并作为回退基准
+        if (i === 0) {
+          this._lastFailStart = this.pageMap[startName] || null
+        } else {
+          var _prevTarget = (path[i - 1].target as any).name
+          this._lastFailStart = this.pageMap[_prevTarget] || null
+        }
         var failInfo = '第' + (i + 1) + '跳失败: 按钮未找到 [' + startName + ' → ' + targetName + ']'
         if (route.imagePath) {
           try {
