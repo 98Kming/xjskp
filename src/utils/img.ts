@@ -358,7 +358,6 @@ export function createPageDetector(filePath: string, skipLuminance?: boolean): P
       if (percentDiff < 50) {
         return true
       }
-      filePath == 'images/接受邀请列表$$_接受_0_0.9_690_660_880_1700.png'&& log('[亮度] 模板不匹配:', lum1.toFixed(5), '屏幕:', lum2.toFixed(5), percentDiff, filePath)
       return false
     } catch (e) {
       // resize 截图像素读取失败 → 跳过亮度检查
@@ -379,9 +378,6 @@ export function createPageDetector(filePath: string, skipLuminance?: boolean): P
     // 无缓存 → 全量搜索
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false
-    if(filePath === 'images/接受邀请列表$$_接受_0_0.9_690_660_880_1700.png') {
-      log(point,luminanceOk(template, img, point, filePath))
-    }
     if (skipLuminance || luminanceOk(template, img, point, filePath)) {
       a(filePath, point)
       return true
