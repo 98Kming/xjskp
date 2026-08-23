@@ -11,7 +11,7 @@ export class 选择技能 extends BasePage {
   is(img: ImageWrapper) {
     // 必须传入外部 img：自行截图会回收 cache_screen_img（若传入图正是缓存图），
     // 导致 detectCurrentPage 后续页面 is() 全部使用已回收的死图
-    let point = imageDetector('images/选择技能_0_0.8_438_724_645_782.png', img)
+    let point = imageDetector('images/选择技能_0_0.8_438_708_645_782.png', img)
     if (point) {
       this.选择技能_point = point
     }

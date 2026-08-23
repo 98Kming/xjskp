@@ -7,7 +7,7 @@ export class 寰球远征 extends BasePage {
   is = createPageDetector('images/寰球远征$$_开始游戏_1_0.9_515_2220_614_2308.png')
 
   免费(): boolean {
-    var filePath = 'images/寰球远征$$免费_1_0.8_50_915_109_930.png'
+    var filePath = 'images/寰球远征$$免费_1_0.8_50_793_109_808.png'
     var parsed = imageNameParser(filePath)
     var rw = parsed.x2 - parsed.x1
     var rh = parsed.y2 - parsed.y1

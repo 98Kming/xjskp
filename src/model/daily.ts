@@ -263,7 +263,7 @@ function executeDailyTasks(): void {
       return false
     }
     if (!nav(历练大厅)) return false
-    if (imageDetector('images/历练大厅_远征-未开启_1_0.9_573_1552_866_1597.png')) {
+    if (imageDetector('images/历练大厅_远征-未开启_1_0.9_573_1952_866_1997.png')) {
       console.log('[日常]   寰球远征未开启')
       return false
     }
