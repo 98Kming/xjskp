@@ -47,76 +47,76 @@ export class 战斗 extends BasePage {
       { target: 军团, action: createRouteAction('images/$军团-未选中_0_0.8_807_2335_1080_2367.png'), imagePath: 'images/$军团-未选中_0_0.8_807_2335_1080_2367.png' },
       {
         target: 幸运锦鲤, action: function (): boolean {
-          var action = createRouteAction('images/战斗$幸运锦鲤_0_0.7_30_398_118_1200.png')
+          var action = createRouteAction('images/战斗$幸运锦鲤_0_0.7_30_370_118_1220.png')
           if (action()) return true
           self.scrollDown()
           if (action()) return true
           self.scrollUp()
           return action()
-        }, imagePath: 'images/战斗$幸运锦鲤_0_0.7_30_398_118_1200.png'
+        }, imagePath: 'images/战斗$幸运锦鲤_0_0.7_30_370_118_1220.png'
       },
       { target: 侧栏, action: createRouteAction('images/战斗$侧栏_1_0.9_974_378_1040_447.png'), imagePath: 'images/战斗$侧栏_1_0.9_974_378_1040_447.png' },
       { target: 巡逻车, action: createRouteAction('images/战斗$巡逻车_1_0.7_58_1917_169_1955.png'), imagePath: 'images/战斗$巡逻车_1_0.7_58_1917_169_1955.png' },
       { target: 个人信息, action: function (): boolean { click(toScreenX(100), toScreenY(200)); return true } },
       {
         target: 先锋宝藏, action: function (): boolean {
-          var action = createRouteAction('images/战斗$先锋宝藏_0_0.8_64_398_118_1200.png')
+          var action = createRouteAction('images/战斗$先锋宝藏_0_0.8_64_370_118_1220.png')
           if (action()) return true
           self.scrollDown()
           if (action()) return true
           self.scrollUp()
           return action()
-        }, imagePath: 'images/战斗$先锋宝藏_0_0.8_64_398_118_1200.png'
+        }, imagePath: 'images/战斗$先锋宝藏_0_0.8_64_370_118_1220.png'
       },
       {
         target: 碧海凉夏, action: function (): boolean {
-          var action = createRouteAction('images/战斗$碧海凉夏_0_0.8_45_398_112_1200.png')
+          var action = createRouteAction('images/战斗$碧海凉夏_0_0.8_45_370_112_1220.png')
           if (action()) return true
           self.scrollDown()
           if (action()) return true
           self.scrollUp()
           return action()
-        }, imagePath: 'images/战斗$碧海凉夏_0_0.8_45_398_112_1200.png'
+        }, imagePath: 'images/战斗$碧海凉夏_0_0.8_45_370_112_1220.png'
       },
       {
         target: 武装降临, action: function (): boolean {
-          var action = createRouteAction('images/战斗$武装降临_0_0.8_11_382_132_411.png')
+          var action = createRouteAction('images/战斗$武装降临_0_0.8_57_370_114_1220.png')
           if (action()) return true
           self.scrollDown()
           if (action()) return true
           self.scrollUp()
           return action()
-        }, imagePath: 'images/战斗$武装降临_0_0.8_11_382_132_411.png'
+        }, imagePath: 'images/战斗$武装降临_0_0.8_57_370_114_1220.png'
       },
       {
         target: 观影签到, action: function (): boolean {
-          let point = scrollFind('images/战斗$观影签到_0_0.8_37_350_115_1200.png', 'top', 20, 500, 140, 1200, 8)
+          let point = scrollFind('images/战斗$观影签到_0_0.8_37_370_115_1220.png', 'top', 20, 500, 140, 1200, 8)
           if(point) {
             click(toScreenX(point.x), toScreenY(point.y))
             return true
           }
-          point = scrollFind('images/战斗$观影签到_0_0.8_37_350_115_1200.png', 'bottom', 20, 500, 140, 1200, 8)
+          point = scrollFind('images/战斗$观影签到_0_0.8_37_370_115_1220.png', 'bottom', 20, 500, 140, 1200, 8)
           if(point) {
             click(toScreenX(point.x), toScreenY(point.y))
             return true
           }
           return false
-        }, imagePath: 'images/战斗$观影签到_0_0.8_37_350_115_1200.png'
+        }, imagePath: 'images/战斗$观影签到_0_0.8_37_370_115_1220.png'
       },
       {
         target: 影映观礼, action: function (): boolean {
-          let point = scrollFind('images/战斗$影映观礼_0_0.8_49_350_113_1200.png', 'top', 20, 500, 140, 1200, 8)
+          let point = scrollFind('images/战斗$影映观礼_0_0.8_49_370_113_1220.png', 'top', 20, 500, 140, 1200, 8)
           if(point) {
             click(toScreenX(point.x), toScreenY(point.y))
             return true
           }
-          point = scrollFind('images/战斗$影映观礼_0_0.8_49_350_113_1200.png', 'bottom', 20, 500, 140, 1200, 8)
+          point = scrollFind('images/战斗$影映观礼_0_0.8_49_370_113_1220.png', 'bottom', 20, 500, 140, 1200, 8)
           if(point) {
             click(toScreenX(point.x), toScreenY(point.y))
             return true
           }
           return false
-        }, imagePath: 'images/战斗$影映观礼_0_0.8_49_350_113_1200.png'
+        }, imagePath: 'images/战斗$影映观礼_0_0.8_49_370_113_1220.png'
       },
       {
         target: 缘聚七夕, action: function (): boolean {

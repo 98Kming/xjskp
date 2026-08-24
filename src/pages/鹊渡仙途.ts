@@ -6,7 +6,6 @@ export class 鹊渡仙途 extends BasePage {
   is = createPageDetector('images/鹊渡仙途$$_任务2_1_0.9_1003_330_1048_375.png')
   private 任务1 = createRouteAction('images/鹊渡仙途$$任务_1_0.9_52_439_110_490.png')
   private 任务2 = createRouteAction('images/鹊渡仙途$$_任务2_1_0.9_1003_330_1048_375.png')
-  private 任务1_领取 = createRouteAction('images/鹊渡仙途$$领取_1_0.9_759_804_863_855.png')
   private 任务2_领取 = createRouteAction('images/$一键领取_0_0.8_96_2005_289_2051.png')
   private 三倍 = createRouteAction('images/鹊渡仙途$$3倍_1_0.9_649_2175_697_2204.png')
   private 跳过动画 = createRouteAction('images/鹊渡仙途$$跳过动画_1_0.9_864_2269_1044_2311.png')
@@ -24,7 +23,7 @@ export class 鹊渡仙途 extends BasePage {
         if (this.任务1()) {
           log('任务1')
           let point
-          while (point = imageDetector('images/鹊渡仙途$$领取_1_0.9_759_804_863_855.png', waitScreen(500))) {
+          while (point = imageDetector('images/任务$$领取_0_0.9_600_443_w_h.png', waitScreen(500))) {
             flag = true
             log('领取道具')
             click(point.x, point.y)

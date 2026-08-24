@@ -5,10 +5,10 @@ import { 战斗中 } from './战斗中'
 export class 战斗结束 extends BasePage {
   name = '战斗结束'
   // 右下角 back 按钮，兼作页面识别（$_ 格式）
-  is = createPageDetector('images/战斗结束$_back_0_0.9_400_1940_805_2020.png')
+  is = createPageDetector('images/战斗结束$_back_0_0.9_400_1961_805_2154.png')
 
   back(): boolean {
-    return createRouteAction('images/战斗结束$_back_0_0.9_400_1940_805_2020.png')()
+    return createRouteAction('images/战斗结束$_back_0_0.9_400_1961_805_2154.png')()
   }
 
   /** 再次挑战：回到战斗中 */

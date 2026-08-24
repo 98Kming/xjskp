@@ -35,7 +35,10 @@ export class Router {
    * 导航到目标页面。
    * 统一策略：未知页面 → back → 重识别 → BFS 重规划，直至到达目标或达到回退上限。
    */
-  go(targetClass: { new(...args: any[]): BasePage }): boolean {
+  go(targetClass: { new(...args: any[]): BasePage }, lastPage?: { new(...args: any[]): BasePage }): boolean {
+    if(lastPage && !this.go(lastPage)) {
+      return false
+    }
     // 每次 go() 调用重置死循环计数器和致命未知标记，防止跨调用泄漏
     this._fatalUnknown = false
     this._lastFailStart = null

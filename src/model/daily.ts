@@ -45,7 +45,7 @@ import { 观影签到 } from '../pages/观影签到'
 import { 观影便利店 } from '../pages/观影便利店'
 import { 影映观礼 } from '../pages/影映观礼'
 import { 武装降临 } from '../pages/武装降临'
-import { 武装降临任务 } from '../pages/武装降临-任务'
+import { 任务 } from '../pages/任务'
 
 var router = Router.getInstance()
 
@@ -80,7 +80,6 @@ var 相思赴约Page = new 相思赴约()
 var 观影签到Page = new 观影签到()
 var 观影便利店Page = new 观影便利店()
 var 影映观礼Page = new 影映观礼()
-var 武装降临任务Page = new 武装降临任务()
 var 武装降临Page = new 武装降临()
 var 好友Page = new 好友()
 var 领取体力Page = new 领取体力()
@@ -91,7 +90,7 @@ var 暂停战斗Page = new 暂停战斗()
 // 战斗结束先注册：结算页"战斗中"模板（暂停按钮/已激活技能弹窗图）仍可见（战斗中也匹配），优先识别为战斗结束
 var 战斗结束Page = new 战斗结束()
 var 战斗中Page = new 战斗中()
-
+var 任务Page = new 任务()
 var totalTasks = 0
 var successTasks = 0
 var skipTasks = 0
@@ -121,9 +120,9 @@ function isStopException(e: any): boolean {
 }
 
 /** 导航到目标页 */
-function nav(target: any): boolean {
+function nav(target: any, lastPage?: any): boolean {
   try {
-    return router.go(target)
+    return router.go(target, lastPage)
   } catch (e: any) {
     // 手动停止时立即终止
     if (isStopException(e)) throw e
@@ -386,25 +385,25 @@ interface 活动目标 {
 function 构建活动目标列表(): 活动目标[] {
   var 列表: 活动目标[] = []
   if (isDailyEnabled('先锋宝藏_免费抽')) {
-    列表.push({ 名: '先锋宝藏 免费', 页: 先锋宝藏Page, 入口图: 'images/战斗$先锋宝藏_0_0.8_64_398_118_1200.png', 执行: function (): boolean { return 先锋宝藏Page.免费() } })
+    列表.push({ 名: '先锋宝藏 免费', 页: 先锋宝藏Page, 入口图: 'images/战斗$先锋宝藏_0_0.8_64_370_118_1220.png', 执行: function (): boolean { return 先锋宝藏Page.免费() } })
   }
   if (isDailyEnabled('碧海凉夏_免费抽')) {
-    列表.push({ 名: '碧海凉夏 免费', 页: 碧海凉夏Page, 入口图: 'images/战斗$碧海凉夏_0_0.8_45_398_112_1200.png', 执行: function (): boolean { return 碧海凉夏Page.免费() } })
+    列表.push({ 名: '碧海凉夏 免费', 页: 碧海凉夏Page, 入口图: 'images/战斗$碧海凉夏_0_0.8_45_370_112_1220.png', 执行: function (): boolean { return 碧海凉夏Page.免费() } })
   }
   if (isDailyEnabled('幸运锦鲤_免费福利')) {
-    列表.push({ 名: '免费福利 领取', 页: 幸运锦鲤Page, 入口图: 'images/战斗$幸运锦鲤_0_0.7_30_398_118_1200.png', 执行: function (): boolean {
+    列表.push({ 名: '免费福利 领取', 页: 幸运锦鲤Page, 入口图: 'images/战斗$幸运锦鲤_0_0.7_30_370_118_1220.png', 执行: function (): boolean {
       if (!nav(幸运锦鲤免费福利)) return false
       return 幸运锦鲤免费福利Page.领取奖励()
     } })
   }
   if (isDailyEnabled('武装降临_领取')) {
-    列表.push({ 名: '武装降临 领取', 页: 武装降临Page, 入口图: 'images/战斗$武装降临_0_0.8_11_382_132_411.png', 执行: function (): boolean {
-      if (!nav(武装降临任务)) return false
-      return 武装降临任务Page.领取()
+    列表.push({ 名: '武装降临 领取', 页: 武装降临Page, 入口图: 'images/战斗$武装降临_0_0.8_57_370_114_1220.png', 执行: function (): boolean {
+      if (!nav(任务, 武装降临)) return false
+      return 任务Page.领取()
     } })
   }
   if (isDailyEnabled('观影签到_签到') || isDailyEnabled('观影签到_观影便利店')) {
-    列表.push({ 名: '观影签到', 页: 观影签到Page, 入口图: 'images/战斗$观影签到_0_0.8_37_350_115_1200.png', 执行: function (): boolean {
+    列表.push({ 名: '观影签到', 页: 观影签到Page, 入口图: 'images/战斗$观影签到_0_0.8_37_370_115_1220.png', 执行: function (): boolean {
       var ok = true
       if (isDailyEnabled('观影签到_签到')) {
         ok = doTask('观影签到 签到', function (): boolean { return 观影签到Page.免费领取() })
@@ -420,7 +419,7 @@ function 构建活动目标列表(): 活动目标[] {
     } })
   }
   if (isDailyEnabled('影映观礼_领取')) {
-    列表.push({ 名: '影映观礼 免费', 页: 影映观礼Page, 入口图: 'images/战斗$影映观礼_0_0.8_49_350_113_1200.png', 执行: function (): boolean { return 影映观礼Page.领取() } })
+    列表.push({ 名: '影映观礼 免费', 页: 影映观礼Page, 入口图: 'images/战斗$影映观礼_0_0.8_49_370_113_1220.png', 执行: function (): boolean { return 影映观礼Page.领取() } })
   }
   return 列表
 }
