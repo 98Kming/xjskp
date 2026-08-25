@@ -1,12 +1,19 @@
 import { BasePage, Route } from './BasePage'
 import { createPageDetector, createRouteAction } from '../utils/img'
+import { sharedImages } from '../images'
+
+const IMG = {
+  ...sharedImages,
+  页面: 'images/道具购买_1_0.8_453_856_629_908.png',
+  购买: 'images/道具购买$$购买_1_0.8_400_1524_528_1603.png',
+}
 
 export class 道具购买 extends BasePage {
   name = '道具购买'
-  is = createPageDetector('images/道具购买_1_0.8_453_856_629_908.png')
+  is = createPageDetector(IMG.页面)
 
   最大(): boolean {
-    var action = createRouteAction('images/道具购买$$最大_1_0.9_751_1418_810_1452.png')
+    var action = createRouteAction(IMG.道具最大)
     for (var i = 0; i < 3; i++) {
       if (action()) return true
       sleep(800)
@@ -15,8 +22,8 @@ export class 道具购买 extends BasePage {
   }
 
   购买(): boolean {
-    var maxAction = createRouteAction('images/道具购买$$最大_1_0.9_751_1418_810_1452.png')
-    var buyAction = createRouteAction('images/道具购买$$购买_1_0.8_400_1524_528_1603.png')
+    var maxAction = createRouteAction(IMG.道具最大)
+    var buyAction = createRouteAction(IMG.购买)
 
     for (var i = 0; i < 3; i++) {
       if (maxAction()) break

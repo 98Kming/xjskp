@@ -1,12 +1,20 @@
 import { BasePage, Route } from './BasePage'
 import { createPageDetector, createRouteAction, getTemplate, imageNameParser, screen, width, height, toScreenX, toScreenY } from '../utils/img'
+import { sharedImages } from '../images'
+
+const IMG = {
+  ...sharedImages,
+  页面: 'images/玩法商店_1_0.9_108_2024_291_2071.png',
+  超时空军团兵: 'images/_超时空军团兵_0_0.9_125_100_208_h.png',
+  购买: 'images/玩法商店$$购买_1_0.9_464_1528_532_1597.png',
+}
 
 export class 玩法商店 extends BasePage {
   name = '玩法商店'
-  is = createPageDetector('images/玩法商店_1_0.9_108_2024_291_2071.png')
+  is = createPageDetector(IMG.页面)
 
   back(): boolean {
-    return createRouteAction('images/$关闭1_0_0.8_800_400_1020_627.png')()
+    return createRouteAction(IMG.关闭1)()
   }
 
   /** 购买超时空军团兵碎片：向上滚动 → 找商品（镜像点击）→ 最大 → 购买 */
@@ -14,10 +22,10 @@ export class 玩法商店 extends BasePage {
     swipe(toScreenX(width / 2), toScreenY(height * 0.7), toScreenX(width / 2), toScreenY(height * 0.3), 300)
     sleep(800)
 
-    var parsed = imageNameParser('images/_超时空军团兵_0_0.9_125_100_208_h.png')
+    var parsed = imageNameParser(IMG.超时空军团兵)
     var rw = parsed.x2 - parsed.x1
     var rh = parsed.y2 - parsed.y1
-    var template = getTemplate('images/_超时空军团兵_0_0.9_125_100_208_h.png')
+    var template = getTemplate(IMG.超时空军团兵)
     var img = screen()
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false
@@ -29,7 +37,7 @@ export class 玩法商店 extends BasePage {
     sleep(1500)
 
     // 最大
-    var maxAction = createRouteAction('images/道具购买$$最大_1_0.9_751_1418_810_1452.png')
+    var maxAction = createRouteAction(IMG.道具最大)
     for (var i = 0; i < 3; i++) {
       if (maxAction()) break
       sleep(800)
@@ -37,7 +45,7 @@ export class 玩法商店 extends BasePage {
     sleep(500)
 
     // 购买（玩法商店专用按钮图）
-    var buyAction = createRouteAction('images/玩法商店$$购买_1_0.9_464_1528_532_1597.png')
+    var buyAction = createRouteAction(IMG.购买)
     for (var j = 0; j < 3; j++) {
       if (buyAction()) return true
       sleep(800)
