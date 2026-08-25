@@ -13,6 +13,14 @@ import { 战斗 } from '../pages/战斗'
 import { 组队邀请推荐 } from '../pages/组队邀请-推荐'
 import { 组队邀请好友 } from '../pages/组队邀请-好友'
 import { 接受邀请列表 } from "../pages/接受邀请列表"
+import { sharedImages } from '../images'
+// 页面级图片映射：sharedImages 透传共享键 + 本页私有键
+const IMG = {
+  ...sharedImages,
+  已激活技能: 'images/战斗中_已激活技能_0_0.9_404_0_674_740.png',
+  退队: 'images/_退队_1_0.9_885_1620_958_1860.png',
+  踢出: 'images/_踢出_1_0.9_887_1823_956_1857.png',
+}
 const 接受邀请列表Page = new 接受邀请列表()
 enum GameStatus {
   战斗中, 退出战斗, 战斗结束
@@ -102,15 +110,15 @@ export class Game {
       log("精英掉落弹窗，关闭")
       this.精英掉落Page.关闭弹窗()
       return true
-    } else if (createRouteAction('images/重新连接_1_0.9_635_1460_847_1513.png')()) {
+    } else if (createRouteAction(sharedImages.重新连接)()) {
       log("重新连接中")
       return false
     }
-    let 已激活技能_point = imageDetector('images/战斗中_已激活技能_0_0.9_404_0_674_740.png')
+    let 已激活技能_point = imageDetector(IMG.已激活技能)
     if (已激活技能_point) {
       click(toScreenX(已激活技能_point.x), toScreenY(已激活技能_point.y) - 100)
       log('已激活技能')
-    } else if (imageDetector('images/$关闭1_0_0.8_800_400_1020_627.png')) {
+    } else if (imageDetector(sharedImages.关闭1)) {
       log("游戏中聊天框不处理")
     } else {
       click(width / 2, height - 10)
@@ -125,7 +133,7 @@ export class Game {
         throw new Error("未选择队员")
       }
       // 已在队伍中(退队按钮出现)→ 无需重复邀请
-      if (imageDetector('images/_退队_1_0.9_885_1620_958_1860.png')) {
+      if (imageDetector(IMG.退队)) {
         return true
       }
       // 路由到组队邀请弹窗(默认推荐 tab)→ 切好友 tab
@@ -145,9 +153,9 @@ export class Game {
         }
         sleep(2000)
         邀请次数++
-      } while (imageDetector('images/组队邀请-好友_1_0.9_409_2065_495_2103.png') && 邀请次数 < 10)
+      } while (imageDetector(sharedImages.组队邀请好友) && 邀请次数 < 10)
       // 离开邀请页后确认进队
-      if (imageDetector('images/_踢出_1_0.9_887_1823_956_1857.png')) {
+      if (imageDetector(IMG.踢出)) {
         return true
       }
     }
@@ -160,7 +168,7 @@ export class Game {
         throw new Error("未选择队长")
       }
       // 副本邀请按钮(队长发出邀请后战斗页出现)→ 点击进入接受邀请列表
-      if (createRouteAction('images/$副本邀请_0_0.9_854_1632_989_1856.png')()) {
+      if (createRouteAction(sharedImages.副本邀请)()) {
         sleep(1200)
       }
       // 在 接受邀请列表 页 → 找队长点击接受
