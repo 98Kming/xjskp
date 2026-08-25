@@ -46,6 +46,12 @@ import { 观影便利店 } from '../pages/观影便利店'
 import { 影映观礼 } from '../pages/影映观礼'
 import { 武装降临 } from '../pages/武装降临'
 import { 任务 } from '../pages/任务'
+import { sharedImages } from '../images'
+
+const IMG = {
+  ...sharedImages,
+  远征未开启: 'images/历练大厅_远征-未开启_1_0.9_573_1952_866_1997.png',
+}
 
 var router = Router.getInstance()
 
@@ -262,7 +268,7 @@ function executeDailyTasks(): void {
       return false
     }
     if (!nav(历练大厅)) return false
-    if (imageDetector('images/历练大厅_远征-未开启_1_0.9_573_1952_866_1997.png')) {
+    if (imageDetector(IMG.远征未开启)) {
       console.log('[日常]   寰球远征未开启')
       return false
     }
@@ -294,7 +300,7 @@ function executeDailyTasks(): void {
       // 随机事件入口非必现且延迟出现,重试等入口出现(与Router executePath 的3次重试对齐)
       var 入口出现 = false
       for (var i = 0; i < 3; i++) {
-        if (imageDetector('images/基地$随机事件_0_0.6_69_1964_126_2026.png')) {
+        if (imageDetector(IMG.基地随机事件)) {
           入口出现 = true
           break
         }
@@ -349,14 +355,14 @@ function executeDailyTasks(): void {
     // 军团商店 → 两种入场券
     doTask('救援入场券 购买', function (): boolean {
       if (!nav(军团商店)) return false
-      var ticketAction = createTicketAction('images/军团商店_环球救援入场券_1_0.9_115_1000_230_1118.png', 'images/$军团商店_已售罄_0_0.9_759_0_895_y.png')
+      var ticketAction = createTicketAction(IMG.环球救援券, IMG.军团商店已售罄)
       if (!ticketAction()) return false
       sleep(1500)
       return 道具购买Page.购买()
     })
     doTask('远征入场券 购买', function (): boolean {
       if (!nav(军团商店)) return false
-      var ticketAction = createTicketAction('images/军团商店_环球远征入场券_1_0.9_114_808_230_923.png', 'images/$军团商店_已售罄_0_0.9_759_0_895_y.png')
+      var ticketAction = createTicketAction(IMG.环球远征券, IMG.军团商店已售罄)
       if (!ticketAction()) return false
       sleep(1500)
       return 道具购买Page.购买()
@@ -385,25 +391,25 @@ interface 活动目标 {
 function 构建活动目标列表(): 活动目标[] {
   var 列表: 活动目标[] = []
   if (isDailyEnabled('先锋宝藏_免费抽')) {
-    列表.push({ 名: '先锋宝藏 免费', 页: 先锋宝藏Page, 入口图: 'images/战斗$先锋宝藏_0_0.8_64_370_118_1220.png', 执行: function (): boolean { return 先锋宝藏Page.免费() } })
+    列表.push({ 名: '先锋宝藏 免费', 页: 先锋宝藏Page, 入口图: IMG.战斗先锋宝藏, 执行: function (): boolean { return 先锋宝藏Page.免费() } })
   }
   if (isDailyEnabled('碧海凉夏_免费抽')) {
-    列表.push({ 名: '碧海凉夏 免费', 页: 碧海凉夏Page, 入口图: 'images/战斗$碧海凉夏_0_0.8_45_370_112_1220.png', 执行: function (): boolean { return 碧海凉夏Page.免费() } })
+    列表.push({ 名: '碧海凉夏 免费', 页: 碧海凉夏Page, 入口图: IMG.战斗碧海凉夏, 执行: function (): boolean { return 碧海凉夏Page.免费() } })
   }
   if (isDailyEnabled('幸运锦鲤_免费福利')) {
-    列表.push({ 名: '免费福利 领取', 页: 幸运锦鲤Page, 入口图: 'images/战斗$幸运锦鲤_0_0.7_30_370_118_1220.png', 执行: function (): boolean {
+    列表.push({ 名: '免费福利 领取', 页: 幸运锦鲤Page, 入口图: IMG.战斗幸运锦鲤, 执行: function (): boolean {
       if (!nav(幸运锦鲤免费福利)) return false
       return 幸运锦鲤免费福利Page.领取奖励()
     } })
   }
   if (isDailyEnabled('武装降临_领取')) {
-    列表.push({ 名: '武装降临 领取', 页: 武装降临Page, 入口图: 'images/战斗$武装降临_0_0.8_57_370_114_1220.png', 执行: function (): boolean {
+    列表.push({ 名: '武装降临 领取', 页: 武装降临Page, 入口图: IMG.战斗武装降临, 执行: function (): boolean {
       if (!nav(任务, 武装降临)) return false
       return 任务Page.领取()
     } })
   }
   if (isDailyEnabled('观影签到_签到') || isDailyEnabled('观影签到_观影便利店')) {
-    列表.push({ 名: '观影签到', 页: 观影签到Page, 入口图: 'images/战斗$观影签到_0_0.8_37_370_115_1220.png', 执行: function (): boolean {
+    列表.push({ 名: '观影签到', 页: 观影签到Page, 入口图: IMG.战斗观影签到, 执行: function (): boolean {
       var ok = true
       if (isDailyEnabled('观影签到_签到')) {
         ok = doTask('观影签到 签到', function (): boolean { return 观影签到Page.免费领取() })
@@ -419,7 +425,7 @@ function 构建活动目标列表(): 活动目标[] {
     } })
   }
   if (isDailyEnabled('影映观礼_领取')) {
-    列表.push({ 名: '影映观礼 免费', 页: 影映观礼Page, 入口图: 'images/战斗$影映观礼_0_0.8_49_370_113_1220.png', 执行: function (): boolean { return 影映观礼Page.领取() } })
+    列表.push({ 名: '影映观礼 免费', 页: 影映观礼Page, 入口图: IMG.战斗影映观礼, 执行: function (): boolean { return 影映观礼Page.领取() } })
   }
   return 列表
 }
