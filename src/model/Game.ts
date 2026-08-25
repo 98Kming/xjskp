@@ -110,7 +110,7 @@ export class Game {
       log("精英掉落弹窗，关闭")
       this.精英掉落Page.关闭弹窗()
       return true
-    } else if (createRouteAction(sharedImages.重新连接)()) {
+    } else if (createRouteAction(IMG.重新连接)()) {
       log("重新连接中")
       return false
     }
@@ -118,7 +118,7 @@ export class Game {
     if (已激活技能_point) {
       click(toScreenX(已激活技能_point.x), toScreenY(已激活技能_point.y) - 100)
       log('已激活技能')
-    } else if (imageDetector(sharedImages.关闭1)) {
+    } else if (imageDetector(IMG.关闭1)) {
       log("游戏中聊天框不处理")
     } else {
       click(width / 2, height - 10)
@@ -153,7 +153,7 @@ export class Game {
         }
         sleep(2000)
         邀请次数++
-      } while (imageDetector(sharedImages.组队邀请好友) && 邀请次数 < 10)
+      } while (imageDetector(IMG.组队邀请好友) && 邀请次数 < 10)
       // 离开邀请页后确认进队
       if (imageDetector(IMG.踢出)) {
         return true
@@ -168,7 +168,7 @@ export class Game {
         throw new Error("未选择队长")
       }
       // 副本邀请按钮(队长发出邀请后战斗页出现)→ 点击进入接受邀请列表
-      if (createRouteAction(sharedImages.副本邀请)()) {
+      if (createRouteAction(IMG.副本邀请)()) {
         sleep(1200)
       }
       // 在 接受邀请列表 页 → 找队长点击接受
