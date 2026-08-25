@@ -14,13 +14,12 @@ const IMG = {
 
 // 页面识别：暂停按钮 或 顶部已激活技能图标出现均算战斗中
 // skipLuminance: 暂停按钮模板左上角是深色像素，亮度对比会被误拒（模板 0.007 vs 屏幕 0.118），跳过亮度检查
-var 暂停 = IMG.暂停
 
 export class 战斗中 extends BasePage {
   name = '战斗中'
   暂停_point!: OpenCV.Point
   is(img: ImageWrapper): boolean {
-    let point = imageDetector(暂停, img)
+    let point = imageDetector(IMG.暂停, img)
     if (point) {
       this.暂停_point = point
     }
@@ -29,7 +28,7 @@ export class 战斗中 extends BasePage {
 
   /** 点击暂停按钮，弹出暂停面板 */
   暂停(): boolean {
-    return createRouteAction(暂停)()
+    return createRouteAction(IMG.暂停)()
   }
 
   /** 开启倍速（找到"倍速-关闭"按钮时点击） */
@@ -42,7 +41,7 @@ export class 战斗中 extends BasePage {
     return !!imageDetector(IMG.倍速开启)
   }
 
-  /** 确定（技能弹窗确认按钮） */
+  /** 确定按钮：原引用 531_1902 为重裁前旧图(已删)，现与选择技能页共用 1670 区域图 */
   确定(): boolean {
     return createRouteAction(IMG.选择技能确定)()
   }
@@ -101,7 +100,7 @@ export class 战斗中 extends BasePage {
   routes(): Route[] {
     return [
       // 点暂停 → 暂停面板
-      { target: 暂停战斗, action: createRouteAction(暂停), imagePath: 暂停 },
+      { target: 暂停战斗, action: createRouteAction(IMG.暂停), imagePath: IMG.暂停 },
     ]
   }
 }
