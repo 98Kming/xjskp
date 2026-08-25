@@ -1,32 +1,54 @@
 // 使用 AutoJs6 全局 API(colors/images/click 等),不依赖项目 util 模块
 import { getTemplate, imageNameParser } from '../utils/img'
+import { sharedImages } from '../images'
 // 截图权限在 start() 里请求,避免模块加载(main.ts import)时就弹权限框阻塞主窗口创建
 /** 读图并按文件名解析匹配阈值(如 _0_0.65 后缀) */
 type Tpl = { img: any, threshold: number }
 function 读图(path: string): Tpl {
   return { img: getTemplate(path), threshold: imageNameParser(path).threshold }
 }
-const img_炸弹 = 读图("./images/探索$$炸弹_0_0.65.png")
-const img_未知 = 读图("./images/探索$$未知块_0_0.9.png")
-const img_隐藏物品 = 读图("./images/探索$$隐藏物品_0_0.9.png")
-const img_边界_左上 = 读图("./images/探索_左上角_0_0.9_73_775_109_809.png")
-const img_边界_右下 = 读图("./images/探索_右下角_0_0.9_973_1834_1007_1868.png")
-const img_1层储物盒 = 读图("./images/探索_1层储物盒_0_0.9.png")
-const img_2层储物盒11 = 读图("./images/探索_2层储物盒11_0_0.9.png")
-const img_2层储物盒12 = 读图("./images/探索_2层储物盒12_0_0.9.png")
-const img_2层储物盒21 = 读图("./images/探索_2层储物盒21_0_0.9.png")
-const img_2层储物盒22 = 读图("./images/探索_2层储物盒22_0_0.9.png")
-const img_3层储物盒11 = 读图("./images/探索_3层储物盒11_0_0.9.png")
-const img_3层储物盒12 = 读图("./images/探索_3层储物盒12_0_0.9.png")
-const img_3层储物盒21 = 读图("./images/探索_3层储物盒21_0_0.9.png")
-const img_3层储物盒22 = 读图("./images/探索_3层储物盒22_0_0.9.png")
-const img_3层储物盒31 = 读图("./images/探索_3层储物盒31_0_0.9.png")
-const img_3层储物盒32 = 读图("./images/探索_3层储物盒32_0_0.9.png")
+const IMG = {
+  ...sharedImages,
+  炸弹: './images/探索$$炸弹_0_0.65.png',
+  未知块: './images/探索$$未知块_0_0.9.png',
+  隐藏物品: './images/探索$$隐藏物品_0_0.9.png',
+  边界_左上: './images/探索_左上角_0_0.9_73_775_109_809.png',
+  边界_右下: './images/探索_右下角_0_0.9_973_1834_1007_1868.png',
+  一层储物盒: './images/探索_1层储物盒_0_0.9.png',
+  二层储物盒11: './images/探索_2层储物盒11_0_0.9.png',
+  二层储物盒12: './images/探索_2层储物盒12_0_0.9.png',
+  二层储物盒21: './images/探索_2层储物盒21_0_0.9.png',
+  二层储物盒22: './images/探索_2层储物盒22_0_0.9.png',
+  三层储物盒11: './images/探索_3层储物盒11_0_0.9.png',
+  三层储物盒12: './images/探索_3层储物盒12_0_0.9.png',
+  三层储物盒21: './images/探索_3层储物盒21_0_0.9.png',
+  三层储物盒22: './images/探索_3层储物盒22_0_0.9.png',
+  三层储物盒31: './images/探索_3层储物盒31_0_0.9.png',
+  三层储物盒32: './images/探索_3层储物盒32_0_0.9.png',
+  下一层入口: './images/探索$$下一层入口_0_0.65.png',
+  无次数: './images/探索_无次数_0_0.97_609_1937_663_1966.png',
+}
+const img_炸弹 = 读图(IMG.炸弹)
+const img_未知 = 读图(IMG.未知块)
+const img_隐藏物品 = 读图(IMG.隐藏物品)
+const img_边界_左上 = 读图(IMG.边界_左上)
+const img_边界_右下 = 读图(IMG.边界_右下)
+const img_1层储物盒 = 读图(IMG.一层储物盒)
+const img_2层储物盒11 = 读图(IMG.二层储物盒11)
+const img_2层储物盒12 = 读图(IMG.二层储物盒12)
+const img_2层储物盒21 = 读图(IMG.二层储物盒21)
+const img_2层储物盒22 = 读图(IMG.二层储物盒22)
+const img_3层储物盒11 = 读图(IMG.三层储物盒11)
+const img_3层储物盒12 = 读图(IMG.三层储物盒12)
+const img_3层储物盒21 = 读图(IMG.三层储物盒21)
+const img_3层储物盒22 = 读图(IMG.三层储物盒22)
+const img_3层储物盒31 = 读图(IMG.三层储物盒31)
+const img_3层储物盒32 = 读图(IMG.三层储物盒32)
 // 层结束按钮:新版为"下一层入口"
-const img_结束 = 读图("./images/探索$$下一层入口_0_0.65.png")
-const img_次数0 = 读图("./images/探索_无次数_0_0.97_609_1937_663_1966.png")
+const img_结束 = 读图(IMG.下一层入口)
+const img_次数0 = 读图(IMG.无次数)
 // "恭喜获得"弹窗:通用模板(寰球救援/兑换码/探索共用)
-const img_恭喜获得 = 读图("./images/_恭喜获得_0_0.85_437_895_641_948.png")
+const img_恭喜获得 = 读图(IMG.恭喜获得)
 // ==================== 常量配置 ====================
 const ROWS = 6;
 const COLS = 5;
