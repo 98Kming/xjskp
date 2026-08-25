@@ -3,10 +3,18 @@ import { createPageDetector, createRouteAction, imageDetector, imageNameParser, 
 import { 暂停战斗 } from './暂停战斗'
 import { 选择技能 } from './选择技能'
 import { 战斗结束 } from './战斗结束'
+import { sharedImages } from '../images'
+
+const IMG = {
+  ...sharedImages,
+  暂停: 'images/战斗中$_暂停_1_0.85_66_50_102_200.png',
+  倍速关闭: 'images/战斗中_倍速-关闭_0_0.9_45_426_80_456.png',
+  倍速开启: 'images/战斗中_倍速-开启_0_0.9_45_426_80_456.png',
+}
 
 // 页面识别：暂停按钮 或 顶部已激活技能图标出现均算战斗中
 // skipLuminance: 暂停按钮模板左上角是深色像素，亮度对比会被误拒（模板 0.007 vs 屏幕 0.118），跳过亮度检查
-var 暂停 = 'images/战斗中$_暂停_1_0.85_66_50_102_200.png'
+var 暂停 = IMG.暂停
 
 export class 战斗中 extends BasePage {
   name = '战斗中'
@@ -26,17 +34,17 @@ export class 战斗中 extends BasePage {
 
   /** 开启倍速（找到"倍速-关闭"按钮时点击） */
   开倍速(): boolean {
-    return createRouteAction('images/战斗中_倍速-关闭_0_0.9_45_426_80_456.png')()
+    return createRouteAction(IMG.倍速关闭)()
   }
 
   /** 检测倍速是否已开启 */
   已开倍速(): boolean {
-    return !!imageDetector('images/战斗中_倍速-开启_0_0.9_45_426_80_456.png')
+    return !!imageDetector(IMG.倍速开启)
   }
 
   /** 确定（技能弹窗确认按钮） */
   确定(): boolean {
-    return createRouteAction('images/选择技能$$确定_0_0.9_531_1902_628_1947.png')()
+    return createRouteAction(IMG.选择技能确定)()
   }
 
   等级(): number {
