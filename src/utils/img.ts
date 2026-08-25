@@ -2,6 +2,7 @@ export const width = 1080
 export const height = width / device.width * device.height
 console.log('屏幕宽高:', width, height, '设备宽高:', device.width, device.height, files.cwd())
 import { imageBasePath } from '../config'
+import { sharedImages } from '../images'
 let last_capture_time = 0
 let cache_screen_img: ImageWrapper | null = null
 var pointCache = new java.util.HashMap()
@@ -565,10 +566,10 @@ export function createTicketAction(ticketPath: string, soldOutPath: string): () 
 }
 
 var closeButtons: (() => boolean)[] = [
-  createRouteAction('images/重新连接_1_0.9_635_1460_847_1513.png'),
-  createRouteAction('images/$跳过_1_0.9_923_400_978_447.png'),
-  createRouteAction('images/$关闭1_0_0.8_800_400_1020_627.png'),
-  createRouteAction('images/$确定_0_0.8_494_1000_764_1600.png'),
+  createRouteAction(sharedImages.重新连接),
+  createRouteAction(sharedImages.跳过),
+  createRouteAction(sharedImages.关闭1),
+  createRouteAction(sharedImages.确定),
 ]
 const colors_关闭_无框_多点: [number, number, string][] = [[4, 13, "#fde6bc"], [6, 21, "#fce4bb"], [13, 42, "#fadda4"], [16, 48, "#fdd59d"], [-1, 24, "#fbe3ba"], [14, 22, "#fce4bb"], [21, 18, "#ffebc4"], [29, 15, "#fff8d8"], [0, 2, "#fee6bc"], [4, 7, "#fde5bb"], [2, 19, "#fde9c4"], [10, 24, "#fce4bb"], [15, 47, "#f3cb93"], [-15, 29, "#fee9c4"], [12, 23, "#fce4bb"]]
 const colors_关闭_无框_多点_exclude: [number, number, string][] = [[-8, 14, "#1b1209"], [0, 43, "#1b110a"], [26, 35, "#191009"], [14, 11, "#1b1108"]]
@@ -693,7 +694,7 @@ function uniqueDescMatches(matches: org.autojs.autojs.core.image.TemplateMatchin
 }
 
 const img_组队邀请_邀请 = imageNameParser("images/组队邀请-好友$$邀请好友_0_0.9_690_665_946_1700.png")
-const img_组队邀请_接受 = imageNameParser("images/接受邀请列表$$_接受_0_0.9_692_660_878_1700.png")
+const img_组队邀请_接受 = imageNameParser(sharedImages.接受)
 export function find_队友(isLeader: boolean) {
   let temps: Teammate[] = []
   let x
@@ -763,7 +764,7 @@ export function waitObtain(timeout: number, interval: number = 1000): boolean {
     if (now < timeout + beginTime) {
       sleep(interval)
     }
-    var point = imageDetector('images/_恭喜获得_0_0.85_437_895_641_948.png', screen(0))
+    var point = imageDetector(sharedImages.恭喜获得, screen(0))
     if (point) {
       log('[waitObtain] 恭喜获得出现，领取成功')
       click(toScreenX(point.x), toScreenY(point.y + 100))
