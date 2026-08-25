@@ -1,14 +1,21 @@
 import { BasePage, Route } from './BasePage'
 import { createPageDetector, createRouteAction } from '../utils/img'
 import { 观影便利店 } from './观影便利店'
+import { sharedImages } from '../images'
+
+const IMG = {
+  ...sharedImages,
+  页面: 'images/观影签到_1_0.9_599_2278_681_2327.png',
+  免费领取: 'images/观影签到$$免费领取_0_0.9_794_500_961_2000.png',
+}
 
 export class 观影签到 extends BasePage {
   name = '观影签到'
-  is = createPageDetector('images/观影签到_1_0.9_599_2278_681_2327.png')
+  is = createPageDetector(IMG.页面)
 
   免费领取(): boolean {
     let flag = false
-    while(createRouteAction('images/观影签到$$免费领取_0_0.9_794_500_961_2000.png')()) {
+    while(createRouteAction(IMG.免费领取)()) {
       flag = true
       click(device.width / 2, device.height - 10)
       sleep(300)
@@ -20,7 +27,7 @@ export class 观影签到 extends BasePage {
 
   routes(): Route[] {
     return [
-      { target: 观影便利店, action: createRouteAction('images/观影签到$观影便利店_1_0.9_935_2272_1013_2323.png'), imagePath: 'images/观影签到$观影便利店_1_0.9_935_2272_1013_2323.png' },
+      { target: 观影便利店, action: createRouteAction(IMG.观影便利店), imagePath: IMG.观影便利店 },
     ]
   }
 }

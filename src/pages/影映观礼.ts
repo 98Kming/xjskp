@@ -1,13 +1,21 @@
 import { BasePage, Route } from './BasePage'
 import { createPageDetector, getTemplate, imageNameParser, screen, toScreenX, toScreenY, waitObtain } from '../utils/img'
+import { sharedImages } from '../images'
+
+const IMG = {
+  ...sharedImages,
+  页面: 'images/影映观礼_1_0.9_206_783_300_863.png',
+  观看领取: 'images/影映观礼$$观看领取_1_0.8_342_1000_529_1920.png',
+  免费领取: 'images/影映观礼$$免费领取_0_0.9_342_1000_529_1920.png',
+}
 
 export class 影映观礼 extends BasePage {
   name = '影映观礼'
-  is = createPageDetector('images/影映观礼_1_0.9_206_783_300_863.png')
+  is = createPageDetector(IMG.页面)
 
   领取(): boolean {
-    let 观看领取 = imageNameParser('images/影映观礼$$观看领取_1_0.8_342_1000_529_1920.png')
-    let 免费领取 = imageNameParser('images/影映观礼$$免费领取_0_0.9_342_1000_529_1920.png')
+    let 观看领取 = imageNameParser(IMG.观看领取)
+    let 免费领取 = imageNameParser(IMG.免费领取)
     let 免费领取模板 = getTemplate(免费领取.rawFileName)
     while (true) {
       var targetResult = images.matchTemplate(screen(), getTemplate(观看领取.rawFileName), {
