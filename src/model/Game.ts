@@ -12,7 +12,8 @@ import { 寰球救援 } from '../pages/寰球救援'
 import { 战斗 } from '../pages/战斗'
 import { 组队邀请推荐 } from '../pages/组队邀请-推荐'
 import { 组队邀请好友 } from '../pages/组队邀请-好友'
-
+import { 接受邀请列表 } from "../pages/接受邀请列表"
+const 接受邀请列表Page = new 接受邀请列表()
 enum GameStatus {
   战斗中, 退出战斗, 战斗结束
 }
@@ -109,7 +110,7 @@ export class Game {
     if (已激活技能_point) {
       click(toScreenX(已激活技能_point.x), toScreenY(已激活技能_point.y) - 100)
       log('已激活技能')
-    } else if (imageDetector('images/$关闭1_0_0.8_800_400_1020_600.png')) {
+    } else if (imageDetector('images/$关闭1_0_0.8_800_400_1020_627.png')) {
       log("游戏中聊天框不处理")
     } else {
       click(width / 2, height - 10)
@@ -146,7 +147,7 @@ export class Game {
         邀请次数++
       } while (imageDetector('images/组队邀请-好友_1_0.9_409_2065_495_2103.png') && 邀请次数 < 10)
       // 离开邀请页后确认进队
-      if (imageDetector('images/_退队_1_0.9_885_1620_958_1860.png')) {
+      if (imageDetector('images/_踢出_1_0.9_887_1823_956_1857.png')) {
         return true
       }
     }
@@ -163,7 +164,7 @@ export class Game {
         sleep(1200)
       }
       // 在 接受邀请列表 页 → 找队长点击接受
-      if (imageDetector('images/接受邀请列表$$_接受_0_0.9_690_660_880_1700.png')) {
+      if (接受邀请列表Page.is(screen())) {
         let point = select_队友(this.gameConfig.teammate)
         if (point) {
           click(toScreenX(point.x), toScreenY(point.y))

@@ -6,7 +6,7 @@ export class 玩法商店 extends BasePage {
   is = createPageDetector('images/玩法商店_1_0.9_108_2024_291_2071.png')
 
   back(): boolean {
-    return createRouteAction('images/$关闭1_0_0.8_800_400_1020_600.png')()
+    return createRouteAction('images/$关闭1_0_0.8_800_400_1020_627.png')()
   }
 
   /** 购买超时空军团兵碎片：向上滚动 → 找商品（镜像点击）→ 最大 → 购买 */
