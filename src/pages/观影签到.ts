@@ -7,6 +7,7 @@ const IMG = {
   ...sharedImages,
   页面: 'images/观影签到_1_0.9_599_2278_681_2327.png',
   免费领取: 'images/观影签到$$免费领取_0_0.9_794_500_961_2000.png',
+  观影便利店: 'images/观影签到$观影便利店_1_0.9_935_2272_1013_2323.png',
 }
 
 export class 观影签到 extends BasePage {
