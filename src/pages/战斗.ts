@@ -16,11 +16,22 @@ import { 接受邀请列表 } from './接受邀请列表'
 import { 观影签到 } from './观影签到'
 import { scrollFind } from '../utils/scroll'
 import { 影映观礼 } from './影映观礼'
+import { sharedImages } from '../images'
+
+const IMG = {
+  ...sharedImages,
+  页面: 'images/战斗_0_0.9_499_2327_581_2370.png',
+  七日突围: 'images/战斗$$七日突围_0_0.9_987_976_1051_1022.png',
+  战斗中: 'images/战斗$战斗中_1_0.9_410_1816_668_1935.png',
+  侧栏: 'images/战斗$侧栏_1_0.9_974_378_1040_447.png',
+  巡逻车: 'images/战斗$巡逻车_1_0.7_58_1917_169_1955.png',
+  缘聚七夕: 'images/战斗$缘聚七夕_1_0.8_45_428_122_482.png',
+}
 
 export class 战斗 extends BasePage {
   name = '战斗'
-  is = createPageDetector('images/战斗_0_0.9_499_2327_581_2370.png')
-  private 七日突围Action = createRouteAction('images/战斗$$七日突围_0_0.9_987_976_1051_1022.png')
+  is = createPageDetector(IMG.页面)
+  private 七日突围Action = createRouteAction(IMG.七日突围)
 
   click_七日突围(): boolean {
     return this.七日突围Action() && (sleep(1200), this.back(), sleep(800), this.back(), sleep(800), true)
@@ -42,92 +53,92 @@ export class 战斗 extends BasePage {
     var self = this
     return [
       // 主线关卡 → 进入战斗中
-      { target: 战斗中, action: createRouteAction('images/战斗$战斗中_1_0.9_410_1816_668_1935.png'), imagePath: 'images/战斗$战斗中_1_0.9_410_1816_668_1935.png' },
-      { target: 基地, action: createRouteAction('images/$基地-未选中_0_0.8_658_2331_1080_2367.png'), imagePath: 'images/$基地-未选中_0_0.8_658_2331_1080_2367.png' },
-      { target: 军团, action: createRouteAction('images/$军团-未选中_0_0.8_807_2335_1080_2367.png'), imagePath: 'images/$军团-未选中_0_0.8_807_2335_1080_2367.png' },
+      { target: 战斗中, action: createRouteAction(IMG.战斗中), imagePath: IMG.战斗中 },
+      { target: 基地, action: createRouteAction(IMG.基地未选中), imagePath: IMG.基地未选中 },
+      { target: 军团, action: createRouteAction(IMG.军团未选中), imagePath: IMG.军团未选中 },
       {
         target: 幸运锦鲤, action: function (): boolean {
-          var action = createRouteAction('images/战斗$幸运锦鲤_0_0.7_30_370_118_1220.png')
+          var action = createRouteAction(IMG.战斗幸运锦鲤)
           if (action()) return true
           self.scrollDown()
           if (action()) return true
           self.scrollUp()
           return action()
-        }, imagePath: 'images/战斗$幸运锦鲤_0_0.7_30_370_118_1220.png'
+        }, imagePath: IMG.战斗幸运锦鲤
       },
-      { target: 侧栏, action: createRouteAction('images/战斗$侧栏_1_0.9_974_378_1040_447.png'), imagePath: 'images/战斗$侧栏_1_0.9_974_378_1040_447.png' },
-      { target: 巡逻车, action: createRouteAction('images/战斗$巡逻车_1_0.7_58_1917_169_1955.png'), imagePath: 'images/战斗$巡逻车_1_0.7_58_1917_169_1955.png' },
+      { target: 侧栏, action: createRouteAction(IMG.侧栏), imagePath: IMG.侧栏 },
+      { target: 巡逻车, action: createRouteAction(IMG.巡逻车), imagePath: IMG.巡逻车 },
       { target: 个人信息, action: function (): boolean { click(toScreenX(100), toScreenY(200)); return true } },
       {
         target: 先锋宝藏, action: function (): boolean {
-          var action = createRouteAction('images/战斗$先锋宝藏_0_0.8_64_370_118_1220.png')
+          var action = createRouteAction(IMG.战斗先锋宝藏)
           if (action()) return true
           self.scrollDown()
           if (action()) return true
           self.scrollUp()
           return action()
-        }, imagePath: 'images/战斗$先锋宝藏_0_0.8_64_370_118_1220.png'
+        }, imagePath: IMG.战斗先锋宝藏
       },
       {
         target: 碧海凉夏, action: function (): boolean {
-          var action = createRouteAction('images/战斗$碧海凉夏_0_0.8_45_370_112_1220.png')
+          var action = createRouteAction(IMG.战斗碧海凉夏)
           if (action()) return true
           self.scrollDown()
           if (action()) return true
           self.scrollUp()
           return action()
-        }, imagePath: 'images/战斗$碧海凉夏_0_0.8_45_370_112_1220.png'
+        }, imagePath: IMG.战斗碧海凉夏
       },
       {
         target: 武装降临, action: function (): boolean {
-          var action = createRouteAction('images/战斗$武装降临_0_0.8_57_370_114_1220.png')
+          var action = createRouteAction(IMG.战斗武装降临)
           if (action()) return true
           self.scrollDown()
           if (action()) return true
           self.scrollUp()
           return action()
-        }, imagePath: 'images/战斗$武装降临_0_0.8_57_370_114_1220.png'
+        }, imagePath: IMG.战斗武装降临
       },
       {
         target: 观影签到, action: function (): boolean {
-          let point = scrollFind('images/战斗$观影签到_0_0.8_37_370_115_1220.png', 'top', 20, 500, 140, 1200, 8)
+          let point = scrollFind(IMG.战斗观影签到, 'top', 20, 500, 140, 1200, 8)
           if(point) {
             click(toScreenX(point.x), toScreenY(point.y))
             return true
           }
-          point = scrollFind('images/战斗$观影签到_0_0.8_37_370_115_1220.png', 'bottom', 20, 500, 140, 1200, 8)
+          point = scrollFind(IMG.战斗观影签到, 'bottom', 20, 500, 140, 1200, 8)
           if(point) {
             click(toScreenX(point.x), toScreenY(point.y))
             return true
           }
           return false
-        }, imagePath: 'images/战斗$观影签到_0_0.8_37_370_115_1220.png'
+        }, imagePath: IMG.战斗观影签到
       },
       {
         target: 影映观礼, action: function (): boolean {
-          let point = scrollFind('images/战斗$影映观礼_0_0.8_49_370_113_1220.png', 'top', 20, 500, 140, 1200, 8)
+          let point = scrollFind(IMG.战斗影映观礼, 'top', 20, 500, 140, 1200, 8)
           if(point) {
             click(toScreenX(point.x), toScreenY(point.y))
             return true
           }
-          point = scrollFind('images/战斗$影映观礼_0_0.8_49_370_113_1220.png', 'bottom', 20, 500, 140, 1200, 8)
+          point = scrollFind(IMG.战斗影映观礼, 'bottom', 20, 500, 140, 1200, 8)
           if(point) {
             click(toScreenX(point.x), toScreenY(point.y))
             return true
           }
           return false
-        }, imagePath: 'images/战斗$影映观礼_0_0.8_49_370_113_1220.png'
+        }, imagePath: IMG.战斗影映观礼
       },
       {
         target: 缘聚七夕, action: function (): boolean {
-          var action = createRouteAction('images/战斗$缘聚七夕_1_0.8_45_428_122_482.png')
+          var action = createRouteAction(IMG.缘聚七夕)
           return action()
-        }, imagePath: 'images/战斗$缘聚七夕_1_0.8_45_428_122_482.png'
+        }, imagePath: IMG.缘聚七夕
       },
       // 队长:组队邀请弹窗(默认推荐 tab)
-      { target: 组队邀请推荐, action: createRouteAction('images/$邀请_0_0.9_806_1641_892_1887.png'), imagePath: 'images/$邀请_0_0.9_806_1641_892_1887.png' },
+      { target: 组队邀请推荐, action: createRouteAction(IMG.邀请), imagePath: IMG.邀请 },
       // 队员:接受邀请列表
-      { target: 接受邀请列表, action: createRouteAction('images/$副本邀请_0_0.9_854_1632_989_1856.png'), imagePath: 'images/$副本邀请_0_0.9_854_1632_989_1856.png' },
+      { target: 接受邀请列表, action: createRouteAction(IMG.副本邀请), imagePath: IMG.副本邀请 },
     ]
   }
 }
