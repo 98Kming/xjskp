@@ -1,13 +1,20 @@
 import { BasePage, Route } from './BasePage'
 import { createPageDetector, createRouteAction, imageNameParser, getTemplate, screen, toScreenX, toScreenY } from '../utils/img'
 import { 战斗中 } from './战斗中'
+import { sharedImages } from '../images'
+
+const IMG = {
+  ...sharedImages,
+  页面: 'images/寰球远征$$_开始游戏_1_0.9_515_2220_614_2308.png',
+  免费: 'images/寰球远征$$免费_1_0.8_50_793_109_808.png', // 覆盖共享键($免费):本页免费按钮图
+}
 
 export class 寰球远征 extends BasePage {
   name = '寰球远征'
-  is = createPageDetector('images/寰球远征$$_开始游戏_1_0.9_515_2220_614_2308.png')
+  is = createPageDetector(IMG.页面)
 
   免费(): boolean {
-    var filePath = 'images/寰球远征$$免费_1_0.8_50_793_109_808.png'
+    var filePath = IMG.免费
     var parsed = imageNameParser(filePath)
     var rw = parsed.x2 - parsed.x1
     var rh = parsed.y2 - parsed.y1
@@ -28,14 +35,14 @@ export class 寰球远征 extends BasePage {
   }
 
   开始游戏(): boolean {
-    var action = createRouteAction('images/寰球远征$$_开始游戏_1_0.9_515_2220_614_2308.png')
+    var action = createRouteAction(IMG.页面)
     return action()
   }
 
   routes(): Route[] {
     return [
       // 开始游戏 → 进入战斗中
-      { target: 战斗中, action: createRouteAction('images/寰球远征$$_开始游戏_1_0.9_515_2220_614_2308.png'), imagePath: 'images/寰球远征$$_开始游戏_1_0.9_515_2220_614_2308.png' },
+      { target: 战斗中, action: createRouteAction(IMG.页面), imagePath: IMG.页面 },
     ]
   }
 }
