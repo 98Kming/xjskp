@@ -3,12 +3,12 @@ import { sharedImages } from "../images"
 
 const IMG = {
   ...sharedImages,
-  兑换: "images/兑换码_兑换_1_0.9_758_1198_849_1245.png",
-  领取过: "images/兑换码_兑换码领取过_1_0.9_80_925_981_992.jpg",
-  冷却: "images/兑换码_兑换冷却_1_0.9_80_925_981_992.jpg",
-  过期: "images/兑换码_兑换码过期_1_0.9_80_925_981_992.jpg",
-  不存在: "images/兑换码_兑换码不存在_1_0.9_80_925_981_992.jpg",
-  错误: "images/兑换码_错误_1_0.9_80_925_981_992.png",
+  兑换: 'images/兑换码_兑换_1_0.9_758_1198_849_1245.png',
+  领取过: 'images/兑换码_兑换码领取过_1_0.9_80_925_981_992.jpg',
+  冷却: 'images/兑换码_兑换冷却_1_0.9_80_925_981_992.jpg',
+  过期: 'images/兑换码_兑换码过期_1_0.9_80_925_981_992.jpg',
+  不存在: 'images/兑换码_兑换码不存在_1_0.9_80_925_981_992.jpg',
+  错误: 'images/兑换码_错误_1_0.9_80_925_981_992.png',
 }
 
 type Data = {
@@ -52,7 +52,7 @@ log("兑换码缓存", redeemCode.failCodes.length + redeemCode.successCodes.len
 export class 兑换码 {
   static 兑换_point: OpenCV.Point
   static 恭喜获得_point?: { x: number, y: number }
-  static img_兑换 = getTemplate(IMG.兑换);
+  static img_兑换 = getTemplate(IMG.兑换)
   static img_兑换码_领取过 = getTemplate(IMG.领取过)
   static img_兑换码_恭喜获得 = getTemplate(IMG.恭喜获得)
   static img_兑换码_冷却 = getTemplate(IMG.冷却)
