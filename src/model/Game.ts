@@ -12,7 +12,8 @@ import { 寰球救援 } from '../pages/寰球救援'
 import { 战斗 } from '../pages/战斗'
 import { 组队邀请推荐 } from '../pages/组队邀请-推荐'
 import { 组队邀请好友 } from '../pages/组队邀请-好友'
-import { 接受邀请列表 } from "../pages/接受邀请列表"
+// 页面实例统一来自注册表 pages.ts(重复 new 会触发 Router 重复注册报错)；识别优先级见 pages.ts 内分组注释
+import { 战斗中Page, 暂停战斗Page, 战斗结束Page, 选择技能Page, 战斗Page, 寰球救援Page, 接受邀请列表Page } from './pages'
 import { sharedImages } from '../images'
 // 页面级图片映射：sharedImages 透传共享键 + 本页私有键
 const IMG = {
@@ -21,7 +22,6 @@ const IMG = {
   退队: 'images/_退队_1_0.9_885_1620_958_1860.png',
   踢出: 'images/_踢出_1_0.9_887_1823_956_1857.png',
 }
-const 接受邀请列表Page = new 接受邀请列表()
 enum GameStatus {
   战斗中, 退出战斗, 战斗结束
 }
@@ -31,13 +31,8 @@ export class Game {
   static img_元素试炼_开始游戏 = images.read("./images/元素试炼_开始游戏.png")
   constructor(private gameConfig: GameConfig) { }
 
-  private 战斗中Page = new 战斗中()
-  private 暂停战斗Page = new 暂停战斗()
-  private 战斗结束Page = new 战斗结束()
-  private 选择技能Page = new 选择技能()
+  // 战斗中/暂停战斗/战斗结束/选择技能/战斗/寰球救援 实例复用 daily.ts 导出的单例(见顶部 import),仅精英掉落独立持有
   private 精英掉落Page = new 精英掉落()
-  private 寰球救援Page = new 寰球救援()
-  private 战斗Page = new 战斗()
 
   private enable_倍速 = false
   private 倍速尝试 = 0 // 每局开倍速尝试次数,防找不到按钮时无限点击
@@ -50,15 +45,15 @@ export class Game {
     if (this.enable_倍速) return
     if (this.倍速尝试 >= 3) return // 每局最多尝试 3 次
     this.倍速尝试++
-    if (this.战斗中Page.已开倍速()) {
+    if (战斗中Page.已开倍速()) {
       this.enable_倍速 = true
     } else {
-      log('开启倍速', this.战斗中Page.开倍速())
+      log('开启倍速', 战斗中Page.开倍速())
     }
   }
   currentLevel(): number {
-    if (!this.level && this.战斗中Page.暂停_point) {
-      this.level = this.战斗中Page.等级()
+    if (!this.level && 战斗中Page.暂停_point) {
+      this.level = 战斗中Page.等级()
       console.log("ocr level: " + this.level)
     }
     return this.level
@@ -79,31 +74,31 @@ export class Game {
 
   /** 检测战斗内弹窗页类型（按优先级短路），无弹窗返回 null；暂停按钮识别偶发失败时兜底信号 */
   private 检测弹窗(img: ImageWrapper): 选择技能 | 暂停战斗 | 战斗结束 | 精英掉落 | null {
-    if (this.选择技能Page.is(img)) return this.选择技能Page
-    if (this.暂停战斗Page.is(img)) return this.暂停战斗Page
-    if (this.战斗结束Page.is(img)) return this.战斗结束Page
+    if (选择技能Page.is(img)) return 选择技能Page
+    if (暂停战斗Page.is(img)) return 暂停战斗Page
+    if (战斗结束Page.is(img)) return 战斗结束Page
     if (this.精英掉落Page.is(img)) return this.精英掉落Page
     return null
   }
 
   private battleHandler(img: ImageWrapper, modalPage: 选择技能 | 暂停战斗 | 战斗结束 | 精英掉落 | null): boolean {
-    if (modalPage === this.选择技能Page) {
+    if (modalPage === 选择技能Page) {
       log("选择技能中")
       // 6秒内选择技能当成头选宝石效果，不提升等级
-      this.选择技能Page.selectSkill(img, this.gameConfig.identifySkill) && Date.now() - this.startTime > 6 * 1000 && this.level && this.level++
+      选择技能Page.selectSkill(img, this.gameConfig.identifySkill) && Date.now() - this.startTime > 6 * 1000 && this.level && this.level++
       return true
-    } else if (modalPage === this.暂停战斗Page) {
+    } else if (modalPage === 暂停战斗Page) {
       log("暂停中")
       if (this.status == GameStatus.退出战斗) {
-        this.暂停战斗Page.结束战斗()
+        暂停战斗Page.结束战斗()
       } else {
-        this.暂停战斗Page.继续()
+        暂停战斗Page.继续()
       }
       return true
-    } else if (modalPage === this.战斗结束Page) {
+    } else if (modalPage === 战斗结束Page) {
       log("返回中")
       // 一局结束
-      this.战斗结束Page.back()
+      战斗结束Page.back()
       this.reset()
       return false
     } else if (modalPage === this.精英掉落Page) {
@@ -243,7 +238,7 @@ export class Game {
       // 战斗弹窗(选择技能等)只在战斗中弹出,检测到弹窗也视为已在战斗,跳过准备导航
       var 准备img = screen()
       var 准备弹窗 = this.检测弹窗(准备img)
-      if (!this.战斗中Page.is(准备img) && !准备弹窗) {
+      if (!战斗中Page.is(准备img) && !准备弹窗) {
         // 战斗前准备
         if (this.status == GameStatus.战斗结束) {
           if (this.gameConfig.type == GameType.寰球救援) {
@@ -267,8 +262,8 @@ export class Game {
       // 弹窗页每轮检测一次，while 条件与 battleHandler 共用（避免重复找图）；
       // 暂停按钮识别偶发失败时，弹窗识别兜底保证仍被处理
       var modalPage = this.检测弹窗(img)
-      while (this.status != GameStatus.战斗结束 || this.战斗中Page.is(img) || modalPage) {
-        if (modalPage || this.战斗中Page.hasUplayer(img)) {
+      while (this.status != GameStatus.战斗结束 || 战斗中Page.is(img) || modalPage) {
+        if (modalPage || 战斗中Page.hasUplayer(img)) {
           if (this.battleHandler(img, modalPage)) {
             log('战斗中上层窗口处理完成')
             this.status = GameStatus.战斗中
@@ -278,7 +273,7 @@ export class Game {
           if (this.gameConfig.timeOut && Date.now() - this.startTime > this.gameConfig.timeOut * 60 * 1000) {
             log('战斗超时 返回')
             this.status = GameStatus.退出战斗
-            this.战斗中Page.暂停()
+            战斗中Page.暂停()
           }
           // 开关开启时尝试开 15 倍速(每局最多 3 次)
           if (this.gameConfig.倍速) this.倍速()
@@ -288,7 +283,7 @@ export class Game {
             if (this.gameConfig.exitLevel == 1 || this.currentLevel() >= this.gameConfig.exitLevel) {
               log('提前退出')
               this.status = GameStatus.退出战斗
-              this.战斗中Page.暂停()
+              战斗中Page.暂停()
               sleepTime = 800
             }
           }

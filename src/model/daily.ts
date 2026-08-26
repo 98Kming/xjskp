@@ -10,17 +10,13 @@ import { BasePage } from '../pages/BasePage'
 import { 基地 } from '../pages/基地'
 import { 随机事件 } from '../pages/随机事件'
 import { 战斗 } from '../pages/战斗'
-import { 先锋宝藏 } from '../pages/先锋宝藏'
-import { 碧海凉夏 } from '../pages/碧海凉夏'
 import { 军团 } from '../pages/军团'
 import { 每日一刀 } from '../pages/每日一刀'
 import { 异域挑战 } from '../pages/异域挑战'
 import { 异域挑战军团奖励 } from '../pages/异域挑战-军团奖励'
 import { 异域挑战个人奖励 } from '../pages/异域挑战-个人奖励'
 import { 军团商店 } from '../pages/军团商店'
-import { 道具购买 } from '../pages/道具购买'
 import { 玩法商店 } from '../pages/玩法商店'
-import { 幸运锦鲤 } from '../pages/幸运锦鲤'
 import { 幸运锦鲤免费福利 } from '../pages/幸运锦鲤-免费福利'
 import { 侧栏 } from '../pages/侧栏'
 import { 邮件 } from '../pages/邮件'
@@ -35,19 +31,20 @@ import { 鹊桥祈缘 } from '../pages/鹊桥祈缘'
 import { 相思赴约 } from '../pages/相思赴约'
 import { 好友 } from '../pages/好友'
 import { 领取体力 } from '../pages/领取体力'
-import { 个人信息 } from '../pages/个人信息'
 import { 服务器选择 } from '../pages/服务器选择'
-import { 战斗中 } from '../pages/战斗中'
-import { 战斗结束 } from '../pages/战斗结束'
-import { 暂停战斗 } from '../pages/暂停战斗'
-import { 选择技能 } from '../pages/选择技能'
-import { 观影签到 } from '../pages/观影签到'
 import { 观影便利店 } from '../pages/观影便利店'
-import { 影映观礼 } from '../pages/影映观礼'
 import { 武装降临 } from '../pages/武装降临'
 import { 任务 } from '../pages/任务'
-import { sharedImages } from '../images'
 import { 鎏金罗盘 } from "../pages/鎏金罗盘"
+// 页面实例统一来自注册表 pages.ts(重复 new 会触发 Router 重复注册报错)
+import {
+  战斗Page, 随机事件Page, 邮件Page, 好友Page, 领取体力Page, 巡逻车Page,
+  鹊桥祈缘Page, 相思赴约Page, 寰球救援Page, 寰球远征Page, 终末危机Page, 食堂Page,
+  玩法商店Page, 每日一刀Page, 异域挑战Page, 异域挑战军团奖励Page, 异域挑战个人奖励Page,
+  道具购买Page, 先锋宝藏Page, 碧海凉夏Page, 幸运锦鲤免费福利Page, 幸运锦鲤Page, 任务Page,
+  武装降临Page, 鎏金罗盘Page, 观影签到Page, 观影便利店Page, 影映观礼Page, 服务器选择Page,
+} from './pages'
+import { sharedImages } from '../images'
 
 const IMG = {
   ...sharedImages,
@@ -56,49 +53,7 @@ const IMG = {
 
 var router = Router.getInstance()
 
-// 页面实例（各动作方法通过实例调用）
-new 基地()
-var 随机事件Page = new 随机事件()
-// 侧栏必须在战斗且初始化，否则无法导航到侧栏
-new 侧栏()
-var 战斗Page = new 战斗()
-var 先锋宝藏Page = new 先锋宝藏()
-var 碧海凉夏Page = new 碧海凉夏()
-new 军团()
-var 每日一刀Page = new 每日一刀()
-var 异域挑战Page = new 异域挑战()
-var 异域挑战军团奖励Page = new 异域挑战军团奖励()
-var 异域挑战个人奖励Page = new 异域挑战个人奖励()
-new 军团商店()
-var 道具购买Page = new 道具购买()
-var 玩法商店Page = new 玩法商店()
-var 幸运锦鲤免费福利Page = new 幸运锦鲤免费福利()
-var 幸运锦鲤Page = new 幸运锦鲤()
-var 邮件Page = new 邮件()
-var 巡逻车Page = new 巡逻车()
-var 历练大厅Page = new 历练大厅()
-var 寰球救援Page = new 寰球救援()
-var 寰球远征Page = new 寰球远征()
-var 终末危机Page = new 终末危机()
-var 食堂Page = new 食堂()
-var 缘聚七夕Page = new 缘聚七夕()
-var 鹊桥祈缘Page = new 鹊桥祈缘()
-var 相思赴约Page = new 相思赴约()
-var 观影签到Page = new 观影签到()
-var 观影便利店Page = new 观影便利店()
-var 影映观礼Page = new 影映观礼()
-var 武装降临Page = new 武装降临()
-var 鎏金罗盘Page = new 鎏金罗盘()
-var 好友Page = new 好友()
-var 领取体力Page = new 领取体力()
-// 选择技能先注册：技能弹窗打开时暂停按钮仍可见（战斗中也匹配），优先识别为技能弹窗
-new 选择技能()
-// 暂停战斗先注册：暂停面板打开时左上角暂停按钮可能仍可见（战斗中也匹配），优先识别为暂停战斗
-var 暂停战斗Page = new 暂停战斗()
-// 战斗结束先注册：结算页"战斗中"模板（暂停按钮/已激活技能弹窗图）仍可见（战斗中也匹配），优先识别为战斗结束
-var 战斗结束Page = new 战斗结束()
-var 战斗中Page = new 战斗中()
-var 任务Page = new 任务()
+// 页面实例统一由 pages.ts 注册表创建与注册(见顶部 import);识别优先级见 pages.ts 内分组注释
 var totalTasks = 0
 var successTasks = 0
 var skipTasks = 0
@@ -180,9 +135,6 @@ function doTask(label: string, action: () => boolean): boolean {
   }
 }
 
-
-new 个人信息()
-var 服务器选择Page = new 服务器选择()
 
 /** 执行全部日常任务（不含摘要，支持多服复用） */
 function executeDailyTasks(): void {

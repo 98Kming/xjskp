@@ -27,8 +27,14 @@ export class Router {
   }
 
   register(page: BasePage): void {
+    var name = (page.constructor as any).name
+    if (this.pageMap[name]) {
+      // 重复注册 = 重复 new：页面实例必须全局唯一(否则 detectCurrentPage 重复找图且 pageMap 被覆盖)
+      // 复用已有实例(日常模式页面实例由 daily.ts 导出,战斗模式实例由 Game.ts 导出)
+      throw new Error('页面重复注册: ' + name + ' — 同一页面类只允许注册一次,请复用已有实例而非重复 new')
+    }
     this.pages.push(page)
-    this.pageMap[(page.constructor as any).name] = page
+    this.pageMap[name] = page
   }
 
   /**
