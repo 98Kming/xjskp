@@ -47,6 +47,7 @@ import { 影映观礼 } from '../pages/影映观礼'
 import { 武装降临 } from '../pages/武装降临'
 import { 任务 } from '../pages/任务'
 import { sharedImages } from '../images'
+import { 鎏金罗盘 } from "../pages/鎏金罗盘"
 
 const IMG = {
   ...sharedImages,
@@ -87,6 +88,7 @@ var 观影签到Page = new 观影签到()
 var 观影便利店Page = new 观影便利店()
 var 影映观礼Page = new 影映观礼()
 var 武装降临Page = new 武装降临()
+var 鎏金罗盘Page = new 鎏金罗盘()
 var 好友Page = new 好友()
 var 领取体力Page = new 领取体力()
 // 选择技能先注册：技能弹窗打开时暂停按钮仍可见（战斗中也匹配），优先识别为技能弹窗
@@ -194,7 +196,7 @@ function executeDailyTasks(): void {
   }
   if (isDailyEnabled('先锋宝藏_免费抽') || isDailyEnabled('碧海凉夏_免费抽') || isDailyEnabled('幸运锦鲤_免费福利') ||
     isDailyEnabled('观影签到_签到') || isDailyEnabled('观影签到_观影便利店') || isDailyEnabled('影映观礼_领取') ||
-    isDailyEnabled('武装降临_领取')) {
+    isDailyEnabled('武装降临_领取') || isDailyEnabled('鎏金罗盘_领取')) {
     批量执行活动()
   }
   if (isDailyEnabled('邮件')) {
@@ -405,6 +407,12 @@ function 构建活动目标列表(): 活动目标[] {
   if (isDailyEnabled('武装降临_领取')) {
     列表.push({ 名: '武装降临 领取', 页: 武装降临Page, 入口图: IMG.战斗武装降临, 执行: function (): boolean {
       if (!nav(任务, 武装降临)) return false
+      return 任务Page.领取()
+    } })
+  }
+  if (isDailyEnabled('鎏金罗盘_领取')) {
+    列表.push({ 名: '鎏金罗盘 领取', 页: 鎏金罗盘Page, 入口图: IMG.战斗鎏金罗盘, 执行: function (): boolean {
+      if (!nav(任务, 鎏金罗盘)) return false
       return 任务Page.领取()
     } })
   }

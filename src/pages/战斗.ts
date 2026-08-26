@@ -9,6 +9,7 @@ import { 个人信息 } from './个人信息'
 import { 先锋宝藏 } from './先锋宝藏'
 import { 碧海凉夏 } from './碧海凉夏'
 import { 武装降临 } from './武装降临'
+import { 鎏金罗盘 } from './鎏金罗盘'
 import { 缘聚七夕 } from './缘聚七夕'
 import { 战斗中 } from './战斗中'
 import { 组队邀请推荐 } from './组队邀请-推荐'
@@ -98,6 +99,16 @@ export class 战斗 extends BasePage {
           self.scrollUp()
           return action()
         }, imagePath: IMG.战斗武装降临
+      },
+      {
+        target: 鎏金罗盘, action: function (): boolean {
+          var action = createRouteAction(IMG.战斗鎏金罗盘)
+          if (action()) return true
+          self.scrollDown()
+          if (action()) return true
+          self.scrollUp()
+          return action()
+        }, imagePath: IMG.战斗鎏金罗盘
       },
       {
         target: 观影签到, action: function (): boolean {

@@ -74,6 +74,7 @@ export type MainWindowView = {
   观影签到_观影便利店: ConfigurableView<PrefSwitch> & JsCheckBox
   影映观礼_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   武装降临_领取: ConfigurableView<PrefSwitch> & JsCheckBox
+  鎏金罗盘_领取: ConfigurableView<PrefSwitch> & JsCheckBox
 }
 export class MainWindow extends FloatWindow<MainWindowView> {
   constructor() {
