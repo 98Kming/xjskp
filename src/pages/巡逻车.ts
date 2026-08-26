@@ -12,7 +12,7 @@ export class 巡逻车 extends BasePage {
   is = createPageDetector(IMG.页面)
 
   领取(): boolean {
-    return createRouteAction(IMG.任务领取)() && (click(device.width / 2, device.height - 10), sleep(300), click(device.width / 2, device.height - 10), sleep(200), true)
+    return createRouteAction(IMG.任务领取1)() && (click(device.width / 2, device.height - 10), sleep(300), click(device.width / 2, device.height - 10), sleep(200), true)
   }
 
   routes(): Route[] {

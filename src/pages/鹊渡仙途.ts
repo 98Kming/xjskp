@@ -36,7 +36,7 @@ export class 鹊渡仙途 extends BasePage {
         if (this.任务1()) {
           log('任务1')
           let point
-          while (point = imageDetector(IMG.任务领取, waitScreen(500))) {
+          while (point = imageDetector(IMG.任务领取1, waitScreen(500))) {
             flag = true
             log('领取道具')
             click(point.x, point.y)
