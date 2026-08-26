@@ -5,7 +5,7 @@ import { sharedImages } from '../images'
 const IMG = {
   ...sharedImages,
   页面: 'images/鹊桥祈缘_1_0.9_768_2277_845_2321.png',
-  免费: 'images/鹊桥祈缘$$免费_1_0.9_220_2062_339_2113.png',
+  免费: 'images/鹊桥祈缘$$免费_1_0.9_220_2062_339_2113.png', // 覆盖共享键($免费通用按钮):本页免费按钮
 }
 
 export class 鹊桥祈缘 extends BasePage {
