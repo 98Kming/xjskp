@@ -14,6 +14,8 @@ import { 组队邀请推荐 } from '../pages/组队邀请-推荐'
 import { 组队邀请好友 } from '../pages/组队邀请-好友'
 // 页面实例统一来自注册表 pages.ts(重复 new 会触发 Router 重复注册报错)；识别优先级见 pages.ts 内分组注释
 import { 战斗中Page, 暂停战斗Page, 战斗结束Page, 选择技能Page, 战斗Page, 寰球救援Page, 接受邀请列表Page } from './pages'
+// 精英掉落仅在战斗模式注册(不占日常模式识别次数):懒创建单例,Game 重复启动不重复注册
+var 精英掉落单例: 精英掉落 | null = null
 import { sharedImages } from '../images'
 // 页面级图片映射：sharedImages 透传共享键 + 本页私有键
 const IMG = {
@@ -29,10 +31,13 @@ export class Game {
   // images.read 缺失返回 null 不抛异常(与 getTemplate 不同),模板未提供时不阻塞脚本启动
   static img_元素试炼_挑战 = images.read("./images/元素试炼_挑战.png")
   static img_元素试炼_开始游戏 = images.read("./images/元素试炼_开始游戏.png")
-  constructor(private gameConfig: GameConfig) { }
+  constructor(private gameConfig: GameConfig) {
+    // 懒创建:首次启动注册精英掉落,重复启动复用同一实例(避免 Router 重复注册报错)
+    if (!精英掉落单例) { 精英掉落单例 = new 精英掉落() }
+    this.精英掉落Page = 精英掉落单例
+  }
 
-  // 战斗中/暂停战斗/战斗结束/选择技能/战斗/寰球救援 实例复用 daily.ts 导出的单例(见顶部 import),仅精英掉落独立持有
-  private 精英掉落Page = new 精英掉落()
+  private 精英掉落Page: 精英掉落
 
   private enable_倍速 = false
   private 倍速尝试 = 0 // 每局开倍速尝试次数,防找不到按钮时无限点击
