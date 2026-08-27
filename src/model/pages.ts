@@ -26,9 +26,8 @@ import { 寰球救援 } from '../pages/寰球救援'
 import { 寰球远征 } from '../pages/寰球远征'
 import { 终末危机 } from '../pages/终末危机'
 import { 食堂 } from '../pages/食堂'
-import { 缘聚七夕 } from '../pages/缘聚七夕'
-import { 鹊桥祈缘 } from '../pages/鹊桥祈缘'
-import { 相思赴约 } from '../pages/相思赴约'
+import { 光落彼端 } from '../pages/光落彼端'
+import { 超能之星 } from '../pages/超能之星'
 import { 观影签到 } from '../pages/观影签到'
 import { 观影便利店 } from '../pages/观影便利店'
 import { 影映观礼 } from '../pages/影映观礼'
@@ -72,9 +71,8 @@ export var 寰球救援Page = new 寰球救援()
 export var 寰球远征Page = new 寰球远征()
 export var 终末危机Page = new 终末危机()
 export var 食堂Page = new 食堂()
-export var 缘聚七夕Page = new 缘聚七夕()
-export var 鹊桥祈缘Page = new 鹊桥祈缘()
-export var 相思赴约Page = new 相思赴约()
+export var 光落彼端Page = new 光落彼端()
+export var 超能之星Page = new 超能之星()
 export var 观影签到Page = new 观影签到()
 export var 观影便利店Page = new 观影便利店()
 export var 影映观礼Page = new 影映观礼()

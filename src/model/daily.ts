@@ -26,9 +26,8 @@ import { 寰球救援 } from '../pages/寰球救援'
 import { 寰球远征 } from '../pages/寰球远征'
 import { 终末危机 } from '../pages/终末危机'
 import { 食堂 } from '../pages/食堂'
-import { 缘聚七夕 } from '../pages/缘聚七夕'
-import { 鹊桥祈缘 } from '../pages/鹊桥祈缘'
-import { 相思赴约 } from '../pages/相思赴约'
+import { 光落彼端 } from '../pages/光落彼端'
+import { 超能之星 } from '../pages/超能之星'
 import { 好友 } from '../pages/好友'
 import { 领取体力 } from '../pages/领取体力'
 import { 服务器选择 } from '../pages/服务器选择'
@@ -39,7 +38,7 @@ import { 鎏金罗盘 } from "../pages/鎏金罗盘"
 // 页面实例统一来自注册表 pages.ts(重复 new 会触发 Router 重复注册报错)
 import {
   战斗Page, 随机事件Page, 邮件Page, 好友Page, 领取体力Page, 巡逻车Page,
-  鹊桥祈缘Page, 相思赴约Page, 寰球救援Page, 寰球远征Page, 终末危机Page, 食堂Page,
+  光落彼端Page, 超能之星Page, 寰球救援Page, 寰球远征Page, 终末危机Page, 食堂Page,
   玩法商店Page, 每日一刀Page, 异域挑战Page, 异域挑战军团奖励Page, 异域挑战个人奖励Page,
   道具购买Page, 先锋宝藏Page, 碧海凉夏Page, 幸运锦鲤免费福利Page, 幸运锦鲤Page, 任务Page,
   武装降临Page, 鎏金罗盘Page, 观影签到Page, 观影便利店Page, 影映观礼Page, 服务器选择Page,
@@ -179,24 +178,23 @@ function executeDailyTasks(): void {
     })
   }
 
-  // ======== 缘聚七夕（限时活动：鹊桥祈缘、相思赴约） ========
-  var 缘聚七夕可达 = false
-  var 缘聚七夕开关开启 = isDailyEnabled('缘聚七夕_鹊桥祈缘') || isDailyEnabled('缘聚七夕_相思赴约')
-  if (缘聚七夕开关开启) {
-    缘聚七夕可达 = nav(缘聚七夕)
+  // ======== 光落彼端（限时活动：光行千里、超能之星） ========
+  var 光落彼端可达 = false
+  var 光落彼端开关开启 = isDailyEnabled('光落彼端_光行千里') || isDailyEnabled('光落彼端_超能之星')
+  if (光落彼端开关开启) {
+    光落彼端可达 = nav(光落彼端)
   }
-  if (isDailyEnabled('缘聚七夕_鹊桥祈缘')) {
-    doTask('缘聚七夕-鹊桥祈缘 免费', function (): boolean {
-      if (!缘聚七夕可达) return false
-      if (!nav(鹊桥祈缘)) return false
-      return 鹊桥祈缘Page.click_免费()
+  if (isDailyEnabled('光落彼端_光行千里')) {
+    doTask('光落彼端-光行千里 领取', function (): boolean {
+      if (!光落彼端可达) return false
+      return 光落彼端Page.click_光行千里()
     })
   }
-  if (isDailyEnabled('缘聚七夕_相思赴约')) {
-    doTask('缘聚七夕-相思赴约 签到', function (): boolean {
-      if (!缘聚七夕可达) return false
-      if (!nav(相思赴约)) return false
-      return 相思赴约Page.click_签到()
+  if (isDailyEnabled('光落彼端_超能之星')) {
+    doTask('光落彼端-超能之星 免费', function (): boolean {
+      if (!光落彼端可达) return false
+      if (!nav(超能之星)) return false
+      return 超能之星Page.click_免费()
     })
   }
 

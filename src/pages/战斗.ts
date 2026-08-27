@@ -10,7 +10,7 @@ import { 先锋宝藏 } from './先锋宝藏'
 import { 碧海凉夏 } from './碧海凉夏'
 import { 武装降临 } from './武装降临'
 import { 鎏金罗盘 } from './鎏金罗盘'
-import { 缘聚七夕 } from './缘聚七夕'
+import { 光落彼端 } from './光落彼端'
 import { 战斗中 } from './战斗中'
 import { 组队邀请推荐 } from './组队邀请-推荐'
 import { 接受邀请列表 } from './接受邀请列表'
@@ -26,7 +26,7 @@ const IMG = {
   战斗中: 'images/战斗$战斗中_1_0.9_410_1816_668_1935.png',
   侧栏: 'images/战斗$侧栏_1_0.9_974_378_1040_447.png',
   巡逻车: 'images/战斗$巡逻车_1_0.7_58_1917_169_1955.png',
-  缘聚七夕: 'images/战斗$缘聚七夕_1_0.8_45_428_122_482.png',
+  光落彼端: 'images/战斗$光落彼端_1_0.8_75_439_105_463.png',
 }
 
 export class 战斗 extends BasePage {
@@ -141,10 +141,10 @@ export class 战斗 extends BasePage {
         }, imagePath: IMG.战斗影映观礼
       },
       {
-        target: 缘聚七夕, action: function (): boolean {
-          var action = createRouteAction(IMG.缘聚七夕)
+        target: 光落彼端, action: function (): boolean {
+          var action = createRouteAction(IMG.光落彼端)
           return action()
-        }, imagePath: IMG.缘聚七夕
+        }, imagePath: IMG.光落彼端
       },
       // 队长:组队邀请弹窗(默认推荐 tab)
       { target: 组队邀请推荐, action: createRouteAction(IMG.邀请), imagePath: IMG.邀请 },

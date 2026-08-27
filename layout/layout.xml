@@ -79,8 +79,8 @@
           <pref-switch id="终末危机_扫荡" text="终末危机-扫荡" checked="true" layoutDirection="rtl" />
           <pref-switch id="商店_超时空军团兵碎片" text="商店-超时空军团兵碎片" checked="true" layoutDirection="rtl" />
           <pref-switch id="食堂" text="食堂-一键领取" checked="true" layoutDirection="rtl" />
-          <pref-switch id="缘聚七夕_鹊桥祈缘" text="缘聚七夕-鹊桥祈缘" checked="true" layoutDirection="rtl" />
-          <pref-switch id="缘聚七夕_相思赴约" text="缘聚七夕-相思赴约" checked="true" layoutDirection="rtl" />
+          <pref-switch id="光落彼端_光行千里" text="光落彼端-光行千里" checked="true" layoutDirection="rtl" />
+          <pref-switch id="光落彼端_超能之星" text="光落彼端-超能之星" checked="true" layoutDirection="rtl" />
           <pref-switch id="观影签到_签到" text="观影签到-签到" checked="true" layoutDirection="rtl" />
           <pref-switch id="观影签到_观影便利店" text="观影签到-观影便利店" checked="true" layoutDirection="rtl" />
           <pref-switch id="影映观礼_领取" text="影映观礼-领取" checked="true" layoutDirection="rtl" />
