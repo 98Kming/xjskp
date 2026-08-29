@@ -6,7 +6,7 @@ import { sharedImages } from '../images'
 const IMG = {
   ...sharedImages,
   页面: 'images/寰球远征$$_开始游戏_1_0.9_515_2220_614_2308.png', // 页面识别图兼作开始游戏按钮
-  免费: 'images/寰球远征$$免费_1_0.8_50_793_109_808.png', // 覆盖共享键($免费):本页免费按钮图
+  免费: 'images/寰球远征$$免费_1_0.8_50_793_109_930.png', // 覆盖共享键($免费):本页免费按钮图
 }
 
 export class 寰球远征 extends BasePage {

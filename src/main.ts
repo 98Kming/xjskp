@@ -229,9 +229,18 @@ function 获取队友信息(isLeader: boolean): Teammate | undefined {
   return t
 }
 
+// 工作线程互斥:threads 线程与主线程共享模块单例(如 img.ts 的 templateCache),
+// 并发任务会互相干扰找图并引发竞态崩溃(getTemplate 空洞 TypeError);
+// 线程存活时拒绝再次启动。用 isAlive() 判断而非 finally 复位——shutDownAll 强杀时 finally 不保证执行
+var 任务线程: any = null
+
 function start(fun: () => void, 等待熄屏: boolean = true) {
+  if (任务线程 && 任务线程.isAlive()) {
+    toast('脚本任务正在运行中，请先停止')
+    return
+  }
   smallWindow.show("停止")
-  threads.start(() => {
+  任务线程 = threads.start(() => {
     try {
       sleep(500)
       fun()
@@ -251,7 +260,8 @@ function start(fun: () => void, 等待熄屏: boolean = true) {
         log(it.filePath, it.point1, '[', it.point2.x, it.point2.y, ']')
       })
     } finally {
-
+      // 线程正常/异常结束时释放引用;被强杀时此处不执行,但 isAlive() 已为 false,不影响下次启动
+      任务线程 = null
     }
   })
 }

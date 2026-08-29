@@ -47,7 +47,6 @@ import { sharedImages } from '../images'
 
 const IMG = {
   ...sharedImages,
-  远征未开启: 'images/历练大厅_远征-未开启_1_0.9_573_1952_866_1997.png',
 }
 
 var router = Router.getInstance()
@@ -220,10 +219,6 @@ function executeDailyTasks(): void {
       return false
     }
     if (!nav(历练大厅)) return false
-    if (imageDetector(IMG.远征未开启)) {
-      console.log('[日常]   寰球远征未开启')
-      return false
-    }
     if (!nav(寰球远征)) return false
     return 寰球远征Page.免费()
   })

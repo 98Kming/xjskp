@@ -6,7 +6,7 @@ import { sharedImages } from '../images'
 const IMG = {
   ...sharedImages,
   back: 'images/战斗结束$_back_0_0.9_400_1961_805_2154.png',
-  战斗中: 'images/战斗结束$战斗中_1_0.9_228_1671_422_1719.png',
+  战斗中: 'images/战斗结束$战斗中_1_0.9_228_1962_422_2010.png',
 }
 
 export class 战斗结束 extends BasePage {

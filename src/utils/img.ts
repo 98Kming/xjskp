@@ -110,6 +110,8 @@ export function ocrText(img: any, x: number, y: number, w: number, h: number): s
 export function getTemplate(filePath: string): ImageWrapper {
   // 线性查找(模板数量有上限,字符串比较开销可忽略)
   for (var i = 0; i < templateCache.length; i++) {
+    // 防御:threads 并发时 splice/shift 可能让数组出现空洞(与 main.ts start 互斥双保险)
+    if (templateCache[i] == null) continue
     if (templateCache[i].key === filePath) {
       var hit = templateCache[i]
       // 移到末尾表示最近使用
@@ -463,24 +465,12 @@ export function createAnchoredAction(anchorPath: string, targetPath: string): ()
 
     // 标识图底部即搜索起点
     var searchY = anchorPoint.y + anchorTemplate.height
-    var searchH = height - searchY
-    if (searchH <= 0) return false
+    // var searchH = height - searchY
+    // if (searchH <= 0) return false
 
     // 在标识下方区域找目标按钮，取最上方的一个
-    var targetResult = images.matchTemplate(img, targetTemplate, {
-      region: [0, searchY, width, searchH],
-      threshold: targetParsed.threshold,
-    })
-    if (!targetResult || !targetResult.matches || targetResult.matches.length === 0) return false
-    var topMatch = targetResult.matches[0]
-    for (var mi = 1; mi < targetResult.matches.length; mi++) {
-      if (targetResult.matches[mi].point.y < topMatch.point.y) {
-        topMatch = targetResult.matches[mi]
-      }
-    }
-    var targetPoint = topMatch.point
-    if (!targetPoint) return false
-
+    let targetPoint = findImageMinYPoint(targetPath, searchY, img)
+    if(!targetPoint) return false
     click(toScreenX(targetPoint.x + targetTemplate.width / 2), toScreenY(targetPoint.y + targetTemplate.height / 2))
     return true
   }
@@ -671,14 +661,6 @@ export function findImageMinYPoint(filePath: string, startY: number = -1, img?: 
     threshold: parsed.threshold,
     max: 20
   }).topmost()?.point
-  // if (!targetResult || !targetResult.matches || targetResult.matches.length === 0) return false
-  // var topMatch = targetResult.matches[0]
-  // for (var mi = 1; mi < targetResult.matches.length; mi++) {
-  //   if (targetResult.matches[mi].point.y < topMatch.point.y) {
-  //     topMatch = targetResult.matches[mi]
-  //   }
-  // }
-  // return topMatch.point
 }
 
 function uniqueDescMatches(matches: org.autojs.autojs.core.image.TemplateMatching.Match[]) {

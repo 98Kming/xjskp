@@ -102,7 +102,14 @@ export class Game {
       return true
     } else if (modalPage === 战斗结束Page) {
       log("返回中")
-      // 一局结束
+      // 快速再战会绕过外层 do-while 的局数停止判定(reset 内 runNum++ 后直接进下一局);
+      // 本局结束时 runNum 尚未 +1,已是最后一局(runNum == gameConfig.runNum - 1)时不再战,否则局数配置失效无限打
+      if (this.runNum < this.gameConfig.runNum - 1 && 战斗结束Page.再战()) {
+        log("战斗结束→快速再战")
+        this.reset()
+        return true
+      }
+      // 无快速入口或已是最后一局 → 回退主界面,外层循环重新准备/收尾
       战斗结束Page.back()
       this.reset()
       return false
