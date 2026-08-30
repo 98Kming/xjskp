@@ -42,6 +42,7 @@ import { 战斗中 } from '../pages/战斗中'
 import { 任务 } from '../pages/任务'
 import { 个人信息 } from '../pages/个人信息'
 import { 服务器选择 } from '../pages/服务器选择'
+import { 登录 } from '../pages/登录'
 import { 接受邀请列表 } from '../pages/接受邀请列表'
 import { 组队邀请推荐 } from '../pages/组队邀请-推荐'
 import { 组队邀请好友 } from '../pages/组队邀请-好友'
@@ -94,6 +95,9 @@ export var 任务Page = new 任务()
 // ======== 服务器页 ========
 export var 个人信息Page = new 个人信息()
 export var 服务器选择Page = new 服务器选择()
+
+// ======== 登录页(仅启动时出现,放最后避免抢占日常页面识别) ========
+export var 登录Page = new 登录()
 
 // ======== 组队页(注册顺序靠后,识别优先级最低,不与现有页面抢识别) ========
 export var 接受邀请列表Page = new 接受邀请列表()

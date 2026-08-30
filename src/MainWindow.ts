@@ -58,7 +58,7 @@ export type MainWindowView = {
   军团_每日一刀: ConfigurableView<PrefSwitch> & JsCheckBox
   军团_异域挑战: ConfigurableView<PrefSwitch> & JsCheckBox
   军团_军团商店: ConfigurableView<PrefSwitch> & JsCheckBox
-  闪退19次: ConfigurableView<PrefSwitch> & JsCheckBox
+  闪退19次: ConfigurableView<PrefEnableNumInput>
   全部账号: ConfigurableView<PrefSwitch> & JsCheckBox
   开始任务: View
   兑换码: View

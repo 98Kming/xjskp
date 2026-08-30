@@ -35,6 +35,7 @@ import { 观影便利店 } from '../pages/观影便利店'
 import { 武装降临 } from '../pages/武装降临'
 import { 任务 } from '../pages/任务'
 import { 鎏金罗盘 } from "../pages/鎏金罗盘"
+import { 闪退 } from "./闪退"
 // 页面实例统一来自注册表 pages.ts(重复 new 会触发 Router 重复注册报错)
 import {
   战斗Page, 随机事件Page, 邮件Page, 好友Page, 领取体力Page, 巡逻车Page,
@@ -313,6 +314,14 @@ function executeDailyTasks(): void {
       if (!ticketAction()) return false
       sleep(1500)
       return 道具购买Page.购买()
+    })
+  }
+
+  // ======== 闪退刷奖励(放最后:闪退完成后游戏重启,不影响前面任务) ========
+  if (isDailyEnabled('闪退19次')) {
+    doTask('闪退 刷奖励', function (): boolean {
+      var 次数 = mainWindow.window.闪退19次.widget.getValue() || 19
+      return 闪退.start(次数)
     })
   }
 
