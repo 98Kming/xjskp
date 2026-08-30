@@ -93,16 +93,16 @@ export class 随机事件 extends BasePage {
       for (var i = 0; i < this.领取列表.length; i++) {
         if (this.领取列表[i]()) {
           sleep(800)
-          if (this.确定Action()) {
-            found = true
-            tmpFound = true
-            waitObtain(2000)
-            sleep(800)
-          }
+        }
+        if (this.确定Action()) {
+          found = true
+          tmpFound = true
+          waitObtain(2000)
+          sleep(800)
         }
       }
-      if(!tmpFound) {
-        if(this.is(screen())) {
+      if (!tmpFound) {
+        if (this.is(screen())) {
           log('[随机事件] 有未添加的按钮等待收录')
           found = false
         }

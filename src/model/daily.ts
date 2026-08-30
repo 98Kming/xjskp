@@ -36,6 +36,7 @@ import { 武装降临 } from '../pages/武装降临'
 import { 任务 } from '../pages/任务'
 import { 鎏金罗盘 } from "../pages/鎏金罗盘"
 import { 闪退 } from "./闪退"
+import { 快速退出 } from "./快速退出"
 // 页面实例统一来自注册表 pages.ts(重复 new 会触发 Router 重复注册报错)
 import {
   战斗Page, 随机事件Page, 邮件Page, 好友Page, 领取体力Page, 巡逻车Page,
@@ -322,6 +323,14 @@ function executeDailyTasks(): void {
     doTask('闪退 刷奖励', function (): boolean {
       var 次数 = mainWindow.window.闪退19次.widget.getValue() || 19
       return 闪退.start(次数)
+    })
+  }
+
+  // ======== 快速退出刷次数(进战斗后正常结算退出,计入"参与战斗"任务;与闪退并列放最后) ========
+  if (isDailyEnabled('快速退出N次')) {
+    doTask('快速退出 刷次数', function (): boolean {
+      var 次数 = mainWindow.window.快速退出N次.widget.getValue() || 10
+      return 快速退出.start(次数)
     })
   }
 
