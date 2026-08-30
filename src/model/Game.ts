@@ -140,11 +140,10 @@ export class Game {
         throw new Error("未选择队员")
       }
       // 已在队伍中(退队按钮出现)→ 无需重复邀请
-      if (imageDetector(IMG.退队)) {
+      if (imageDetector(IMG.踢出)) {
         return true
       }
       // 路由到组队邀请弹窗(默认推荐 tab)→ 切好友 tab
-      Router.getInstance().go(组队邀请推荐)
       Router.getInstance().go(组队邀请好友)
       // 循环邀请直到离开邀请页(队友确认后弹窗关闭);加次数上限防队友不在线时无限卡死
       var 邀请次数 = 0
