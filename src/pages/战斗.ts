@@ -18,6 +18,7 @@ import { 观影签到 } from './观影签到'
 import { scrollFind } from '../utils/scroll'
 import { 影映观礼 } from './影映观礼'
 import { sharedImages } from '../images'
+import { 丛林遗迹 } from './丛林遗迹'
 
 const IMG = {
   ...sharedImages,
@@ -99,6 +100,16 @@ export class 战斗 extends BasePage {
           self.scrollUp()
           return action()
         }, imagePath: IMG.战斗武装降临
+      },
+      {
+        target: 丛林遗迹, action: function (): boolean {
+          var action = createRouteAction(IMG.战斗丛林遗迹)
+          if (action()) return true
+          self.scrollDown()
+          if (action()) return true
+          self.scrollUp()
+          return action()
+        }, imagePath: IMG.战斗丛林遗迹
       },
       {
         target: 鎏金罗盘, action: function (): boolean {

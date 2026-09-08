@@ -253,12 +253,6 @@ function start(fun: () => void, 等待熄屏: boolean = true) {
     } catch (e: any) {
       log(e.javaException == "com.stardust.autojs.runtime.exception.ScriptInterruptedException", e)
       smallWindow.close()
-      // 按ImgP.point1.y 从小到大遍历输出imgMap，格式log(ImgP.filePath,ImgP.point1,'[', ImgP.point2.x,ImgP.point2.y,']')
-      var imgPs = Array.from(imgMap.values())
-      imgPs.sort(function (a, b) { return a.point1[1] - b.point1[1] })
-      imgPs.forEach(function (it) {
-        log(it.filePath, it.point1, '[', it.point2.x, it.point2.y, ']')
-      })
     } finally {
       // 线程正常/异常结束时释放引用;被强杀时此处不执行,但 isAlive() 已为 false,不影响下次启动
       任务线程 = null

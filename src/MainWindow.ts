@@ -50,6 +50,7 @@ export type MainWindowView = {
   先锋宝藏_免费抽: ConfigurableView<PrefSwitch> & JsCheckBox
   幸运锦鲤_免费福利: ConfigurableView<PrefSwitch> & JsCheckBox
   碧海凉夏_免费抽: ConfigurableView<PrefSwitch> & JsCheckBox
+  碧海凉夏_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   作战计划_签到: ConfigurableView<PrefSwitch> & JsCheckBox
   寰球救援_领票: ConfigurableView<PrefSwitch> & JsCheckBox
   寰球救援_广告门票: ConfigurableView<PrefSwitch> & JsCheckBox
@@ -75,6 +76,7 @@ export type MainWindowView = {
   观影签到_观影便利店: ConfigurableView<PrefSwitch> & JsCheckBox
   影映观礼_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   武装降临_领取: ConfigurableView<PrefSwitch> & JsCheckBox
+  丛林遗迹_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   鎏金罗盘_领取: ConfigurableView<PrefSwitch> & JsCheckBox
 }
 export class MainWindow extends FloatWindow<MainWindowView> {

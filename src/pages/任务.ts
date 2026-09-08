@@ -24,7 +24,6 @@ export class 任务 extends BasePage {
     while (point) {
       click(toScreenX(point.x), toScreenY(point.y))
       if(!waitObtain(2000, 200)) {
-        point = imageDetector(IMG.任务领取1)
         if(failCount > 2) {
           let matches = images.matchTemplate(waitScreen(100), getTemplate(parsed.rawFileName), { region: [parsed.x1, parsed.y1, parsed.x2 - parsed.x1, parsed.y2 - parsed.y1] ,threshold: 0.8 })
           point = Array.from(matches.points).find(it => Math.abs(it.y - point!.y) > getTemplate(parsed.rawFileName).getHeight()) || null
@@ -35,6 +34,7 @@ export class 任务 extends BasePage {
         count++
         sleep(500)
       }
+      point = imageDetector(parsed.rawFileName)
     }
     if (count > 0) {
       console.log('任务 领取完成，共领取 ' + count + ' 次')

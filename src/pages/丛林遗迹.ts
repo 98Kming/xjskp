@@ -1,23 +1,19 @@
 import { BasePage, Route } from './BasePage'
 import { createPageDetector, createRouteAction } from '../utils/img'
-import { sharedImages } from '../images'
 import { 任务 } from './任务'
+import { sharedImages } from '../images'
 
 const IMG = {
   ...sharedImages,
-  页面: 'images/碧海凉夏_1_0.9_455_106_514_176.png',
+  页面: 'images/丛林遗迹$_任务_1_0.9_42_634_94_674.png',
 }
 
-export class 碧海凉夏 extends BasePage {
-  name = '碧海凉夏'
+export class 丛林遗迹 extends BasePage {
+  name = '丛林遗迹'
   is = createPageDetector(IMG.页面)
-  private 任务Action = createRouteAction(IMG.任务)
+  private 任务Action = createRouteAction(IMG.页面)
 
-  免费(): boolean {
-    return createRouteAction(IMG.免费)() && (sleep(800), this.back(), sleep(800), true)
-  }
-
-   click_任务(): boolean {
+  click_任务(): boolean {
     return this.任务Action()
   }
 

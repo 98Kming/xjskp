@@ -62,16 +62,24 @@
     <vertical layout_width="match_parent" layout_height="wrap_content" padding="16">
       <scroll layout_width="match_parent" layout_weight="1">
         <vertical>
-          <pref-switch id="战斗_七日突围" text="战斗-七日突围" checked="true" layoutDirection="rtl" />
-          <pref-switch id="巡逻车_领取" text="巡逻车-领取" checked="true" layoutDirection="rtl" />
-          <pref-switch id="随机事件_领取" text="随机事件-领取" checked="true" layoutDirection="rtl" />
-          <pref-switch id="邮件" text="领取邮件" checked="true" layoutDirection="rtl" />
-          <pref-switch id="好友_领取体力" text="好友-领取体力" checked="true" layoutDirection="rtl" />
-          <pref-switch id="好友_一键赠送" text="好友-一键赠送" checked="true" layoutDirection="rtl" />
+          <pref-switch id="光落彼端_光行千里" text="光落彼端-光行千里" checked="true" layoutDirection="rtl" />
+          <pref-switch id="光落彼端_超能之星" text="光落彼端-超能之星" checked="true" layoutDirection="rtl" />
+          <pref-switch id="武装降临_领取" text="武装降临-领取" checked="true" layoutDirection="rtl" />
+          <pref-switch id="丛林遗迹_领取" text="丛林遗迹-领取" checked="true" layoutDirection="rtl" />
+          <pref-switch id="碧海凉夏_免费抽" text="碧海凉夏-免费抽" checked="true" layoutDirection="rtl" />
+          <pref-switch id="碧海凉夏_领取" text="碧海凉夏-领取" checked="true" layoutDirection="rtl" />
+          <pref-switch id="鎏金罗盘_领取" text="鎏金罗盘-领取" checked="true" layoutDirection="rtl" />
           <pref-switch id="先锋宝藏_特惠战令" text="先锋宝藏-特惠战令" checked="true" layoutDirection="rtl" />
           <pref-switch id="先锋宝藏_免费抽" text="先锋宝藏-免费抽" checked="true" layoutDirection="rtl" />
           <pref-switch id="幸运锦鲤_免费福利" text="幸运锦鲤-免费福利" checked="true" layoutDirection="rtl" />
-          <pref-switch id="碧海凉夏_免费抽" text="碧海凉夏-免费抽" checked="true" layoutDirection="rtl" />
+          <pref-switch id="影映观礼_领取" text="影映观礼-领取" checked="true" layoutDirection="rtl" />
+          <pref-switch id="观影签到_签到" text="观影签到-签到" checked="true" layoutDirection="rtl" />
+          <pref-switch id="观影签到_观影便利店" text="观影签到-观影便利店" checked="true" layoutDirection="rtl" />
+          <pref-switch id="巡逻车_领取" text="巡逻车-领取" checked="true" layoutDirection="rtl" />
+          <pref-switch id="战斗_七日突围" text="战斗-七日突围" checked="true" layoutDirection="rtl" />
+          <pref-switch id="邮件" text="领取邮件" checked="true" layoutDirection="rtl" />
+          <pref-switch id="好友_领取体力" text="好友-领取体力" checked="true" layoutDirection="rtl" />
+          <pref-switch id="好友_一键赠送" text="好友-一键赠送" checked="true" layoutDirection="rtl" />
           <pref-switch id="作战计划_签到" text="作战计划-签到" checked="true" layoutDirection="rtl" />
           <pref-switch id="寰球救援_领票" text="寰球救援-领票" checked="true" layoutDirection="rtl" />
           <pref-switch id="寰球救援_广告门票" text="寰球救援-广告门票" checked="true" layoutDirection="rtl" />
@@ -79,13 +87,7 @@
           <pref-switch id="终末危机_扫荡" text="终末危机-扫荡" checked="true" layoutDirection="rtl" />
           <pref-switch id="商店_超时空军团兵碎片" text="商店-超时空军团兵碎片" checked="true" layoutDirection="rtl" />
           <pref-switch id="食堂" text="食堂-一键领取" checked="true" layoutDirection="rtl" />
-          <pref-switch id="光落彼端_光行千里" text="光落彼端-光行千里" checked="true" layoutDirection="rtl" />
-          <pref-switch id="光落彼端_超能之星" text="光落彼端-超能之星" checked="true" layoutDirection="rtl" />
-          <pref-switch id="观影签到_签到" text="观影签到-签到" checked="true" layoutDirection="rtl" />
-          <pref-switch id="观影签到_观影便利店" text="观影签到-观影便利店" checked="true" layoutDirection="rtl" />
-          <pref-switch id="影映观礼_领取" text="影映观礼-领取" checked="true" layoutDirection="rtl" />
-          <pref-switch id="武装降临_领取" text="武装降临-领取" checked="true" layoutDirection="rtl" />
-          <pref-switch id="鎏金罗盘_领取" text="鎏金罗盘-领取" checked="true" layoutDirection="rtl" />
+          <pref-switch id="随机事件_领取" text="随机事件-领取" checked="true" layoutDirection="rtl" />
           <pref-switch id="军团_每日一刀" text="军团-每日一刀" checked="true" layoutDirection="rtl" />
           <pref-switch id="军团_军团商店" text="军团-军团商店" checked="true" layoutDirection="rtl" />
           <pref-switch id="军团_异域挑战" text="军团-异域挑战" checked="true" layoutDirection="rtl" />

@@ -37,6 +37,8 @@ import { 任务 } from '../pages/任务'
 import { 鎏金罗盘 } from "../pages/鎏金罗盘"
 import { 闪退 } from "./闪退"
 import { 快速退出 } from "./快速退出"
+import { 丛林遗迹 } from '../pages/丛林遗迹'
+import { 碧海凉夏 } from '../pages/碧海凉夏'
 // 页面实例统一来自注册表 pages.ts(重复 new 会触发 Router 重复注册报错)
 import {
   战斗Page, 随机事件Page, 邮件Page, 好友Page, 领取体力Page, 巡逻车Page,
@@ -44,6 +46,7 @@ import {
   玩法商店Page, 每日一刀Page, 异域挑战Page, 异域挑战军团奖励Page, 异域挑战个人奖励Page,
   道具购买Page, 先锋宝藏Page, 碧海凉夏Page, 幸运锦鲤免费福利Page, 幸运锦鲤Page, 任务Page,
   武装降临Page, 鎏金罗盘Page, 观影签到Page, 观影便利店Page, 影映观礼Page, 服务器选择Page,
+  丛林遗迹Page,
 } from './pages'
 import { sharedImages } from '../images'
 
@@ -121,7 +124,7 @@ function doTask(label: string, action: () => boolean): boolean {
       return true
     }
     var serverTag = currentServer ? ' [' + currentServer + ']' : ''
-    console.log(serverTag +'[日常] ⏭️ ' + label + ' — 跳过 (' + elapsed + 's)')
+    console.log(serverTag + '[日常] ⏭️ ' + label + ' — 跳过 (' + elapsed + 's)')
     skipTasks++
     return false
   } catch (e: any) {
@@ -146,9 +149,9 @@ function executeDailyTasks(): void {
       return 战斗Page.click_七日突围()
     })
   }
-  if (isDailyEnabled('先锋宝藏_免费抽') || isDailyEnabled('碧海凉夏_免费抽') || isDailyEnabled('幸运锦鲤_免费福利') ||
+  if (isDailyEnabled('先锋宝藏_免费抽') || isDailyEnabled('碧海凉夏_免费抽') || isDailyEnabled('碧海凉夏_领取') || isDailyEnabled('幸运锦鲤_免费福利') ||
     isDailyEnabled('观影签到_签到') || isDailyEnabled('观影签到_观影便利店') || isDailyEnabled('影映观礼_领取') ||
-    isDailyEnabled('武装降临_领取') || isDailyEnabled('鎏金罗盘_领取')) {
+    isDailyEnabled('武装降临_领取') || isDailyEnabled('鎏金罗盘_领取') || isDailyEnabled('丛林遗迹_领取')) {
     批量执行活动()
   }
   if (isDailyEnabled('邮件')) {
@@ -215,15 +218,15 @@ function executeDailyTasks(): void {
   }
   if (isDailyEnabled('寰球远征_免费')) {
     doTask('寰球远征 免费', function (): boolean {
-    var day = new Date().getDay()
-    if (day < 5 && day !== 0) {
-      console.log('[日常]   寰球远征仅周五~周末开放')
-      return false
-    }
-    if (!nav(历练大厅)) return false
-    if (!nav(寰球远征)) return false
-    return 寰球远征Page.免费()
-  })
+      var day = new Date().getDay()
+      if (day < 5 && day !== 0) {
+        console.log('[日常]   寰球远征仅周五~周末开放')
+        return false
+      }
+      if (!nav(历练大厅)) return false
+      if (!nav(寰球远征)) return false
+      return 寰球远征Page.免费()
+    })
   }
   if (isDailyEnabled('终末危机_扫荡')) {
     doTask('终末危机 扫荡', function (): boolean {
@@ -361,39 +364,63 @@ function 构建活动目标列表(): 活动目标[] {
   if (isDailyEnabled('碧海凉夏_免费抽')) {
     列表.push({ 名: '碧海凉夏 免费', 页: 碧海凉夏Page, 入口图: IMG.战斗碧海凉夏, 执行: function (): boolean { return 碧海凉夏Page.免费() } })
   }
+  if (isDailyEnabled('碧海凉夏_领取')) {
+    列表.push({
+      名: '碧海凉夏 领取', 页: 碧海凉夏Page, 入口图: IMG.战斗碧海凉夏, 执行: function (): boolean {
+        if (!nav(任务, 碧海凉夏)) return false
+        return 任务Page.领取()
+      }
+    })
+  }
   if (isDailyEnabled('幸运锦鲤_免费福利')) {
-    列表.push({ 名: '免费福利 领取', 页: 幸运锦鲤Page, 入口图: IMG.战斗幸运锦鲤, 执行: function (): boolean {
-      if (!nav(幸运锦鲤免费福利)) return false
-      return 幸运锦鲤免费福利Page.领取奖励()
-    } })
+    列表.push({
+      名: '免费福利 领取', 页: 幸运锦鲤Page, 入口图: IMG.战斗幸运锦鲤, 执行: function (): boolean {
+        if (!nav(幸运锦鲤免费福利)) return false
+        return 幸运锦鲤免费福利Page.领取奖励()
+      }
+    })
   }
   if (isDailyEnabled('武装降临_领取')) {
-    列表.push({ 名: '武装降临 领取', 页: 武装降临Page, 入口图: IMG.战斗武装降临, 执行: function (): boolean {
-      if (!nav(任务, 武装降临)) return false
-      return 任务Page.领取()
-    } })
+    列表.push({
+      名: '武装降临 领取', 页: 武装降临Page, 入口图: IMG.战斗武装降临, 执行: function (): boolean {
+        if (!nav(任务, 武装降临)) return false
+        return 任务Page.领取()
+      }
+    })
+  }
+  if (isDailyEnabled('丛林遗迹_领取')) {
+    列表.push({
+      名: '丛林遗迹 领取', 页: 丛林遗迹Page, 入口图: IMG.战斗丛林遗迹, 执行: function (): boolean {
+        if (!nav(任务, 丛林遗迹)) return false
+        return 任务Page.领取()
+      }
+    })
   }
   if (isDailyEnabled('鎏金罗盘_领取')) {
-    列表.push({ 名: '鎏金罗盘 领取', 页: 鎏金罗盘Page, 入口图: IMG.战斗鎏金罗盘, 执行: function (): boolean {
-      if (!nav(任务, 鎏金罗盘)) return false
-      return 任务Page.领取()
-    } })
+    列表.push({
+      名: '鎏金罗盘 领取', 页: 鎏金罗盘Page, 入口图: IMG.战斗鎏金罗盘, 执行: function (): boolean {
+        if (!nav(任务, 鎏金罗盘)) return false
+        return 任务Page.领取()
+      }
+    })
   }
   if (isDailyEnabled('观影签到_签到') || isDailyEnabled('观影签到_观影便利店')) {
-    列表.push({ 名: '观影签到', 页: 观影签到Page, 入口图: IMG.战斗观影签到, 执行: function (): boolean {
-      var ok = true
-      if (isDailyEnabled('观影签到_签到')) {
-        ok = doTask('观影签到 签到', function (): boolean { return 观影签到Page.免费领取() })
+    列表.push({
+      名: '观影签到', 页: 观影签到Page, 入口图: IMG.战斗观影签到, 执行: function (): boolean {
+        var ok = true
+        if (isDailyEnabled('观影签到_签到')) {
+          ok = doTask('观影签到 签到', function (): boolean { return 观影签到Page.免费领取() })
+        }
+        if (isDailyEnabled('观影签到_观影便利店')) {
+          var ok2 = doTask('观影便利店 免费', function (): boolean {
+            if (!nav(观影便利店)) return false
+            return 观影便利店Page.免费()
+          })
+          return ok && ok2
+        }
+        return ok
       }
-      if (isDailyEnabled('观影签到_观影便利店')) {
-        var ok2 = doTask('观影便利店 免费', function (): boolean {
-          if (!nav(观影便利店)) return false
-          return 观影便利店Page.免费()
-        })
-        return ok && ok2
-      }
-      return ok
-    } })
+    })
   }
   if (isDailyEnabled('影映观礼_领取')) {
     列表.push({ 名: '影映观礼 免费', 页: 影映观礼Page, 入口图: IMG.战斗影映观礼, 执行: function (): boolean { return 影映观礼Page.领取() } })
