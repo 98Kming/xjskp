@@ -1,5 +1,5 @@
 import { BasePage } from './BasePage'
-import { createPageDetector, width, height, getTemplate, screen, imageNameParser, findImageMinYPoint, ocrText, toScreenX, toScreenY, ocrRegion, createRouteAction, imageDetector } from '../utils/img'
+import { createPageDetector, width, getTemplate, screen, findImageMinYPoint, ocrText, toScreenX, toScreenY, imageDetector } from '../utils/img'
 import { scroll, scrollFind } from '../utils/scroll'
 import { sharedImages } from '../images'
 

@@ -16,8 +16,8 @@ export class 寰球远征 extends BasePage {
   免费(): boolean {
     var filePath = IMG.免费
     var parsed = imageNameParser(filePath)
-    var rw = parsed.x2 - parsed.x1
-    var rh = parsed.y2 - parsed.y1
+    var rw = parsed.w
+    var rh = parsed.h
     var template = getTemplate(filePath)
     for (var i = 0; i < 3; i++) {
       var img = screen()

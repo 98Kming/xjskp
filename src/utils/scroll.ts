@@ -49,7 +49,7 @@ export function scrollFind(imgPath: string, direction: 'left' | 'right' | 'top' 
   var template = getTemplate(imgPath)
   for (var i = 0; i < maxScroll; i++) {
     let img = screen()
-    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, parsed.x2 - parsed.x1, parsed.y2 - parsed.y1, parsed.threshold)
+    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, parsed.w, parsed.h, parsed.threshold)
     if (point) {
       return point
     }

@@ -25,8 +25,8 @@ export class 寰球救援 extends BasePage {
     var filePath = IMG.广告门票
     var parsed = imageNameParser(filePath)
     var tpl = getTemplate(filePath)
-    var rw = parsed.x2 - parsed.x1
-    var rh = parsed.y2 - parsed.y1
+    var rw = parsed.w
+    var rh = parsed.h
     sleep(2000)
     var point = images.findImageInRegion(screen(), tpl, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
     if (!point) return false

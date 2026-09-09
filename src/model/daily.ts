@@ -452,7 +452,7 @@ function 批量执行活动(): void {
     for (var i = 0; i < 目标列表.length; i++) {
       var parsed = imageNameParser(目标列表[i].入口图)
       var template = getTemplate(目标列表[i].入口图)
-      var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, parsed.x2 - parsed.x1, parsed.y2 - parsed.y1, parsed.threshold)
+      var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, parsed.w, parsed.h, parsed.threshold)
       if (point && (!best || point.y < best.y)) {
         best = { 索引: i, x: point.x, y: point.y, 模板宽: template.width, 模板高: template.height }
       }

@@ -1,12 +1,11 @@
 export const width = 1080
 export const height = width / device.width * device.height
-console.log('屏幕宽高:', width, height, '设备宽高:', device.width, device.height, files.cwd())
 import { imageBasePath } from '../config'
 import { sharedImages } from '../images'
 let last_capture_time = 0
 let cache_screen_img: ImageWrapper | null = null
-var pointCache = new java.util.HashMap()
-var regionCache = new java.util.HashMap()
+/** 区域记忆缓存:key=图片路径,value=上次命中点膨胀出的搜索矩形 {x1,y1,w,h} */
+var regionCache = new java.util.HashMap<string, RectRegion>()
 // 模板缓存 LRU:数组头部最久未用、尾部最近使用,超上限淘汰并 recycle,防止 Dalvik 堆被模板 Bitmap 撑满
 var templateCache: { key: string; img: ImageWrapper }[] = []
 var TEMPLATE_CACHE_MAX = 120
@@ -122,10 +121,6 @@ export function getTemplate(filePath: string): ImageWrapper {
       return hit.img
     }
   }
-  // 仅在 CWD 就是 imageBasePath 目录时才不拼接
-  // let cwd = files.cwd().replace(/\/+$/, '')
-  // let base = imageBasePath.replace(/\/+$/, '')
-  // let path = cwd === base || cwd.endsWith('/' + base) ? filePath : imageBasePath + filePath
   var template = images.read(filePath)
   if (template == null) {
     template = images.read(imageBasePath + filePath)
@@ -203,32 +198,6 @@ interface ImgP {
   point2: OpenCV.Point,
 }
 export const imgMap = new Map<string, ImgP>()
-function a(filePath: string, point: OpenCV.Point) {
-  // 从完整路径中提取文件名
-  const baseName = filePath.split('/').pop()!.replace(/\.[^.]+$/, '')
-  // 优先匹配完整 6 段后缀: _cache_threshold_x1_y1_x2_y2
-  const fullRegex = /_([01])_([01](?:\.\d+)?)_([^_]+)_([^_]+)_([^_]+)_([^_]+)$/
-  const fullMatch = baseName.match(fullRegex)
-  if (fullMatch) {
-    const [, cacheStr, thresholdStr, x1Str, y1Str, x2Str, y2Str] = fullMatch
-    const parseCoordinate = (value: string): number => {
-      if (value === 'w') return width
-      if (value === 'h') return height
-      const num = parseInt(value);
-      if (isNaN(num)) throw new Error(`无效的坐标值: ${value}`)
-      return num;
-    }
-    const x1 = parseCoordinate(x1Str)
-    const y1 = parseCoordinate(y1Str)
-    const x2 = parseCoordinate(x2Str)
-    const y2 = parseCoordinate(y2Str)
-    // let img = getTemplate(filePath)
-    // log(y2-y1-img.getHeight(),y2,y1,img.getHeight())
-    //if(Math.abs(y2-y1-img.getHeight()) < 20) {
-      imgMap.set(filePath, { filePath, point1: [x1, y1], point2: point })
-    //}
-  }
-}
 export function imageNameParser(filePath: string): ImageParseResult {
   // 从完整路径中提取文件名
   const baseName = filePath.split('/').pop()!.replace(/\.[^.]+$/, '')
@@ -251,7 +220,7 @@ export function imageNameParser(filePath: string): ImageParseResult {
     const x2 = parseCoordinate(x2Str)
     const y2 = parseCoordinate(y2Str)
     const [expandedX1, expandedY1, expandedX2, expandedY2] = expandRegion(x1, y1, x2, y2)
-    return { cache, threshold, x1: expandedX1, y1: expandedY1, x2: expandedX2, y2: expandedY2, rawFileName: filePath }
+    return { cache, threshold, x1: expandedX1, y1: expandedY1, w: expandedX2 - expandedX1, h: expandedY2 - expandedY1, rawFileName: filePath }
   }
   // 兼容无坐标格式: _cache_threshold，搜索区域默认为全屏
   const shortRegex = /_([01])_([01](?:\.\d+)?)$/
@@ -263,8 +232,8 @@ export function imageNameParser(filePath: string): ImageParseResult {
       threshold: parseFloat(thresholdStr),
       x1: 0,
       y1: 0,
-      x2: width,
-      y2: height,
+      w: width,
+      h: height,
       rawFileName: filePath
     }
   }
@@ -320,30 +289,55 @@ export interface PageDetector {
   detectImagePath: string
 }
 
-export function imageDetector(filePath: string, img?: ImageWrapper): OpenCV.Point | null {
+/**
+ * 找图原语：区域缓存的唯一读写点。解析在 imageNameParser、模板在 getTemplate。
+ * - cache=1:有记忆 → 先在记忆矩形内找(命中即返回;miss 保留记忆返回 false，
+ *   容忍按钮未出现/页面过渡，坐标记忆永不失效，误匹配靠重启脚本清空)
+ *   无记忆 → 全量找，命中写记忆(矩形=命中点向模板尺寸膨胀±5)
+ * - cache=0 或 noCache:恒全量，不读写记忆
+ * 全量分支的模板尺寸防护：解析区域放大到不小于模板尺寸，模板比区域大时
+ * matchTemplate 结果尺寸为负，OpenCV 抛 "(-215:Assertion failed) s >= 0
+ * function 'setSize'" 直接崩掉整个脚本
+ */
+export function findRegion(filePath: string, img?: ImageWrapper, noCache?: boolean): OpenCV.Point | null {
   var parsed = imageNameParser(filePath)
   var template = getTemplate(filePath)
   img || (img = screen())
-  // 搜索区域放大到不小于模板尺寸：模板比区域大时 matchTemplate 结果尺寸为负，
-  // OpenCV 抛 "(-215:Assertion failed) s >= 0 function 'setSize'" 直接崩掉整个脚本
-  var rw = Math.max(parsed.x2 - parsed.x1, template.width)
-  var rh = Math.max(parsed.y2 - parsed.y1, template.height)
+  var useCache = !noCache && parsed.cache === 1
+  if (useCache) {
+    var rect = regionCache.get(filePath)
+    if (rect) {
+      return images.findImageInRegion(img, template, rect.x1, rect.y1, rect.w, rect.h, parsed.threshold)
+    }
+  }
+  var rw = Math.max(parsed.w, template.width)
+  var rh = Math.max(parsed.h, template.height)
   if (parsed.x1 + rw > img.width || parsed.y1 + rh > img.height) {
     throw new Error('搜索区域小于模板尺寸，请检查' + filePath)
   }
-  let point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-  if (point) {
-    a(filePath, point)
+  var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+  if (point && useCache) {
+    regionCache.put(filePath, rememberRect(point, template))
   }
   return point
 }
 
-export function createPageDetector(filePath: string, skipLuminance?: boolean): PageDetector {
-  var parsed = imageNameParser(filePath)
-  var template = getTemplate(filePath)
-  var rw = parsed.x2 - parsed.x1
-  var rh = parsed.y2 - parsed.y1
+/** 命中点向模板尺寸膨胀±5px 生成记忆矩形(先裁剪到屏内) */
+function rememberRect(point: OpenCV.Point, template: ImageWrapper): RectRegion {
+  var x1 = Math.max(point.x - 5, 0)
+  var y1 = Math.max(point.y - 5, 0)
+  var x2 = Math.min(point.x + template.width + 5, width)
+  var y2 = Math.min(point.y + template.height + 5, height)
+  return { x1: x1, y1: y1, w: x2 - x1, h: y2 - y1 }
+}
 
+/** 一次性检测(恒全量不缓存，避免滚动/等待等位置变化场景误用记忆) */
+export function imageDetector(filePath: string, img?: ImageWrapper): OpenCV.Point | null {
+  return findRegion(filePath, img, true)
+}
+
+export function createPageDetector(filePath: string, skipLuminance?: boolean): PageDetector {
+  var template = getTemplate(filePath)
   /**
    * 模板亮度一致性检查：模板与匹配点亮度差 <50% 才接受。
    * AutoX.js 对 images.resize 后的截图在 y>=1500 区域调 pixel 会抛 NPE
@@ -369,75 +363,21 @@ export function createPageDetector(filePath: string, skipLuminance?: boolean): P
   }
 
   var fn = function (img: ImageWrapper): boolean {
-    var cached = regionCache.get(filePath)
-    if (cached) {
-      var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
-      if (point) {
-        return skipLuminance || luminanceOk(template, img, point, filePath)
-      }
-      // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
-      return false
-    }
-    // 无缓存 → 全量搜索
-    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    var point = findRegion(filePath, img)
     if (!point) return false
-    if (skipLuminance || luminanceOk(template, img, point, filePath)) {
-      a(filePath, point)
-      return true
-    }
-    return false
+    return skipLuminance || luminanceOk(template, img, point, filePath)
   } as PageDetector
   fn.detectImagePath = filePath
   return fn
 }
 
+/** 按钮动作：找图命中后点击按钮中心。cache=1 的区域记忆由 findRegion 维护 */
 export function createRouteAction(filePath: string): (img?: ImageWrapper) => boolean {
-  var parsed = imageNameParser(filePath)
-  var rw = parsed.x2 - parsed.x1
-  var rh = parsed.y2 - parsed.y1
   var template = getTemplate(filePath)
-
-  // cache=1: 带区域缓存，首次匹配后缩小搜索范围（避免盲点，兼顾速度）
-  if (parsed.cache === 1) {
-    return function (img?: ImageWrapper): boolean {
-      var cached = regionCache.get(filePath)
-      if (cached) {
-        img || (img = screen())
-        
-        var point = images.findImageInRegion(img, template, cached.x1, cached.y1, cached.x2 - cached.x1, cached.y2 - cached.y1, parsed.threshold)
-        if (point) {
-          click(toScreenX(point.x + template.width / 2), toScreenY(point.y + template.height / 2))
-          a(filePath, point)
-          return true
-        }
-        // 缓存区域找不到 → 暂时被遮挡或页面过渡，保留缓存下次重试
-        return false
-      }
-      img || (img = screen())
-      var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-      //log('尝试匹配模板:', filePath, `[${parsed.x1},${parsed.y1}-${parsed.x2},${parsed.y2}]`, point ? `结果: 找到坐标(${point.x}, ${point.y})` : '结果: 未找到')
-      if (!point) return false
-      var cx = toScreenX(point.x + template.width / 2)
-      var cy = toScreenY(point.y + template.height / 2)
-      regionCache.put(filePath, {
-        x1: Math.max(point.x - 5, 0),
-        y1: Math.max(point.y - 5, 0),
-        x2: Math.min(point.x + template.width + 5, width),
-        y2: Math.min(point.y + template.height + 5, height)
-      })
-      click(cx, cy)
-      a(filePath, point)
-      return true
-    }
-  }
-
-  // cache=0: 每次重新截图匹配
   return function (img?: ImageWrapper): boolean {
-    img || (img = screen())
-    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    var point = findRegion(filePath, img)
     if (!point) return false
     click(toScreenX(point.x + template.width / 2), toScreenY(point.y + template.height / 2))
-    a(filePath, point)
     return true
   }
 }
@@ -448,26 +388,17 @@ export function createRouteAction(filePath: string): (img?: ImageWrapper) => boo
  * anchorPath 需有坐标（限定锚点搜索区域），targetPath 坐标被忽略（改用锚点动态区域）。
  */
 export function createAnchoredAction(anchorPath: string, targetPath: string): () => boolean {
-  var anchorParsed = imageNameParser(anchorPath)
   var anchorTemplate = getTemplate(anchorPath)
-  var arw = anchorParsed.x2 - anchorParsed.x1
-  var arh = anchorParsed.y2 - anchorParsed.y1
-
-  var targetParsed = imageNameParser(targetPath)
   var targetTemplate = getTemplate(targetPath)
 
   return function (): boolean {
     var img = screen()
-    // 找标识图
-    var anchorPoint = images.findImageInRegion(img, anchorTemplate,
-      anchorParsed.x1, anchorParsed.y1, arw, arh, anchorParsed.threshold)
+    // 找标识图（anchor 图标 cache=1 时记忆区域由 findRegion 维护）
+    var anchorPoint = findRegion(anchorPath, img)
     if (!anchorPoint) return false
 
     // 标识图底部即搜索起点
     var searchY = anchorPoint.y + anchorTemplate.height
-    // var searchH = height - searchY
-    // if (searchH <= 0) return false
-
     // 在标识下方区域找目标按钮，取最上方的一个
     let targetPoint = findImageMinYPoint(targetPath, searchY, img)
     if(!targetPoint) return false
@@ -479,38 +410,14 @@ export function createAnchoredAction(anchorPath: string, targetPath: string): ()
 /**
  * 镜像坐标点击：找图后点击 device.width - 图片.x, 图片.y + 图片.height / 2
  * 入场券类按钮专用：图片在屏幕左侧匹配，点击右侧对应位置。
- * 支持 cache=1 坐标缓存。
+ * cache=1 由 findRegion 记忆搜索区域：每轮先小矩形内确认按钮在，防盲点误点。
  */
 export function createMirroredAction(filePath: string): () => boolean {
-  var parsed = imageNameParser(filePath)
   var template = getTemplate(filePath)
-  var rw = parsed.x2 - parsed.x1
-  var rh = parsed.y2 - parsed.y1
-
-  if (parsed.cache === 1) {
-    return function (): boolean {
-      var cached = pointCache.get(filePath)
-      if (cached) {
-        click(cached.x, cached.y)
-        return true
-      }
-      var img = screen()
-      var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-      if (!point) return false
-      var cx = toScreenX(width - point.x - template.width / 2)
-      var cy = toScreenY(point.y + template.height / 2)
-      pointCache.put(filePath, { x: cx, y: cy })
-      log('镜像点击:', filePath, `坐标(${cx}, ${cy})`)
-      click(cx, cy)
-      return true
-    }
-  }
-
   return function (): boolean {
-    var img = screen()
-    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    var point = findRegion(filePath)
     if (!point) return false
-    var cx = toScreenX(width - point.x)
+    var cx = toScreenX(width - point.x - template.width / 2)
     var cy = toScreenY(point.y + template.height / 2)
     log('镜像点击:', filePath, `坐标(${cx}, ${cy})`)
     click(cx, cy)
@@ -525,15 +432,12 @@ export function createMirroredAction(filePath: string): () => boolean {
  * ticketPath 按标准图片命名解析；soldOutPath 走 getTemplate（先直读，失败再拼 imageBasePath）。
  */
 export function createTicketAction(ticketPath: string, soldOutPath: string): () => boolean {
-  var parsed = imageNameParser(ticketPath)
   var template = getTemplate(ticketPath)
-  var rw = parsed.x2 - parsed.x1
-  var rh = parsed.y2 - parsed.y1
   var soldOutTemplate = getTemplate(soldOutPath)
 
   return function (): boolean {
     var img = screen()
-    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    var point = findRegion(ticketPath, img)
     if (!point) return false
 
     // 入场券右侧查找已售罄（soldOutTemplate 可能为 null，跳过检测）
@@ -653,12 +557,12 @@ export function findImageMinYPoint(filePath: string, startY: number = -1, img?: 
   if(startY === -1) {
     startY = parsed.y1
   }
-  let imgHeight = Math.max(parsed.y2 - startY, template.getHeight())
+  let imgHeight = Math.max(parsed.y1 + parsed.h - startY, template.getHeight())
   if(imgHeight + startY > height) {
     return null;
   }
   return images.matchTemplate(img, template, {
-    region: [parsed.x1, startY, parsed.x2 - parsed.x1, imgHeight],
+    region: [parsed.x1, startY, parsed.w, imgHeight],
     threshold: parsed.threshold,
     max: 20
   }).topmost()?.point
@@ -685,7 +589,7 @@ export function find_队友(isLeader: boolean) {
     let img = screen(0)
     let template = getTemplate(isLeader ? img_组队邀请_邀请.rawFileName : img_组队邀请_接受.rawFileName)
     let result = images.matchTemplate(img, template,
-      { threshold: img_组队邀请_邀请.threshold, region: [img_组队邀请_邀请.x1, img_组队邀请_邀请.y1, img_组队邀请_邀请.x2 - img_组队邀请_邀请.x1, img_组队邀请_邀请.y2 - img_组队邀请_邀请.y1] })
+      { threshold: img_组队邀请_邀请.threshold, region: [img_组队邀请_邀请.x1, img_组队邀请_邀请.y1, img_组队邀请_邀请.w, img_组队邀请_邀请.h] })
     let size = temps.length
     let matches = uniqueDescMatches(result.matches)
     log(matches)

@@ -23,8 +23,8 @@ export class 玩法商店 extends BasePage {
     sleep(800)
 
     var parsed = imageNameParser(IMG.超时空军团兵)
-    var rw = parsed.x2 - parsed.x1
-    var rh = parsed.y2 - parsed.y1
+    var rw = parsed.w
+    var rh = parsed.h
     var template = getTemplate(IMG.超时空军团兵)
     var img = screen()
     var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)

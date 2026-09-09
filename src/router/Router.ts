@@ -305,7 +305,7 @@ export class Router {
         if (route.imagePath) {
           try {
             var fp = imageNameParser(route.imagePath)
-            failInfo += ' | ' + route.imagePath + ' 区域[' + fp.x1 + ',' + fp.y1 + '-' + fp.x2 + ',' + fp.y2 + '] 阈值=' + fp.threshold
+            failInfo += ' | ' + route.imagePath + ' 区域[' + fp.x1 + ',' + fp.y1 + '-' + (fp.x1 + fp.w) + ',' + (fp.y1 + fp.h) + '] 阈值=' + fp.threshold
           } catch (e) {
             failInfo += ' | ' + route.imagePath
           }
@@ -363,7 +363,7 @@ export class Router {
         if (route.imagePath) {
           try {
             var tp = imageNameParser(route.imagePath)
-            timeoutInfo += ' | ' + route.imagePath + ' [' + tp.x1 + ',' + tp.y1 + '-' + tp.x2 + ',' + tp.y2 + ']'
+            timeoutInfo += ' | ' + route.imagePath + ' [' + tp.x1 + ',' + tp.y1 + '-' + (tp.x1 + tp.w) + ',' + (tp.y1 + tp.h) + ']'
           } catch (e) {
             timeoutInfo += ' | ' + route.imagePath
           }
@@ -379,7 +379,7 @@ export class Router {
           if (detectPath) {
             try {
               var dp = imageNameParser(detectPath)
-              detectInfo += ' | 检测模板: ' + detectPath + ' 区域[' + dp.x1 + ',' + dp.y1 + '-' + dp.x2 + ',' + dp.y2 + '] 阈值=' + dp.threshold
+              detectInfo += ' | 检测模板: ' + detectPath + ' 区域[' + dp.x1 + ',' + dp.y1 + '-' + (dp.x1 + dp.w) + ',' + (dp.y1 + dp.h) + '] 阈值=' + dp.threshold
             } catch (e) {
               detectInfo += ' | 检测模板: ' + detectPath
             }
