@@ -37,45 +37,11 @@ import { 探索 } from './model/探索'
 import { Game } from './model/Game'
 import { skillStrategy } from './utils/技能策略'
 import { Router } from './router/Router'
-import { find_队友, imgMap } from './utils/img'
+import { find_队友, imgMap, screenCalls, screenCaptures } from './utils/img'
 import { 组队邀请好友 } from './pages/组队邀请-好友'
 import { 接受邀请列表 } from './pages/接受邀请列表'
 import { 鹊渡仙途 } from './pages/鹊渡仙途'
 
-// var router = Router.getInstance()
-
-// new 侧栏()
-// new 战斗()
-// new 基地()
-// new 历练大厅()
-// new 选择技能()
-// new 寰球救援()
-// new 寰球远征()
-// new 军团()
-// // 幸运锦鲤免费福利 需要在幸运锦鲤前实例化
-// new 幸运锦鲤免费福利()
-// new 幸运锦鲤()
-// new 玩法商店()
-// new 巡逻车()
-// new 食堂()
-// new 邮件()
-// new 个人信息()
-// new 服务器选择()
-// new 异域挑战()
-// new 异域挑战军团奖励()
-// new 异域挑战个人奖励()
-// new 先锋宝藏()
-// new 每日一刀()
-// new 军团商店()
-// new 道具购买()
-// new 武装降临()
-// new 武装降临任务()
-// new 随机事件()
-// new 缘聚七夕()
-// new 鹊桥祈缘()
-// new 相思赴约()
-
-//router.go(基地)
 // 组队邀请页实例由 pages.ts 注册表创建(识别优先级最低,不与现有页面抢识别);此处仅引用类做 Router 导航
 var 兑换码运行中 = false
 // 鹊渡仙途 extends BasePage,new 即注册;缓存实例防止重复运行触发 Router 重复注册报错
@@ -241,6 +207,9 @@ function start(fun: () => void, 等待熄屏: boolean = true) {
   }
   smallWindow.show("停止")
   任务线程 = threads.start(() => {
+    // 截图计数器是模块级累加的,记下起始值,结束时用差值统计本轮开销
+    var 起始调用 = screenCalls
+    var 起始截图 = screenCaptures
     try {
       sleep(500)
       fun()
@@ -251,9 +220,12 @@ function start(fun: () => void, 等待熄屏: boolean = true) {
         launch(context.getPackageName())
       }
     } catch (e: any) {
-      log(e.javaException == "com.stardust.autojs.runtime.exception.ScriptInterruptedException", e)
+      log(e.javaException != "com.stardust.autojs.runtime.exception.ScriptInterruptedException", e)
       smallWindow.close()
     } finally {
+      var 本轮调用 = screenCalls - 起始调用
+      var 本轮截图 = screenCaptures - 起始截图
+      log('本次执行截图:调用', 本轮调用, '次,实际截图', 本轮截图, '次,缓存命中', 本轮调用 - 本轮截图, '次')
       // 线程正常/异常结束时释放引用;被强杀时此处不执行,但 isAlive() 已为 false,不影响下次启动
       任务线程 = null
     }

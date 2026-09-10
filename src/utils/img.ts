@@ -139,8 +139,13 @@ export function getTemplate(filePath: string): ImageWrapper {
   return template
 }
 
+// 截图统计:screenCalls 是 screen() 调用次数,screenCaptures 是真正 captureScreen 的次数,差值即缓存命中
+export var screenCalls = 0
+export var screenCaptures = 0
+
 export function screen(interval: number = 500, recycle: boolean = true): ImageWrapper {
   const now = Date.now()
+  screenCalls++
   if (cache_screen_img && now < last_capture_time + interval) {
     try {
       cache_screen_img.ensureNotRecycled()
@@ -169,6 +174,7 @@ export function screen(interval: number = 500, recycle: boolean = true): ImageWr
     if (retries === 0) throw new Error('截图权限请求失败')
     img = captureScreen();
   }
+  screenCaptures++
   last_capture_time = Date.now()
   if (img.width != width) {
     // AutoJs6 文档「images.resize」：第二个参数为目标尺寸 [w, h]
@@ -183,14 +189,15 @@ export function screen(interval: number = 500, recycle: boolean = true): ImageWr
 }
 
 /** 等待距上次截图至少 interval 后强制截新图。
- *  screen() 默认 500ms 缓存窗口会返回旧帧，等画面稳定后再看、或页面刚操作过要看新画面的场景用它 */
-export function waitScreen(interval: number = 500): ImageWrapper {
+ *  screen() 默认 500ms 缓存窗口会返回旧帧，等画面稳定后再看、或页面刚操作过要看新画面的场景用它。
+ *  recycle=false 时不回收缓存旧帧（旧帧由持有方自行管理，用于跨帧比对场景） */
+export function waitScreen(interval: number = 500, recycle: boolean = true): ImageWrapper {
   var elapsed = Date.now() - last_capture_time
   var remain = interval - elapsed
   if (remain > 0) {
     sleep(remain)
   }
-  return screen(0)
+  return screen(0, recycle)
 }
 interface ImgP {
   filePath: string,
@@ -333,7 +340,7 @@ function rememberRect(point: OpenCV.Point, template: ImageWrapper): RectRegion {
 
 /** 一次性检测(恒全量不缓存，避免滚动/等待等位置变化场景误用记忆) */
 export function imageDetector(filePath: string, img?: ImageWrapper): OpenCV.Point | null {
-  return findRegion(filePath, img, true)
+  return findRegion(filePath, img, false)
 }
 
 export function createPageDetector(filePath: string, skipLuminance?: boolean): PageDetector {
@@ -522,13 +529,12 @@ export function tryCloseModals(): boolean {
   return false
 }
 
-/** 像素采样对比前后截图。网格取色 + colors.isSimilar，允许一定比例差异兼容动态元素 */
-export function pageChange(beforeImg: ImageWrapper): boolean {
-  var afterImg = screen(0, false)
+/** 像素采样对比两张截图差异。网格取色 + colors.isSimilar，允许一定比例差异兼容动态元素 */
+function screensDiffer(a: ImageWrapper, b: ImageWrapper): boolean {
   var cols = 20
-  var rows = Math.round(cols * afterImg.height / afterImg.width)
-  var stepX = Math.floor(afterImg.width / (cols + 1))
-  var stepY = Math.floor(afterImg.height / (rows + 1))
+  var rows = Math.round(cols * b.height / b.width)
+  var stepX = Math.floor(b.width / (cols + 1))
+  var stepY = Math.floor(b.height / (rows + 1))
   var mismatches = 0
   var total = 0
 
@@ -537,8 +543,8 @@ export function pageChange(beforeImg: ImageWrapper): boolean {
       var x = (col + 1) * stepX
       var y = (row + 1) * stepY
       if (!colors.isSimilar(
-        images.pixel(beforeImg, x, y),
-        images.pixel(afterImg, x, y),
+        images.pixel(a, x, y),
+        images.pixel(b, x, y),
         25, "diff"
       )) mismatches++
       total++
@@ -546,6 +552,33 @@ export function pageChange(beforeImg: ImageWrapper): boolean {
   }
 
   return (mismatches / total) > 0.03
+}
+
+/** 像素采样对比前后截图。网格取色 + colors.isSimilar，允许一定比例差异兼容动态元素 */
+export function pageChange(beforeImg: ImageWrapper): boolean {
+  return screensDiffer(beforeImg, screen(0, false))
+}
+
+/**
+ * 等画面稳定后返回稳定帧。
+ * 页面切换动画中截图识别率低，直接找图会把过渡帧当"未知页面"误判；
+ * 像素采样比找图轻量，先用它等动画结束，稳定后由调用方只识别 1 次。
+ * 帧一律 recycle=false 截取：本地持帧跨帧比对，若让 screen() 回收缓存旧帧
+ * 会把手上这帧一起回收掉（image is recycled）。过渡帧内部回收，
+ * 返回的稳定帧留在截图缓存里由后续截图自动回收，调用方不要手动 recycle。
+ * 画面持续变化（战斗特效等）时到 timeout 返回最后一帧，不死等。
+ */
+export function waitStableScreen(timeout: number = 3000, interval: number = 300): ImageWrapper {
+  var img = screen(0, false)
+  var deadline = Date.now() + timeout
+  while (Date.now() < deadline) {
+    var next = waitScreen(interval, false)
+    var stable = !screensDiffer(img, next)
+    img.recycle()
+    img = next
+    if (stable) return img
+  }
+  return img
 }
 
 
@@ -644,23 +677,28 @@ export function select_队友(teammate: Teammate): OpenCV.Point | null {
   return null
 }
 
-export function waitObtain(timeout: number, interval: number = 1000): boolean {
-  var beginTime = Date.now()
+/**
+ * 轮询等模板出现：命中返回命中点，超时返回 null。
+ * 先 sleep 后截图——调用方通常刚点完按钮，立刻截图可能还是旧画面，
+ * 会把"上一次操作残留的旧提示"误判为本次出现。
+ * 找图走 imageDetector(恒全量不缓存)：等待期间元素位置未知，区域记忆不适用。
+ */
+export function waitForImage(filePath: string, timeout: number, interval: number = 1000): OpenCV.Point | null {
+  var deadline = Date.now() + timeout
   while (true) {
-    let now = Date.now()
-    if (now < timeout + beginTime) {
-      sleep(interval)
-    }
-    var point = imageDetector(sharedImages.恭喜获得, screen(0))
-    if (point) {
-      log('[waitObtain] 恭喜获得出现，领取成功')
-      click(toScreenX(point.x), toScreenY(point.y + 100))
-      sleep(200)
-      click(device.width / 2, device.height - 10)
-      return true
-    }
-    if (now >= timeout + beginTime) {
-      return false
-    }
+    sleep(interval)
+    var point = imageDetector(filePath, screen(0))
+    if (point) return point
+    if (Date.now() >= deadline) return null
   }
+}
+
+export function waitObtain(timeout: number, interval: number = 1000): boolean {
+  var point = waitForImage(sharedImages.恭喜获得, timeout, interval)
+  if (!point) return false
+  log('[waitObtain] 恭喜获得出现，领取成功')
+  click(toScreenX(point.x), toScreenY(point.y + 100))
+  sleep(200)
+  click(device.width / 2, device.height - 10)
+  return true
 }

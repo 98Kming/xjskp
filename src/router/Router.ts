@@ -2,7 +2,7 @@
 // 完整 Router 路由引擎 — 单例模式，BFS 寻路，逐跳执行
 
 import { BasePage, Route, setRegisterCallback } from '../pages/BasePage'
-import { imageNameParser, pageChange, screen, tryCloseModals, waitScreen, PageDetector } from '../utils/img'
+import { imageNameParser, pageChange, screen, tryCloseModals, waitScreen, waitStableScreen, PageDetector } from '../utils/img'
 import { NavigationError } from './errors'
 
 export class Router {
@@ -14,12 +14,12 @@ export class Router {
   private _backLoopCount = 0
   private _fatalUnknown = false       // 致命未知：页面完全无法识别时终止后续导航
   private _lastFailStart: BasePage | null = null  // 路径执行失败跳的起点页，回退与"入口不存在"判断的基准
-  private constructor() {}
+  private constructor() { }
 
   static getInstance(): Router {
     if (!Router.instance) {
       Router.instance = new Router()
-      setRegisterCallback(function(page: BasePage): void {
+      setRegisterCallback(function (page: BasePage): void {
         Router.instance.register(page)
       })
     }
@@ -42,7 +42,7 @@ export class Router {
    * 统一策略：未知页面 → back → 重识别 → BFS 重规划，直至到达目标或达到回退上限。
    */
   go(targetClass: { new(...args: any[]): BasePage }, lastPage?: { new(...args: any[]): BasePage }): boolean {
-    if(lastPage && !this.go(lastPage)) {
+    if (lastPage && !this.go(lastPage)) {
       return false
     }
     // 每次 go() 调用重置死循环计数器和致命未知标记，防止跨调用泄漏
@@ -80,18 +80,16 @@ export class Router {
 
       if (!current) {
         trackPage('未知')
-        log('[导航] 无法识别当前页面，尝试关闭弹窗')
-        // 关弹窗 + 识别：点到弹窗 → 等关闭动画后识别；
-        // 没点到 → 立即逐层回退，不干等轮询；连续点 5 次仍识别不出 → 同样走回退，
-        // 靠 unknownBacks 上限(6)退出外层 while，防止关弹窗成功但识别不出时死循环
-        var _modalTries = 0
-        while (_modalTries < 5) {
-          if (!tryCloseModals()) break
-          _modalTries++
-          var img = waitScreen(300)
-          current = this.detectCurrentPage(img)
-          if (current) break
+        log('[导航] 无法识别当前页面，尝试关闭弹窗/等待动画结束')
+        // 关弹窗：点掉一层才有下一层，所以循环；一次都点不动就跳出，不空转找图
+        var modalClosed = 0
+        while (modalClosed < 5 && tryCloseModals()) {
+          modalClosed++
+          sleep(300)
         }
+        // 没弹窗就是页面切换动画中：像素采样等画面稳定(比找图轻量)，稳定后只识别 1 次；
+        // 直接当未知页面回退会把过渡帧误判，退掉已经站对的页面
+        current = this.detectCurrentPage(waitStableScreen(2000, 300))
         if (!current) {
           log('[导航] 未知页面逐层回退(' + (unknownBacks + 1) + '/' + maxUnknownBacks + ')')
           current = this.performBack(null)
@@ -101,7 +99,9 @@ export class Router {
           }
           continue
         }
-        log('[导航] 弹窗关闭成功，识别到:', current.name)
+        log(modalClosed > 0
+          ? '[导航] 关闭弹窗(' + modalClosed + '层)后识别到: ' + current.name
+          : '[导航] 等待动画结束后识别到: ' + current.name)
       }
       // 回到已知页面，重置未知回退计数
       unknownBacks = 0
