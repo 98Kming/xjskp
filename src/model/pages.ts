@@ -26,8 +26,6 @@ import { 寰球救援 } from '../pages/寰球救援'
 import { 寰球远征 } from '../pages/寰球远征'
 import { 终末危机 } from '../pages/终末危机'
 import { 食堂 } from '../pages/食堂'
-import { 光落彼端 } from '../pages/光落彼端'
-import { 超能之星 } from '../pages/超能之星'
 import { 观影签到 } from '../pages/观影签到'
 import { 观影便利店 } from '../pages/观影便利店'
 import { 影映观礼 } from '../pages/影映观礼'
@@ -47,6 +45,10 @@ import { 接受邀请列表 } from '../pages/接受邀请列表'
 import { 组队邀请推荐 } from '../pages/组队邀请-推荐'
 import { 组队邀请好友 } from '../pages/组队邀请-好友'
 import { 丛林遗迹 } from '../pages/丛林遗迹'
+import { 限时活动 } from '../pages/限时活动'
+import { 限时活动_免费 } from '../pages/限时活动_免费'
+import { 限时活动_签到领取 } from '../pages/限时活动_签到领取'
+
 
 // ======== 日常入口页(顺序沿用原 daily.ts 实例化顺序,勿随意调整) ========
 export var 基地Page = new 基地()
@@ -73,8 +75,6 @@ export var 寰球救援Page = new 寰球救援()
 export var 寰球远征Page = new 寰球远征()
 export var 终末危机Page = new 终末危机()
 export var 食堂Page = new 食堂()
-export var 光落彼端Page = new 光落彼端()
-export var 超能之星Page = new 超能之星()
 export var 观影签到Page = new 观影签到()
 export var 观影便利店Page = new 观影便利店()
 export var 影映观礼Page = new 影映观礼()
@@ -83,7 +83,9 @@ export var 丛林遗迹Page = new 丛林遗迹()
 export var 鎏金罗盘Page = new 鎏金罗盘()
 export var 好友Page = new 好友()
 export var 领取体力Page = new 领取体力()
-
+export var 限时活动_免费Page = new 限时活动_免费()
+export var 限时活动_签到领取Page = new 限时活动_签到领取()
+export var 限时活动Page = new 限时活动()
 // ======== 战斗弹窗页(顺序敏感:技能弹窗打开时暂停按钮仍可见,先注册才能优先识别) ========
 // 选择技能先注册：技能弹窗打开时暂停按钮仍可见（战斗中也匹配），优先识别为技能弹窗
 export var 选择技能Page = new 选择技能()

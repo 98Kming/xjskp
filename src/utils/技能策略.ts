@@ -41,6 +41,7 @@ STRATEGY.push({ match: /.*回.*生命.*/, weight: 10000, priority: 1, type: SKIL
 STRATEGY.push({ match: /.*分裂子.*生.*/, weight: 1000, priority: 1, type: SKILL_TYPE.子弹 })// [分裂子弹四射 子弹命中后,生成4个次级子弹并向4个方向发射]
 STRATEGY.push({ match: /.*压.*生命.*/, weight: 1000, priority: 1, type: SKILL_TYPE.温压弹 })// [热能焚身 温压弹赋予的燃烧状态额外追加3%目标的最大生命值伤害]
 STRATEGY.push({ match: /(.*车.*火.*)/, weight: 1000, priority: 1, type: SKILL_TYPE.装甲车 })// [焦土策略 将装甲车前方涂上焦油点火，可以引燃怪物]
+STRATEGY.push({ match: /.*生.*子[弹彈].*/, weight: 1000, priority: 1, type: SKILL_TYPE.元素子弹 }) // [生化子弹 生化子弹变为毒素子弹，造成伤害时使目标附带1层[基因污染]，持续5秒，额外提高200层污染上限]
 
 STRATEGY.push({ match: /.*每.*子.*数.*/, weight: 1000, weightDecay: 2, priority: 2, type: SKILL_TYPE.子弹 })// [连射+ 每次射击子弹数量+2]
 STRATEGY.push({ match: /.*每.*发.*数.*/, weight: 999, weightDecay: 2, priority: 2, type: SKILL_TYPE.子弹 })// [连发 每次射击连发数+1，伤害-20%] [连发+ 每次射击连发数+1]

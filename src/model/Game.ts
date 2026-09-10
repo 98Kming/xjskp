@@ -23,6 +23,7 @@ const IMG = {
   已激活技能: 'images/战斗中_已激活技能_0_0.9_404_0_674_740.png',
   退队: 'images/_退队_1_0.9_885_1620_958_1860.png',
   踢出: 'images/_踢出_1_0.9_887_1823_956_1857.png',
+  选择技能_限时: 'images/选择技能_限时_0_0.9_430_602_642_910.png',
 }
 enum GameStatus {
   战斗中, 退出战斗, 战斗结束
@@ -127,6 +128,8 @@ export class Game {
       log('已激活技能')
     } else if (imageDetector(IMG.关闭1)) {
       log("游戏中聊天框不处理")
+    } else if (imageDetector(IMG.选择技能_限时)) {
+      click(width / 2, height / 2)
     } else {
       click(width / 2, height - 10)
       log("尝试关闭战斗中未知窗口")

@@ -62,8 +62,8 @@
     <vertical layout_width="match_parent" layout_height="wrap_content" padding="16">
       <scroll layout_width="match_parent" layout_weight="1">
         <vertical>
-          <pref-switch id="光落彼端_光行千里" text="光落彼端-光行千里" checked="true" layoutDirection="rtl" />
-          <pref-switch id="光落彼端_超能之星" text="光落彼端-超能之星" checked="true" layoutDirection="rtl" />
+          <pref-switch id="限时活动_免费" text="限时活动_免费" checked="true" layoutDirection="rtl" />
+          <pref-switch id="限时活动_签到领取" text="限时活动_签到领取" checked="true" layoutDirection="rtl" />
           <pref-switch id="武装降临_领取" text="武装降临-领取" checked="true" layoutDirection="rtl" />
           <pref-switch id="丛林遗迹_领取" text="丛林遗迹-领取" checked="true" layoutDirection="rtl" />
           <pref-switch id="碧海凉夏_免费抽" text="碧海凉夏-免费抽" checked="true" layoutDirection="rtl" />

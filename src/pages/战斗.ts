@@ -10,7 +10,6 @@ import { 先锋宝藏 } from './先锋宝藏'
 import { 碧海凉夏 } from './碧海凉夏'
 import { 武装降临 } from './武装降临'
 import { 鎏金罗盘 } from './鎏金罗盘'
-import { 光落彼端 } from './光落彼端'
 import { 战斗中 } from './战斗中'
 import { 组队邀请推荐 } from './组队邀请-推荐'
 import { 接受邀请列表 } from './接受邀请列表'
@@ -19,6 +18,7 @@ import { scrollFind } from '../utils/scroll'
 import { 影映观礼 } from './影映观礼'
 import { sharedImages } from '../images'
 import { 丛林遗迹 } from './丛林遗迹'
+import { 限时活动 } from './限时活动'
 
 const IMG = {
   ...sharedImages,
@@ -27,7 +27,7 @@ const IMG = {
   战斗中: 'images/战斗$战斗中_1_0.9_410_1816_668_1935.png',
   侧栏: 'images/战斗$侧栏_1_0.9_974_378_1040_447.png',
   巡逻车: 'images/战斗$巡逻车_1_0.7_58_1917_169_1955.png',
-  光落彼端: 'images/战斗$光落彼端_1_0.8_75_439_105_463.png',
+  狂欢嘉年华: 'images/战斗$狂欢嘉年华_1_0.8_36_403_100_459.png',
 }
 
 export class 战斗 extends BasePage {
@@ -152,10 +152,10 @@ export class 战斗 extends BasePage {
         }, imagePath: IMG.战斗影映观礼
       },
       {
-        target: 光落彼端, action: function (): boolean {
-          var action = createRouteAction(IMG.光落彼端)
+        target: 限时活动, action: function (): boolean {
+          var action = createRouteAction(IMG.狂欢嘉年华)
           return action()
-        }, imagePath: IMG.光落彼端
+        }, imagePath: IMG.狂欢嘉年华
       },
       // 队长:组队邀请弹窗(默认推荐 tab)
       { target: 组队邀请推荐, action: createRouteAction(IMG.邀请), imagePath: IMG.邀请 },
