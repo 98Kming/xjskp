@@ -89,7 +89,7 @@ export class Router {
         }
         // 没弹窗就是页面切换动画中：像素采样等画面稳定(比找图轻量)，稳定后只识别 1 次；
         // 直接当未知页面回退会把过渡帧误判，退掉已经站对的页面
-        current = this.detectCurrentPage(waitStableScreen(2000, 300))
+        current = this.detectCurrentPage(waitStableScreen(1200, 300))
         if (!current) {
           log('[导航] 未知页面逐层回退(' + (unknownBacks + 1) + '/' + maxUnknownBacks + ')')
           current = this.performBack(null)
