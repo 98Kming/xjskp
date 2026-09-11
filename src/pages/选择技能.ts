@@ -7,6 +7,7 @@ import { sharedImages } from '../images'
 const IMG = {
   ...sharedImages,
   页面: 'images/选择技能_0_0.8_438_708_645_910.png',
+  选择技能_限时: 'images/选择技能_限时_0_0.9_430_602_642_910.png',
 }
 
 export class 选择技能 extends BasePage {
@@ -17,7 +18,7 @@ export class 选择技能 extends BasePage {
   is(img: ImageWrapper) {
     // 必须传入外部 img：自行截图会回收 cache_screen_img（若传入图正是缓存图），
     // 导致 detectCurrentPage 后续页面 is() 全部使用已回收的死图
-    let point = imageDetector(IMG.页面, img)
+    let point = imageDetector(IMG.页面, img) || imageDetector(IMG.选择技能_限时, img)
     if (point) {
       this.选择技能_point = point
     }
@@ -53,65 +54,88 @@ export class 选择技能 extends BasePage {
   }
 
   findSkillCard(img: ImageWrapper, _top: number): Rect[] {
+    let cards: Rect[] = []
     // ── 第一步：裁剪+灰度+二值化全 Mat 原生（submat 零拷贝视图）+ 行和定位两端 ──
     // 注意：roi 是 img.mat 的视图，img 被回收后数据失效（调用链中 OCR 也在用 img，安全）
     let roi = img.mat.submat(_top, img.mat.rows(), 0, img.mat.cols())
     let th = new org.opencv.core.Mat()
-    org.opencv.imgproc.Imgproc.cvtColor(roi, th, org.opencv.imgproc.Imgproc.COLOR_BGR2GRAY) // 4通道→灰度（AutoJs6 的 grayscale 即此 code）
-    org.opencv.imgproc.Imgproc.threshold(th, th, 0, 255, org.opencv.imgproc.Imgproc.THRESH_OTSU) // 原位二值化
-    let cols = th.cols()
+    org.opencv.imgproc.Imgproc.cvtColor(roi, th, org.opencv.imgproc.Imgproc.COLOR_BGR2GRAY)
+    org.opencv.imgproc.Imgproc.threshold(th, th, 0, 255, org.opencv.imgproc.Imgproc.THRESH_OTSU)
+    roi.release()
+
+    let cols = th.cols()   // 1080
+    let rows = th.rows()   // 1700
+
+    // ── 行 reduce + get 整块 ──
     let rowSum = new org.opencv.core.Mat()
     org.opencv.core.Core.reduce(th, rowSum, 1, org.opencv.core.Core.REDUCE_SUM, org.opencv.core.CvType.CV_32S)
-    let mask = new org.opencv.core.Mat()
-    org.opencv.core.Core.compare(rowSum, new org.opencv.core.Scalar(102 * cols), mask, org.opencv.core.Core.CMP_GT) // 白像素>40% ⟺ 行和>102*cols
-    let pts = new org.opencv.core.Mat()
-    org.opencv.core.Core.findNonZero(mask, pts) // CV_32SC2，按行扫描序 → 天然有序
-    let top = pts.rows() > 0 ? pts.get(0, 0)[1] : -1
-    let bottom = pts.rows() > 0 ? pts.get(pts.rows() - 1, 0)[1] : -1
+
+    let rowSumArr = java.lang.reflect.Array.newInstance(java.lang.Integer.TYPE, rows)
+    rowSum.get(0, 0, rowSumArr)
+    rowSum.release()
+    // ── JS 找 top / bottom ──
+    let threshRow = 64 * cols          // 白像素 > 25%
+    let top = -1, bottom = -1
+    for (let y = 0; y < rows; y++) {
+      if (rowSumArr[y] > threshRow) { top = y; break }
+    }
     if (top >= 0) {
-      // 第二轮复用前先回收第一轮掩码/点集（否则丢引用泄漏 ~1MB）
-      mask.release()
-      pts.release()
-      // ── 第二步：复用 th（submat 不拷贝像素），两端间列和 → 黑列段（卡片缝隙）──
+      for (let y = rows - 1; y >= top; y--) {
+        if (rowSumArr[y] > threshRow) { bottom = y; break }
+      }
+    }
+    let gaps = []
+    if (top >= 0) {
+      // ── 列 reduce + get 整块 ──
       let region = th.submat(top, bottom + 1, 0, cols)
+      let regionRows = region.rows()
       let colSum = new org.opencv.core.Mat()
       org.opencv.core.Core.reduce(region, colSum, 0, org.opencv.core.Core.REDUCE_SUM, org.opencv.core.CvType.CV_32S)
-      let rows = region.rows()
-      let whiteNum = 0.02 * 255 * rows // 黑占比 > 98% ⟺ 白像素 < 2%
-      mask = new org.opencv.core.Mat()
-      org.opencv.core.Core.compare(colSum, new org.opencv.core.Scalar(whiteNum), mask, org.opencv.core.Core.CMP_LT)
-      pts = new org.opencv.core.Mat()
-      org.opencv.core.Core.findNonZero(mask, pts)
-
-      // 连续黑列合并成段，只保留每段的起始 x
-      let gaps = [] // 每个元素 = 一个连续黑段的起始 x
-      let lastX = -51 // 当前段末尾 x（初始 -2，保证第 1 个点必开新段）
-      for (let i = 0; i < pts.rows(); i++) {
-        let x = pts.get(i, 0)[0]
-        if (x > lastX + 50) gaps.push(x) // 与上一黑列不连续,且小于50的容错 → 开新段，记录起始
-        lastX = x // 更新当前段末尾
+      region.release()
+      let colSumArr = java.lang.reflect.Array.newInstance(java.lang.Integer.TYPE, cols)
+      colSum.get(0, 0, colSumArr)
+      colSum.release()
+      // ── JS 合并黑段（gap ≤ 50 列视为同段）──
+      let whiteLimit = 0.02 * 255 * regionRows   // 黑占比 > 98% ⟺ 白像素 < 2%
+      let blackSegs = []
+      let segStart = -1
+      let lastX = -1
+      for (let x = 0; x < cols; x++) {
+        if (colSumArr[x] < whiteLimit) {
+          if (segStart === -1) {
+            segStart = x
+          } else if (x > lastX + 50) {
+            blackSegs.push([segStart, lastX])
+            segStart = x
+          }
+          lastX = x
+        }
       }
-      let cards: Rect[] = []
-      for (let i = 1; i < gaps.length; i++) {
+      if (segStart !== -1) blackSegs.push([segStart, lastX])
+
+      // ── JS 由黑段夹出白段 ──
+      for (let i = 0; i < blackSegs.length - 1; i++) {
+        let s = blackSegs[i][1] + 1
+        let e = blackSegs[i + 1][0] - 1
+        if (e >= s) gaps.push([s, e])
+      }
+      for (let i = 0; i < gaps.length; i++) {
         cards.push({
-          left: gaps[i - 1],
-          right: gaps[i],
+          left: gaps[i][0],
+          right: gaps[i][1],
           top: top + _top,
           bottom: bottom + _top
         })
       }
-      th.release(); rowSum.release(); mask.release(); pts.release()
-      roi.release(); region.release(); colSum.release() // 视图 release 只减引用计数，不影响原图
-      return cards
     }
-    th.release(); rowSum.release(); mask.release(); pts.release()
-    roi.release()
-    return []
+    th.release()
+    return cards
   }
 
   entryPoints(img: ImageWrapper, identifySkill: boolean): SkillPoint[] {
-    let cards = this.findSkillCard(img, this.选择技能_point.y + 50)
-    if (cards.length == 0 || cards[cards.length - 1].right < width - 30) {
+    let cards = this.findSkillCard(img, this.选择技能_point.y + 100)
+    // cards[0].left + cards[last].right - width 即「左边距 - 右边距」，超过 10 说明卡片区没铺满或偏移
+    if (cards.length == 0 || Math.abs(cards[0].left + cards[cards.length - 1].right - width) > 10) {
       return []
     }
     let skillPoints: SkillPoint[] = []
