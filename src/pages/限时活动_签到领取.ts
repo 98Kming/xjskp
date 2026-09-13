@@ -5,7 +5,7 @@ import { sharedImages } from '../images'
 const IMG = {
   ...sharedImages,
   页面: 'images/枪焰巡演_1_0.8_427_2348_501_2394.png',
-  签到: 'images/枪焰巡演$$可领取_0_0.9_302_686_540_2000.png',
+  签到: 'images/枪焰巡演$$可领取_0_0.9_100_686_540_2000.png',
 }
 
 export class 限时活动_签到领取 extends BasePage {

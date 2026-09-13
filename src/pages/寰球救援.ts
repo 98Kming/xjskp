@@ -1,5 +1,5 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction, screen, getTemplate, imageNameParser, toScreenX, toScreenY, waitObtain, imageDetector } from '../utils/img'
+import { createPageDetector, createRouteAction, toScreenX, toScreenY, waitObtain, waitForImage } from '../utils/img'
 import { 组队邀请推荐 } from './组队邀请-推荐'
 import { 接受邀请列表 } from './接受邀请列表'
 import { 战斗中 } from './战斗中'
@@ -21,41 +21,25 @@ export class 寰球救援 extends BasePage {
    * 广告门票:点击后看广告,30 秒内出现"恭喜获得"即视为成功。
    */
   广告门票(): boolean {
-    // 点击广告门票按钮中心上方 20px
-    var filePath = IMG.广告门票
-    var parsed = imageNameParser(filePath)
-    var tpl = getTemplate(filePath)
-    var rw = parsed.w
-    var rh = parsed.h
-    sleep(2000)
-    var point = images.findImageInRegion(screen(), tpl, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
-    if (!point) return false
-    click(toScreenX(point.x + tpl.width / 2), toScreenY(point.y - 20))
-    log('[寰球救援] 已点击广告门票,等待广告结束...')
-    if(waitObtain(30000)){
-      return true
+    var point = waitForImage(IMG.广告门票, 2000, 600)
+    if (point) {
+      click(toScreenX(point.x + 20), toScreenY(point.y - 20))
+      return waitObtain(30000)
     }
-    log('[寰球救援] 广告门票 30 秒内未出现恭喜获得')
+    log('[寰球救援] 未找到广告门票')
     return false
   }
 
   免费(): boolean {
-    var action = createRouteAction(IMG.免费)
-    for (var i = 0; i < 3; i++) {
-      if (action()) {
-        click(device.width / 2, device.height - 10)
-        sleep(300)
-        click(device.width / 2, device.height - 10)
-        sleep(200)
-        if (action()) {
-          click(device.width / 2, device.height - 10)
-          sleep(300)
-          click(device.width / 2, device.height - 10)
-          sleep(200)
-        }
+    var point = waitForImage(IMG.免费, 2000, 600)
+    if (point) {
+      click(toScreenX(point.x), toScreenY(point.y))
+      if (waitObtain(1200)) {
+        sleep(500)
+        click(toScreenX(point.x), toScreenY(point.y))
+        waitObtain(1200)
         return true
       }
-      sleep(800)
     }
     return false
   }
