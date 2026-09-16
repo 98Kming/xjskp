@@ -77,7 +77,7 @@ function isDailyEnabled(id: string): boolean {
 }
 
 /** 手动停止异常:ScriptInterruptedException,或 click 等阻塞调用被中断包装的 InterruptedException */
-function isStopException(e: any): boolean {
+export function isStopException(e: any): boolean {
   var msg = e && e.message ? e.message : (e ? String(e) : '')
   if (msg.indexOf('InterruptedException') >= 0) return true
   if (e && e.javaException && e.javaException.toString) {

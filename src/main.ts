@@ -1,6 +1,6 @@
 import { mainWindow, GameType, GameConfig } from './MainWindow'
 import { smallWindow } from './SmallWindows'
-import { runDaily } from './model/daily'
+import { runDaily, isStopException } from './model/daily'
 import { 兑换码 } from './model/兑换码'
 import { Game } from './model/Game'
 import { skillStrategy } from './utils/技能策略'
@@ -174,6 +174,12 @@ function start(fun: () => void, 等待熄屏: boolean = true) {
     return
   }
   smallWindow.show("停止")
+  // 交互流程(如获取队友信息选人)传 等待熄屏=false:保持游戏前台,跑完/异常都不熄屏
+  var 熄屏 = () => {
+    if (等待熄屏 && mainWindow.window.执行完息屏.isChecked()) {
+      runtime.accessibilityBridge.getService().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
+    }
+  }
   任务线程 = threads.start(() => {
     // 截图计数器是模块级累加的,记下起始值,结束时用差值统计本轮开销
     var 起始调用 = screenCalls
@@ -182,14 +188,13 @@ function start(fun: () => void, 等待熄屏: boolean = true) {
       sleep(500)
       fun()
       smallWindow.hide()
-      // 交互流程(如获取队友信息选人)传 false,保持游戏前台;
-      // 停止/异常退出走不到这里,同样不熄屏
-      if (等待熄屏 && mainWindow.window.执行完息屏.isChecked()) {
-        runtime.accessibilityBridge.getService().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
-      }
+      熄屏()
     } catch (e: any) {
-      log(e.javaException != "com.stardust.autojs.runtime.exception.ScriptInterruptedException", e)
+      // 手动停止不熄屏;其余异常照常熄屏
+      var 已停止 = isStopException(e)
+      log(!已停止, e)
       smallWindow.close()
+      if (!已停止) 熄屏()
     } finally {
       var 本轮调用 = screenCalls - 起始调用
       var 本轮截图 = screenCaptures - 起始截图
