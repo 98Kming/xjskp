@@ -42,7 +42,7 @@ import {
   战斗Page, 随机事件Page, 邮件Page, 好友Page, 领取体力Page, 巡逻车Page,
   寰球救援Page, 寰球远征Page, 终末危机Page, 食堂Page,
   玩法商店Page, 每日一刀Page, 异域挑战Page, 异域挑战军团奖励Page, 异域挑战个人奖励Page,
-  道具购买Page, 先锋宝藏Page, 碧海凉夏Page, 幸运锦鲤免费福利Page, 幸运锦鲤Page, 任务Page,
+  先锋宝藏Page, 碧海凉夏Page, 幸运锦鲤免费福利Page, 幸运锦鲤Page, 任务Page,
   武装降临Page, 鎏金罗盘Page, 观影签到Page, 观影便利店Page, 影映观礼Page, 服务器选择Page,
   丛林遗迹Page, 限时活动_免费Page, 限时活动_签到领取Page
 } from './pages'
@@ -50,6 +50,7 @@ import { sharedImages } from '../images'
 import { 限时活动_免费 } from "../pages/限时活动_免费"
 import { 限时活动 } from "../pages/限时活动"
 import { 限时活动_签到领取 } from "../pages/限时活动_签到领取"
+import { 道具购买Page } from "../pages/道具购买"
 
 const IMG = {
   ...sharedImages,

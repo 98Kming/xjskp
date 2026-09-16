@@ -23,7 +23,7 @@ export class 寰球救援 extends BasePage {
   广告门票(): boolean {
     var point = waitForImage(IMG.广告门票, 2000, 600)
     if (point) {
-      click(toScreenX(point.x + 20), toScreenY(point.y - 20))
+      click(toScreenX(point.x + 30), toScreenY(point.y - 20))
       return waitObtain(30000)
     }
     log('[寰球救援] 未找到广告门票')

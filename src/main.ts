@@ -1,43 +1,11 @@
-// import { Router } from './router/Router'
-// import { 战斗 } from './pages/战斗'
-// import { 基地 } from './pages/基地'
-// import { 历练大厅 } from './pages/历练大厅'
-// import { 选择技能 } from './pages/选择技能'
-// import { 寰球救援 } from './pages/寰球救援'
-// import { 军团 } from './pages/军团'
-// import { 幸运锦鲤 } from './pages/幸运锦鲤'
-// import { 幸运锦鲤免费福利 } from './pages/幸运锦鲤-免费福利'
-// import { 玩法商店 } from './pages/玩法商店'
-// import { 侧栏 } from './pages/侧栏'
-// import { 巡逻车 } from './pages/巡逻车'
-// import { 食堂 } from './pages/食堂'
-// import { 邮件 } from './pages/邮件'
-// import { 个人信息 } from './pages/个人信息'
-// import { 服务器选择 } from './pages/服务器选择'
-// import { 异域挑战 } from './pages/异域挑战'
-// import { 异域挑战军团奖励 } from './pages/异域挑战-军团奖励'
-// import { 异域挑战个人奖励 } from './pages/异域挑战-个人奖励'
-// import { 先锋宝藏 } from './pages/先锋宝藏'
-// import { 每日一刀 } from './pages/每日一刀'
-// import { 寰球远征 } from './pages/寰球远征'
-// import { 军团商店 } from './pages/军团商店'
-// import { 道具购买 } from './pages/道具购买'
-// import { 武装降临 } from './pages/武装降临'
-// import { 武装降临任务 } from './pages/武装降临-任务'
-// import { 随机事件 } from './pages/随机事件'
-// import { 缘聚七夕 } from './pages/缘聚七夕'
-// import { 鹊桥祈缘 } from './pages/鹊桥祈缘'
-// import { 相思赴约 } from './pages/相思赴约'
 import { mainWindow, GameType, GameConfig } from './MainWindow'
 import { smallWindow } from './SmallWindows'
 import { runDaily } from './model/daily'
-import { getRecentAppsSorted, launchPackageByShell } from './utils/app'
 import { 兑换码 } from './model/兑换码'
-import { 探索 } from './model/探索'
 import { Game } from './model/Game'
 import { skillStrategy } from './utils/技能策略'
 import { Router } from './router/Router'
-import { find_队友, imgMap, screenCalls, screenCaptures } from './utils/img'
+import { find_队友, screenCalls, screenCaptures } from './utils/img'
 import { 组队邀请好友 } from './pages/组队邀请-好友'
 import { 接受邀请列表 } from './pages/接受邀请列表'
 import { 鹊渡仙途 } from './pages/鹊渡仙途'
@@ -214,10 +182,10 @@ function start(fun: () => void, 等待熄屏: boolean = true) {
       sleep(500)
       fun()
       smallWindow.hide()
-      // 切 AutoJs6 前台等系统超时自动熄屏(游戏窗口 KEEP_SCREEN_ON 永不超时,AutoJs6 窗口可正常超时熄灭);
-      // 交互流程(如获取队友信息选人)传 false,保持游戏前台
-      if (等待熄屏) {
-        launch(context.getPackageName())
+      // 交互流程(如获取队友信息选人)传 false,保持游戏前台;
+      // 停止/异常退出走不到这里,同样不熄屏
+      if (等待熄屏 && mainWindow.window.执行完息屏.isChecked()) {
+        runtime.accessibilityBridge.getService().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_LOCK_SCREEN)
       }
     } catch (e: any) {
       log(e.javaException != "com.stardust.autojs.runtime.exception.ScriptInterruptedException", e)

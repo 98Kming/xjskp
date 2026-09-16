@@ -12,18 +12,9 @@ export class 道具购买 extends BasePage {
   name = '道具购买'
   is = createPageDetector(IMG.页面)
 
-  最大(): boolean {
-    var action = createRouteAction(IMG.道具最大)
-    for (var i = 0; i < 3; i++) {
-      if (action()) return true
-      sleep(800)
-    }
-    return false
-  }
-
-  购买(): boolean {
+  购买(购买_filePath: string = IMG.购买): boolean {
     var maxAction = createRouteAction(IMG.道具最大)
-    var buyAction = createRouteAction(IMG.购买)
+    var buyAction = createRouteAction(购买_filePath)
 
     for (var i = 0; i < 3; i++) {
       if (maxAction()) break
@@ -42,3 +33,5 @@ export class 道具购买 extends BasePage {
     return []
   }
 }
+
+export var 道具购买Page = new 道具购买()

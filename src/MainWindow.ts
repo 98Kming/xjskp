@@ -78,6 +78,8 @@ export type MainWindowView = {
   武装降临_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   丛林遗迹_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   鎏金罗盘_领取: ConfigurableView<PrefSwitch> & JsCheckBox
+  执行完息屏: ConfigurableView<PrefSwitch> & JsCheckBox
+  执行结果通知: ConfigurableView<PrefSwitch> & JsCheckBox
 }
 export class MainWindow extends FloatWindow<MainWindowView> {
   constructor() {
@@ -138,7 +140,7 @@ export abstract class GameConfig {
 }
 
 ui.run(() => {
-  mainWindow.window.viewPager.setTitles(['功能', '技能', '日常'])
+  mainWindow.window.viewPager.setTitles(['功能', '技能', '日常', '设置'])
   mainWindow.window.tabHost.setupWithViewPager(mainWindow.window.viewPager);
 })
 

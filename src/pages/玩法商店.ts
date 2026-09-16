@@ -1,6 +1,8 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction, getTemplate, imageNameParser, screen, width, height, toScreenX, toScreenY } from '../utils/img'
+import { createPageDetector, createRouteAction, imageNameParser, width, height, toScreenX, toScreenY } from '../utils/img'
 import { sharedImages } from '../images'
+import { scrollFind } from '../utils/scroll'
+import { 道具购买Page } from './道具购买'
 
 const IMG = {
   ...sharedImages,
@@ -19,38 +21,16 @@ export class 玩法商店 extends BasePage {
 
   /** 购买超时空军团兵碎片：向上滚动 → 找商品（镜像点击）→ 最大 → 购买 */
   buy_超时空军团兵(): boolean {
-    swipe(toScreenX(width / 2), toScreenY(height * 0.7), toScreenX(width / 2), toScreenY(height * 0.3), 300)
-    sleep(800)
-
-    var parsed = imageNameParser(IMG.超时空军团兵)
-    var rw = parsed.w
-    var rh = parsed.h
-    var template = getTemplate(IMG.超时空军团兵)
-    var img = screen()
-    var point = images.findImageInRegion(img, template, parsed.x1, parsed.y1, rw, rh, parsed.threshold)
+    let parsed = imageNameParser(IMG.超时空军团兵)
+    let point = scrollFind(IMG.超时空军团兵, 'top', parsed.x1, parsed.y1, width, height * 0.7)
     if (!point) return false
-
-    // 镜像点击（和入场券购买一致）
-    var cx = toScreenX(width - point.x - template.width / 2)
-    var cy = toScreenY(point.y + template.height / 2)
+    // 真机验证过的偏移：横向半宽取解析区域宽(非模板宽)，纵向取模板上边缘(非中心)，勿按惯例"修正"
+    var cx = toScreenX(width - point.x - parsed.w / 2)
+    var cy = toScreenY(point.y)
+    log(`[玩法商店] 找到 ${IMG.超时空军团兵} 在 (${cx}, ${cy})`)
     click(cx, cy)
-    sleep(1500)
-
-    // 最大
-    var maxAction = createRouteAction(IMG.道具最大)
-    for (var i = 0; i < 3; i++) {
-      if (maxAction()) break
-      sleep(800)
-    }
-    sleep(500)
-
-    // 购买（玩法商店专用按钮图）
-    var buyAction = createRouteAction(IMG.购买)
-    for (var j = 0; j < 3; j++) {
-      if (buyAction()) return true
-      sleep(800)
-    }
-    return false
+    sleep(800)
+    return 道具购买Page.购买(IMG.购买)
   }
 
   routes(): Route[] {

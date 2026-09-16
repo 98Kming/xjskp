@@ -1,5 +1,5 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction } from '../utils/img'
+import { createPageDetector, createRouteAction, waitObtain } from '../utils/img'
 import { sharedImages } from '../images'
 
 const IMG = {
@@ -12,7 +12,7 @@ export class 巡逻车 extends BasePage {
   is = createPageDetector(IMG.页面)
 
   领取(): boolean {
-    return createRouteAction(IMG.任务领取1)() && (click(device.width / 2, device.height - 10), sleep(300), click(device.width / 2, device.height - 10), sleep(200), true)
+    return createRouteAction(IMG.任务领取1)() && (waitObtain(1200), sleep(300), click(device.width / 2, device.height - 10), sleep(500), true)
   }
 
   routes(): Route[] {
