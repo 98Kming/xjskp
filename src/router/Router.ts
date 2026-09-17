@@ -322,8 +322,7 @@ export class Router {
       var deviated = false
 
       for (var attempt = 0; attempt < maxAttempts; attempt++) {
-        sleep(interval)
-        var frame = screen()
+        var frame = waitScreen(interval)
         var page = this.detectCurrentPage(frame)
 
         if (!page) {

@@ -4,7 +4,7 @@ import { sharedImages } from '../images'
 
 const IMG = {
   ...sharedImages,
-  页面: 'images/每日一刀_1_0.9_260_1556_560_1599.png',
+  页面: 'images/每日一刀_0_0.9_260_1556_560_1599.png',
   砍一刀: 'images/每日一刀$$砍一刀_1_0.9_462_2022_621_2088.png',
   零元购: 'images/每日一刀$$零元购_1_0.9_477_2020_609_2088.png',
 }

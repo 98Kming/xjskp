@@ -269,12 +269,12 @@ function expandRegion(x1: number, y1: number, x2: number, y2: number): [number, 
   }
   y1 = Math.max(y1 - 5, 0)
   y2 = Math.min(y2 + 5, height)
-  if(y2 - y1 < h) {
-   if(y1 > 0) {
-     y1 = Math.max(y1 - h, 0)
-   } else {
-     y2 = Math.min(y2 + h, height)
-   }
+  if (y2 - y1 < h) {
+    if (y1 > 0) {
+      y1 = Math.max(y1 - h, 0)
+    } else {
+      y2 = Math.min(y2 + h, height)
+    }
   }
   return [x1, y1, x2, y2]
 }
@@ -343,36 +343,90 @@ export function imageDetector(filePath: string, img?: ImageWrapper): OpenCV.Poin
   return findRegion(filePath, img, false)
 }
 
+// 像素复核：平均像素差阈值(0-765)与采样步长。实测真匹配≈1、暗区假匹配≈337
+var PIXEL_DIFF_MAX = 100
+var PIXEL_DIFF_STEP = 8
+/** 模板像素缓存: filePath → int[](ARGB)，模板不变只取一次 */
+var templatePixels = new java.util.HashMap<string, any>()
+/** 复核异常提示只打一次，避免每帧命中都刷屏 */
+var pixelDiffWarned = false
+
+/**
+ * 像素级复核：模板与屏幕命中块的平均像素差超限视为误匹配。
+ * AutoJs6 的 findImage 基于 OpenCV 模板匹配，在低对比度平坦区(暗背景/被压暗区域)
+ * 分数会虚高：实测个人信息页暗区与战斗识别模板 68.6% 像素 RGB 差和 >150(满值 765)，
+ * 匹配分仍有 0.99，分数本身区分不了真假，需用绝对像素差做正交验证。
+ * step=8 采样判断力不变(实测假匹配 avg 337→334)、单块 ~2ms。
+ * 取像素走 bitmap.getPixels 一次拉整块，避免逐点 images.pixel 的 JNI 开销；
+ * 出错时放行(不改变原有识别行为)。
+ */
+function pixelDiffOk(filePath: string, template: ImageWrapper, img: ImageWrapper, x: number, y: number): boolean {
+  try {
+    var tw = template.getWidth()
+    var th = template.getHeight()
+    var total = tw * th
+    var tpx: any = templatePixels.get(filePath)
+    if (!tpx) {
+      tpx = util.java.array('int', total)
+      template.getBitmap().getPixels(tpx, 0, tw, 0, 0, tw, th)
+      templatePixels.put(filePath, tpx)
+    }
+    var spx = util.java.array('int', total)
+    img.getBitmap().getPixels(spx, 0, tw, x, y, tw, th)
+    var sum = 0
+    var n = 0
+    for (var i = 0; i < total; i += PIXEL_DIFF_STEP) {
+      var a = tpx[i]
+      var b = spx[i]
+      sum += Math.abs(((a >> 16) & 0xff) - ((b >> 16) & 0xff))
+        + Math.abs(((a >> 8) & 0xff) - ((b >> 8) & 0xff))
+        + Math.abs((a & 0xff) - (b & 0xff))
+      n++
+    }
+    return sum / n < PIXEL_DIFF_MAX
+  } catch (e) {
+    if (!pixelDiffWarned) {
+      pixelDiffWarned = true
+      log('像素复核不可用，已降级放行:', filePath, e)
+    }
+    return true
+  }
+}
+
+function luminanceOk(template: ImageWrapper, img: ImageWrapper, x: number, y: number, filePath: string): boolean {
+  try {
+    var tplPixel = images.pixel(template, 0, 0)
+    var scrPixel = images.pixel(img, x, y)
+    var lum1 = colors.luminance(tplPixel)
+    var lum2 = colors.luminance(scrPixel)
+    if (lum2 === 0) return false
+    var percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100
+    if (percentDiff < 50) {
+      return true
+    }
+    return false
+  } catch (e) {
+    // resize 截图像素读取失败 → 跳过亮度检查
+    log('亮度检查异常:', filePath, e)
+    return true
+  }
+}
+
 export function createPageDetector(filePath: string, skipLuminance?: boolean): PageDetector {
   var template = getTemplate(filePath)
   /**
-   * 模板亮度一致性检查：模板与匹配点亮度差 <50% 才接受。
+   * 页面判定短路链：skipLuminance 直接接受；否则亮度检查(模板与匹配点亮度差 <50%)
+   * 通过即接受(快路径)，亮度不过时由像素复核裁决——拒低对比度虚高分误匹配、
+   * 放行被亮度误伤的真匹配。
    * AutoX.js 对 images.resize 后的截图在 y>=1500 区域调 pixel 会抛 NPE
-   * （"Attempt to read from null array"），此时跳过检查直接接受匹配，
-   * findImageInRegion 的阈值匹配已足够可靠，亮度检查只是防黑屏误匹配的附加防护。
+   * （"Attempt to read from null array"），亮度检查异常时返回 true 跳过该环节。
    */
-  function luminanceOk(template: ImageWrapper, img: ImageWrapper, point: OpenCV.Point, filePath: string): boolean {
-    try {
-      var tplPixel = images.pixel(template, 0, 0)
-      var scrPixel = images.pixel(img, point.x, point.y)
-      var lum1 = colors.luminance(tplPixel)
-      var lum2 = colors.luminance(scrPixel)
-      if (lum2 === 0) return false
-      var percentDiff = (Math.abs(lum2 - lum1) / lum2) * 100
-      if (percentDiff < 50) {
-        return true
-      }
-      return false
-    } catch (e) {
-      // resize 截图像素读取失败 → 跳过亮度检查
-      return true
-    }
-  }
-
   var fn = function (img: ImageWrapper): boolean {
     var point = findRegion(filePath, img)
-    if (!point) return false
-    return skipLuminance || luminanceOk(template, img, point, filePath)
+    if (!point) {
+      return false
+    }
+    return skipLuminance || luminanceOk(template, img, point.x, point.y, filePath) || pixelDiffOk(filePath, template, img, point.x, point.y)
   } as PageDetector
   fn.detectImagePath = filePath
   return fn
@@ -408,7 +462,7 @@ export function createAnchoredAction(anchorPath: string, targetPath: string): ()
     var searchY = anchorPoint.y + anchorTemplate.height
     // 在标识下方区域找目标按钮，取最上方的一个
     let targetPoint = findImageMinYPoint(targetPath, searchY, img)
-    if(!targetPoint) return false
+    if (!targetPoint) return false
     click(toScreenX(targetPoint.x + targetTemplate.width / 2), toScreenY(targetPoint.y + targetTemplate.height / 2))
     return true
   }
@@ -587,11 +641,11 @@ export function findImageMinYPoint(filePath: string, startY: number = -1, img?: 
   var template = getTemplate(filePath)
   img || (img = screen())
   // 在标识下方区域找目标按钮，取最上方的一个
-  if(startY === -1) {
+  if (startY === -1) {
     startY = parsed.y1
   }
   let imgHeight = Math.max(parsed.y1 + parsed.h - startY, template.getHeight())
-  if(imgHeight + startY > height) {
+  if (imgHeight + startY > height) {
     return null;
   }
   return images.matchTemplate(img, template, {
