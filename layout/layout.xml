@@ -103,6 +103,7 @@
       <pref-switch id="执行完息屏" text="执行完息屏" layoutDirection="rtl" />
       <!-- 占位:功能待实现,暂无代码读取该开关 -->
       <pref-switch id="执行结果通知" text="执行结果通知" layoutDirection="rtl" />
+      <pref-switch id="详细日志" text="详细日志" layoutDirection="rtl" />
     </vertical>
   </viewpager>
   <horizontal>

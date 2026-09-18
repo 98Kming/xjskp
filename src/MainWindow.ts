@@ -80,6 +80,7 @@ export type MainWindowView = {
   鎏金罗盘_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   执行完息屏: ConfigurableView<PrefSwitch> & JsCheckBox
   执行结果通知: ConfigurableView<PrefSwitch> & JsCheckBox
+  详细日志: ConfigurableView<PrefSwitch> & JsCheckBox
 }
 export class MainWindow extends FloatWindow<MainWindowView> {
   constructor() {
