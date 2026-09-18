@@ -9,6 +9,7 @@ import { find_队友, screenCalls, screenCaptures } from './utils/img'
 import { 组队邀请好友 } from './pages/组队邀请-好友'
 import { 接受邀请列表 } from './pages/接受邀请列表'
 import { 鹊渡仙途 } from './pages/鹊渡仙途'
+import { setupDetailLog } from './utils/logger'
 
 // 组队邀请页实例由 pages.ts 注册表创建(识别优先级最低,不与现有页面抢识别);此处仅引用类做 Router 导航
 var 兑换码运行中 = false
@@ -172,6 +173,12 @@ function start(fun: () => void, 等待熄屏: boolean = true) {
   if (任务线程 && 任务线程.isAlive()) {
     toast('脚本任务正在运行中，请先停止')
     return
+  }
+  // 详细日志开关:任务启动前按开关配置日志落盘(运行中改开关不生效);配置失败不阻塞任务
+  try {
+    setupDetailLog(mainWindow.window.详细日志.isChecked())
+  } catch (e: any) {
+    console.error('[日志] 详细日志配置失败,不影响任务: ' + (e.message || e))
   }
   smallWindow.show("停止")
   // 交互流程(如获取队友信息选人)传 等待熄屏=false:保持游戏前台,跑完/异常都不熄屏
