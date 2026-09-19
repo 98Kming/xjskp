@@ -1,6 +1,6 @@
-// src/daily.ts — 日常任务模块
+// src/model/daily.ts — 日常任务模块
 // 自动执行每日操作：导航到各页面并执行对应动作
-// 构建产物：dist/daily.js
+// 本模块不是独立构建入口,被打进 dist/main.js(入口见 webpack.config.js)
 
 import { mainWindow } from "../MainWindow"
 import { Router } from '../router/Router'

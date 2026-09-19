@@ -9,11 +9,11 @@ AutoJs6 TypeScript 自动化脚本项目，用于 Android 端 UI 自动化。通
 ## Build Commands
 
 ```bash
-npm run build        # Webpack 构建 TypeScript → dist/main.js
+npm run build        # Webpack 构建 TypeScript → dist/*.js
 npx webpack --watch  # 开发模式，监听文件变化自动重新构建
 ```
 
-构建产物为 `dist/main.js`，是 AutoJs6 执行入口（配置在 project.json 的 `main` 字段）。测试脚本产物为 `dist/test-navigation.js`，可在真机上运行验证导航功能。
+`webpack.config.js` 的 `entry` 里每个入口产出一个 `dist/*.js`。其中 `dist/main.js` 是 AutoJs6 执行入口（配置在 project.json 的 `main` 字段）；其余是测试脚本（`src/main.ts` 之外的每个 `test/*.ts` 各一个），推到真机运行、回读日志看断言。
 
 **Rhino 兼容：** AutoJs6 使用 Rhino 引擎，不支持 ES6 语法。tsconfig 配置 `target: "es5"`，webpack 配置 `output.environment` 禁用箭头函数/const/解构，确保输出兼容。
 
@@ -55,11 +55,11 @@ npx webpack --watch  # 开发模式，监听文件变化自动重新构建
 2. 期望值要基于正确逻辑,而不是顺着当前代码反推;
 3. 覆盖正常、空、异常、边界。写完请告诉我:如果我故意把代码改错,哪些测试会因此失败?
 
-#### 导航测试（test-navigation.ts）约定
-- 每个测试独立调用 `testGo(目标页)`，Router 自动处理多跳路由和回退，不手工写"回X"步骤
-- 仅子页面（需从父页面进入）保留跳过：父页面不可达时，子页面测试跳过
-- `testSkip(reason)` 跳过时不计入 `totalTests`，防止通过率虚低
-- `testGo` 不打印 "→ label"，Router 的 `[导航 前往]` 替代了分隔和声明作用
+#### 测试脚本约定（test/*.ts）
+- 每个测试是一个 `test/*.ts`，在 `webpack.config.js` 的 `entry` 里加一行；产物 `dist/*.js` 推到真机执行，回读日志看断言
+- 断言用 `assert(条件, 标签)`：通过打 `✅`，失败打 `❌`；失败标签里要带上实际值，否则排查时看不到现场
+- 末尾 `summary()` 打印 `结果: N/M 通过`
+- 跳过某个用例时不计入总数，避免通过率虚低
 
 ## Router 路由引擎
 
