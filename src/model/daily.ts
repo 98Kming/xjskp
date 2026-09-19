@@ -51,6 +51,8 @@ import { 限时活动_免费 } from "../pages/限时活动_免费"
 import { 限时活动 } from "../pages/限时活动"
 import { 限时活动_签到领取 } from "../pages/限时活动_签到领取"
 import { 道具购买Page } from "../pages/道具购买"
+import { 发布 } from '../utils/taskBus'
+import { 初始化通知 } from '../utils/taskNotifier'
 
 const IMG = {
   ...sharedImages,
@@ -59,10 +61,7 @@ const IMG = {
 var router = Router.getInstance()
 
 // 页面实例统一由 pages.ts 注册表创建与注册(见顶部 import);识别优先级见 pages.ts 内分组注释
-var totalTasks = 0
-var successTasks = 0
-var skipTasks = 0
-var failTasks = 0
+// 本轮计数与明细统一由 utils/taskReport.ts 维护(订阅 taskBus 事件),此处不再持有计数器
 export var currentServer: string | null = null
 
 /** 检查主窗口日常开关是否开启 */
@@ -112,30 +111,38 @@ function nav(target: any, lastPage?: any): boolean {
   }
 }
 
-/** 执行一个日常任务 */
-function doTask(label: string, action: () => boolean): boolean {
-  totalTasks++
+/** 任务动作返回值:true=成功;false=跳过(原因记为"未完成");对象=按 ok 判定并携带原因 */
+type 动作返回 = boolean | { ok: boolean; 原因?: string }
+
+/** 执行一个日常任务。配置.计数 传 false 时不发布事件(用于只串接子任务、自身无独立动作的父任务) */
+function doTask(label: string, action: () => 动作返回, 配置?: { 计数?: boolean }): boolean {
+  var 要计数 = !配置 || 配置.计数 !== false
+  var 服 = currentServer ? currentServer : undefined
   console.log('[日常] 开始: ' + label)
   var start = Date.now()
   try {
-    var ok = action()
-    var elapsed = ((Date.now() - start) / 1000).toFixed(1)
+    var r = action()
+    var ok = typeof r === 'boolean' ? r : r.ok
+    var 动作原因 = typeof r === 'boolean' ? '' : (r.原因 ? r.原因 : '')
+    var elapsed = Number(((Date.now() - start) / 1000).toFixed(1))
     if (ok) {
       console.log('[日常] ✅ ' + label + ' (' + elapsed + 's)')
-      successTasks++
+      if (要计数) 发布({ 类型: '任务结束', 名: label, 状态: '成功', 耗时: elapsed, 服: 服 })
       return true
     }
     var serverTag = currentServer ? ' [' + currentServer + ']' : ''
-    console.log(serverTag + '[日常] ⏭️ ' + label + ' — 跳过 (' + elapsed + 's)')
-    skipTasks++
+    var 跳过原因 = 动作原因 ? 动作原因 : '未完成'
+    console.log(serverTag + '[日常] ⏭️ ' + label + ' — 跳过[' + 跳过原因 + '] (' + elapsed + 's)')
+    if (要计数) 发布({ 类型: '任务结束', 名: label, 状态: '跳过', 原因: 跳过原因, 耗时: elapsed, 服: 服 })
     return false
   } catch (e: any) {
     // 手动停止时立即终止
     if (isStopException(e)) throw e
-    var elapsed = ((Date.now() - start) / 1000).toFixed(1)
+    var elapsed = Number(((Date.now() - start) / 1000).toFixed(1))
     var serverTag = currentServer ? ' [' + currentServer + ']' : ''
-    console.log(serverTag + '[日常] ❌ ' + label + ' — ' + (e.message || e) + ' (' + elapsed + 's)')
-    failTasks++
+    var 原因 = e && e.message ? String(e.message) : String(e)
+    console.log(serverTag + '[日常] ❌ ' + label + ' — ' + 原因 + ' (' + elapsed + 's)')
+    if (要计数) 发布({ 类型: '任务结束', 名: label, 状态: '异常', 原因: 原因, 耗时: elapsed, 服: 服 })
     return false
   }
 }
@@ -146,8 +153,8 @@ function executeDailyTasks(): void {
 
   // ======== 战斗（默认页，入口：先锋宝藏、幸运锦鲤、巡逻车） ========
   if (isDailyEnabled('战斗_七日突围')) {
-    doTask('战斗 七日突围', function (): boolean {
-      if (!nav(战斗)) return false
+    doTask('战斗 七日突围', function (): 动作返回 {
+      if (!nav(战斗)) return { ok: false, 原因: '导航失败' }
       return 战斗Page.click_七日突围()
     })
   }
@@ -157,29 +164,29 @@ function executeDailyTasks(): void {
     批量执行活动()
   }
   if (isDailyEnabled('邮件')) {
-    doTask('邮件 一键领取', function (): boolean {
-      if (!nav(侧栏)) return false
-      if (!nav(邮件)) return false
+    doTask('邮件 一键领取', function (): 动作返回 {
+      if (!nav(侧栏)) return { ok: false, 原因: '导航失败' }
+      if (!nav(邮件)) return { ok: false, 原因: '导航失败' }
       return 邮件Page.一键领取()
     })
   }
   if (isDailyEnabled('好友_领取体力')) {
-    doTask('好友 领取体力', function (): boolean {
-      if (!nav(侧栏)) return false
-      if (!nav(好友)) return false
-      if (!nav(领取体力)) return false
+    doTask('好友 领取体力', function (): 动作返回 {
+      if (!nav(侧栏)) return { ok: false, 原因: '导航失败' }
+      if (!nav(好友)) return { ok: false, 原因: '导航失败' }
+      if (!nav(领取体力)) return { ok: false, 原因: '导航失败' }
       return 领取体力Page.一键领取()
     })
   }
   if (isDailyEnabled('好友_一键赠送')) {
-    doTask('好友 一键赠送', function (): boolean {
-      if (!nav(好友)) return false
+    doTask('好友 一键赠送', function (): 动作返回 {
+      if (!nav(好友)) return { ok: false, 原因: '导航失败' }
       return 好友Page.一键赠送()
     })
   }
   if (isDailyEnabled('巡逻车_领取')) {
-    doTask('巡逻车 领取', function (): boolean {
-      if (!nav(巡逻车)) return false
+    doTask('巡逻车 领取', function (): 动作返回 {
+      if (!nav(巡逻车)) return { ok: false, 原因: '导航失败' }
       return 巡逻车Page.领取()
     })
   }
@@ -188,14 +195,14 @@ function executeDailyTasks(): void {
   if (isDailyEnabled('限时活动_免费') || isDailyEnabled('限时活动_签到领取')) {
     if (nav(限时活动)) {
       if (isDailyEnabled('限时活动_免费')) {
-        doTask('限时活动_免费 免费', function (): boolean {
-          if (!nav(限时活动_免费)) return false
+        doTask('限时活动_免费 免费', function (): 动作返回 {
+          if (!nav(限时活动_免费)) return { ok: false, 原因: '导航失败' }
           return 限时活动_免费Page.click_免费()
         })
       }
       if (isDailyEnabled('限时活动_签到领取')) {
-        doTask('限时活动_签到领取 签到领取', function (): boolean {
-          if (!nav(限时活动_签到领取)) return false
+        doTask('限时活动_签到领取 签到领取', function (): 动作返回 {
+          if (!nav(限时活动_签到领取)) return { ok: false, 原因: '导航失败' }
           return 限时活动_签到领取Page.click_签到领取()
         })
       }
@@ -204,51 +211,51 @@ function executeDailyTasks(): void {
 
   // ======== 基地（入口：历练大厅、食堂） ========
   if (isDailyEnabled('寰球救援_领票')) {
-    doTask('寰球救援 免费', function (): boolean {
+    doTask('寰球救援 免费', function (): 动作返回 {
       // 直接 go 目标页:已在寰球救援页时 Router 直接返回 true,不退出重进
-      if (!nav(寰球救援)) return false
+      if (!nav(寰球救援)) return { ok: false, 原因: '导航失败' }
       return 寰球救援Page.免费()
     })
   }
   if (isDailyEnabled('寰球救援_广告门票')) {
-    doTask('寰球救援 广告门票', function (): boolean {
-      if (!nav(寰球救援)) return false
+    doTask('寰球救援 广告门票', function (): 动作返回 {
+      if (!nav(寰球救援)) return { ok: false, 原因: '导航失败' }
       return 寰球救援Page.广告门票()
     })
   }
   if (isDailyEnabled('寰球远征_免费')) {
-    doTask('寰球远征 免费', function (): boolean {
+    doTask('寰球远征 免费', function (): 动作返回 {
       var day = new Date().getDay()
       if (day < 5 && day !== 0) {
         console.log('[日常]   寰球远征仅周五~周末开放')
         return false
       }
-      if (!nav(历练大厅)) return false
-      if (!nav(寰球远征)) return false
+      if (!nav(历练大厅)) return { ok: false, 原因: '导航失败' }
+      if (!nav(寰球远征)) return { ok: false, 原因: '导航失败' }
       return 寰球远征Page.免费()
     })
   }
   if (isDailyEnabled('终末危机_扫荡')) {
-    doTask('终末危机 扫荡', function (): boolean {
+    doTask('终末危机 扫荡', function (): 动作返回 {
       var hour = new Date().getHours()
       if (hour < 12 || hour >= 23) {
         console.log('[日常]   终末危机仅在 12:00~23:00 开放')
         return false
       }
       // 直接 go 目标页(历练大厅仅中转,已在终末危机页时不退出重进)
-      if (!nav(终末危机)) return false
+      if (!nav(终末危机)) return { ok: false, 原因: '导航失败' }
       return 终末危机Page.扫荡()
     })
   }
   if (isDailyEnabled('食堂')) {
-    doTask('食堂 领取', function (): boolean {
-      if (!nav(食堂)) return false
+    doTask('食堂 领取', function (): 动作返回 {
+      if (!nav(食堂)) return { ok: false, 原因: '导航失败' }
       return 食堂Page.领取()
     })
   }
   if (isDailyEnabled('随机事件_领取')) {
-    doTask('随机事件 领取', function (): boolean {
-      if (!nav(基地)) return false
+    doTask('随机事件 领取', function (): 动作返回 {
+      if (!nav(基地)) return { ok: false, 原因: '导航失败' }
       // 随机事件入口非必现且延迟出现,重试等入口出现(与Router executePath 的3次重试对齐)
       var 入口出现 = false
       for (var i = 0; i < 3; i++) {
@@ -262,58 +269,58 @@ function executeDailyTasks(): void {
         console.log('[日常]   随机事件入口未出现')
         return false
       }
-      if (!nav(随机事件)) return false
+      if (!nav(随机事件)) return { ok: false, 原因: '导航失败' }
       return 随机事件Page.领取()
     })
   }
   // ======== 玩法商店（从基地进入） ========
   if (isDailyEnabled('商店_超时空军团兵碎片')) {
-    doTask('超时空军团兵碎片 购买', function (): boolean {
-      if (!nav(玩法商店)) return false
+    doTask('超时空军团兵碎片 购买', function (): 动作返回 {
+      if (!nav(玩法商店)) return { ok: false, 原因: '导航失败' }
       return 玩法商店Page.buy_超时空军团兵()
     })
   }
   // ======== 军团（任一子功能开启时导航） ========
   var 军团功能开启 = isDailyEnabled('军团_每日一刀') || isDailyEnabled('军团_异域挑战') || isDailyEnabled('军团_军团商店')
   if (军团功能开启) {
-    doTask('军团', function (): boolean {
-      if (!nav(军团)) return false
+    doTask('军团', function (): 动作返回 {
+      if (!nav(军团)) return { ok: false, 原因: '导航失败' }
       return true
     })
   }
   if (isDailyEnabled('军团_每日一刀')) {
-    doTask('每日一刀 砍一刀', function (): boolean {
-      if (!nav(军团)) return false
-      if (!nav(每日一刀)) return false
+    doTask('每日一刀 砍一刀', function (): 动作返回 {
+      if (!nav(军团)) return { ok: false, 原因: '导航失败' }
+      if (!nav(每日一刀)) return { ok: false, 原因: '导航失败' }
       return 每日一刀Page.砍一刀()
     })
   }
   if (isDailyEnabled('军团_异域挑战')) {
-    doTask('异域挑战 扫荡', function (): boolean {
-      if (!nav(异域挑战)) return false
+    doTask('异域挑战 扫荡', function (): 动作返回 {
+      if (!nav(异域挑战)) return { ok: false, 原因: '导航失败' }
       异域挑战Page.扫荡()
       return true
     })
-    doTask('军团奖励 领取', function (): boolean {
-      if (!nav(异域挑战军团奖励)) return false
+    doTask('军团奖励 领取', function (): 动作返回 {
+      if (!nav(异域挑战军团奖励)) return { ok: false, 原因: '导航失败' }
       return 异域挑战军团奖励Page.领取()
     })
-    doTask('个人奖励 领取', function (): boolean {
-      if (!nav(异域挑战个人奖励)) return false
+    doTask('个人奖励 领取', function (): 动作返回 {
+      if (!nav(异域挑战个人奖励)) return { ok: false, 原因: '导航失败' }
       return 异域挑战个人奖励Page.领取()
     })
   }
   if (isDailyEnabled('军团_军团商店')) {
     // 军团商店 → 两种入场券
-    doTask('救援入场券 购买', function (): boolean {
-      if (!nav(军团商店)) return false
+    doTask('救援入场券 购买', function (): 动作返回 {
+      if (!nav(军团商店)) return { ok: false, 原因: '导航失败' }
       var ticketAction = createTicketAction(IMG.环球救援券, IMG.军团商店已售罄)
       if (!ticketAction()) return false
       sleep(1500)
       return 道具购买Page.购买()
     })
-    doTask('远征入场券 购买', function (): boolean {
-      if (!nav(军团商店)) return false
+    doTask('远征入场券 购买', function (): 动作返回 {
+      if (!nav(军团商店)) return { ok: false, 原因: '导航失败' }
       var ticketAction = createTicketAction(IMG.环球远征券, IMG.军团商店已售罄)
       if (!ticketAction()) return false
       sleep(1500)
@@ -352,7 +359,8 @@ interface 活动目标 {
   名: string
   页: BasePage
   入口图: string
-  执行: () => boolean
+  执行: () => 动作返回   // 步骤 3 新定义的联合类型
+  计数?: boolean        // false = 本条目只是串接子任务,自身不计数
 }
 
 /** 按开关过滤构建批量目标列表 */
@@ -366,54 +374,57 @@ function 构建活动目标列表(): 活动目标[] {
   }
   if (isDailyEnabled('碧海凉夏_领取')) {
     列表.push({
-      名: '碧海凉夏 领取', 页: 碧海凉夏Page, 入口图: IMG.战斗碧海凉夏, 执行: function (): boolean {
-        if (!nav(任务, 碧海凉夏)) return false
+      名: '碧海凉夏 领取', 页: 碧海凉夏Page, 入口图: IMG.战斗碧海凉夏, 执行: function (): 动作返回 {
+        if (!nav(任务, 碧海凉夏)) return { ok: false, 原因: '导航失败' }
         return 任务Page.领取()
       }
     })
   }
   if (isDailyEnabled('幸运锦鲤_免费福利')) {
     列表.push({
-      名: '免费福利 领取', 页: 幸运锦鲤Page, 入口图: IMG.战斗幸运锦鲤, 执行: function (): boolean {
-        if (!nav(幸运锦鲤免费福利)) return false
+      名: '免费福利 领取', 页: 幸运锦鲤Page, 入口图: IMG.战斗幸运锦鲤, 执行: function (): 动作返回 {
+        if (!nav(幸运锦鲤免费福利)) return { ok: false, 原因: '导航失败' }
         return 幸运锦鲤免费福利Page.领取奖励()
       }
     })
   }
   if (isDailyEnabled('武装降临_领取')) {
     列表.push({
-      名: '武装降临 领取', 页: 武装降临Page, 入口图: IMG.战斗武装降临, 执行: function (): boolean {
-        if (!nav(任务, 武装降临)) return false
+      名: '武装降临 领取', 页: 武装降临Page, 入口图: IMG.战斗武装降临, 执行: function (): 动作返回 {
+        if (!nav(任务, 武装降临)) return { ok: false, 原因: '导航失败' }
         return 任务Page.领取()
       }
     })
   }
   if (isDailyEnabled('丛林遗迹_领取')) {
     列表.push({
-      名: '丛林遗迹 领取', 页: 丛林遗迹Page, 入口图: IMG.战斗丛林遗迹, 执行: function (): boolean {
-        if (!nav(任务, 丛林遗迹)) return false
+      名: '丛林遗迹 领取', 页: 丛林遗迹Page, 入口图: IMG.战斗丛林遗迹, 执行: function (): 动作返回 {
+        if (!nav(任务, 丛林遗迹)) return { ok: false, 原因: '导航失败' }
         return 任务Page.领取()
       }
     })
   }
   if (isDailyEnabled('鎏金罗盘_领取')) {
     列表.push({
-      名: '鎏金罗盘 领取', 页: 鎏金罗盘Page, 入口图: IMG.战斗鎏金罗盘, 执行: function (): boolean {
-        if (!nav(任务, 鎏金罗盘)) return false
+      名: '鎏金罗盘 领取', 页: 鎏金罗盘Page, 入口图: IMG.战斗鎏金罗盘, 执行: function (): 动作返回 {
+        if (!nav(任务, 鎏金罗盘)) return { ok: false, 原因: '导航失败' }
         return 任务Page.领取()
       }
     })
   }
   if (isDailyEnabled('观影签到_签到') || isDailyEnabled('观影签到_观影便利店')) {
     列表.push({
-      名: '观影签到', 页: 观影签到Page, 入口图: IMG.战斗观影签到, 执行: function (): boolean {
+      名: '观影签到', 页: 观影签到Page, 入口图: IMG.战斗观影签到,
+      // 本条目只是串接两个子任务(签到、便利店),自身无独立动作,故不计数
+      计数: false,
+      执行: function (): boolean {
         var ok = true
         if (isDailyEnabled('观影签到_签到')) {
           ok = doTask('观影签到 签到', function (): boolean { return 观影签到Page.免费领取() })
         }
         if (isDailyEnabled('观影签到_观影便利店')) {
-          var ok2 = doTask('观影便利店 免费', function (): boolean {
-            if (!nav(观影便利店)) return false
+          var ok2 = doTask('观影便利店 免费', function (): 动作返回 {
+            if (!nav(观影便利店)) return { ok: false, 原因: '导航失败' }
             return 观影便利店Page.免费()
           })
           return ok && ok2
@@ -433,9 +444,13 @@ function 构建活动目标列表(): 活动目标[] {
  * 当前画面可见的目标入口依次点击做任务，只滚一轮。
  */
 function 批量执行活动(): void {
+  var 开始 = Date.now()
   if (!nav(战斗)) {
     console.log('[日常] ❌ 战斗页活动批量 — 无法进入战斗页')
-    failTasks++
+    发布({
+      类型: '任务结束', 名: '战斗页活动批量', 状态: '异常', 原因: '无法进入战斗页',
+      耗时: Number(((Date.now() - 开始) / 1000).toFixed(1)), 服: currentServer ? currentServer : undefined,
+    })
     return
   }
   var 目标列表 = 构建活动目标列表()
@@ -462,16 +477,25 @@ function 批量执行活动(): void {
       目标列表.splice(best.索引, 1)
       // 复用 Router 导航:重试点击/弹窗关闭/偏离检测;失败时可能已回退,恢复战斗页避免滚动错位
       // 注意传类(router.go 用 constructor 与路由表严格比较),实例会使 findPath 永远找不到路径
+      var 目标开始 = Date.now()
       if (!nav(目标.页.constructor as any)) {
         console.log('[日常] ❌ ' + 目标.名 + ' — 入口点击后未进入页面')
-        failTasks++
+        发布({
+          类型: '任务结束', 名: 目标.名, 状态: '异常', 原因: '入口点击后未进入页面',
+          耗时: Number(((Date.now() - 目标开始) / 1000).toFixed(1)),
+          服: currentServer ? currentServer : undefined,
+        })
         nav(战斗)
         continue
       }
-      doTask(目标.名, 目标.执行)
+      // 目标.执行 可能自带子任务(如观影签到串接签到+便利店),由目标自行声明是否计数
+      doTask(目标.名, 目标.执行, 目标.计数 === false ? { 计数: false } : undefined)
       if (!nav(战斗)) {
         console.log('[日常] ❌ 战斗页活动批量 — 无法返回战斗页')
-        failTasks++
+        发布({
+          类型: '任务结束', 名: '战斗页活动批量', 状态: '异常', 原因: '无法返回战斗页',
+          耗时: Number(((Date.now() - 开始) / 1000).toFixed(1)), 服: currentServer ? currentServer : undefined,
+        })
         return
       }
       continue
@@ -485,10 +509,7 @@ function 批量执行活动(): void {
 }
 
 export function runDaily(): void {
-  totalTasks = 0
-  successTasks = 0
-  skipTasks = 0
-  failTasks = 0
+  // 本轮清零与摘要(临时删除,任务 7 改为发布「本轮开始」由 taskReport 清零、发布「整轮结束」输出摘要)
 
   console.log('')
   console.log('================================')
@@ -515,12 +536,7 @@ export function runDaily(): void {
     currentServer = null
   }
 
-  // 摘要
-  console.log('')
-  console.log('================================')
-  console.log('   日常任务 — 完成' + (currentServer ? ' [' + currentServer + ']' : ''))
-  console.log('   成功: ' + successTasks + ' | 跳过: ' + skipTasks + ' | 失败: ' + failTasks + ' | 总计: ' + totalTasks)
-  console.log('================================')
+  // 摘要(临时删除,任务 7 改为 taskReport 在收到「整轮结束」时输出)
 }
 
 
