@@ -28,13 +28,20 @@ function 使触摸穿透(win: any): void {
   })
 }
 
+/** 计数条布局宽度(dp)。必须与 layout/status.xml 的 w="150" 一致。
+ *  注意单位:floaty 布局的 w 是 dp,而 setPosition 收 px —— 同一个数字在两处含义不同。
+ *  实测(1080px / density 2.625):150dp = 394px,若按 150px 定位,右边缘会超出屏幕 244px。 */
+var 计数条宽dp = 150
+
 /** 计数条悬浮窗(单例)。独立于 SmallWindows.ts 的 smallWindow:
  *  后者的 close() 里是 threads.shutDownAll(),共用会误杀任务线程。
  *  不可触摸(FLAG_NOT_TOUCHABLE):只读 HUD,避免遮挡小球「停止」的点击 */
 class 计数条窗口 extends FloatWindow<{ 计数: View & JsTextView }> {
   constructor() {
     super('layoutFile:../layout/status.xml', false)
-    this.window.setPosition(device.width - 150, 60)
+    // 右边缘贴屏幕右边:布局宽度要按 density 换算成 px 才对得上(见 计数条宽dp 的注释)
+    var 宽px = Math.round(计数条宽dp * context.getResources().getDisplayMetrics().density)
+    this.window.setPosition(device.width - 宽px, 60)
     使触摸穿透(this.window)
   }
   /** 写文字并显示。调用方负责 ui.run(建窗与写视图都算 UI 操作) */
