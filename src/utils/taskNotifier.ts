@@ -28,10 +28,9 @@ function 使触摸穿透(win: any): void {
   })
 }
 
-/** 计数条布局宽度(dp)。必须与 layout/status.xml 的 w="150" 一致。
- *  注意单位:floaty 布局的 w 是 dp,而 setPosition 收 px —— 同一个数字在两处含义不同。
- *  实测(1080px / density 2.625):150dp = 394px,若按 150px 定位,右边缘会超出屏幕 244px。 */
-var 计数条宽dp = 150
+/** 计数条纵向位置(px)。小球是 h="36"dp(实测 94.5px)、位于 y=20,底部约 114.5px,
+ *  所以"小球正下方"要取 115px 以上,不能沿用早期估算的 60。 */
+var 计数条顶部px = 130
 
 /** 计数条悬浮窗(单例)。独立于 SmallWindows.ts 的 smallWindow:
  *  后者的 close() 里是 threads.shutDownAll(),共用会误杀任务线程。
@@ -39,19 +38,33 @@ var 计数条宽dp = 150
 class 计数条窗口 extends FloatWindow<{ 计数: View & JsTextView }> {
   constructor() {
     super('layoutFile:../layout/status.xml', false)
-    // 右边缘贴屏幕右边:布局宽度要按 density 换算成 px 才对得上(见 计数条宽dp 的注释)
-    var 宽px = Math.round(计数条宽dp * context.getResources().getDisplayMetrics().density)
-    this.window.setPosition(device.width - 宽px, 60)
+    // 宽度由内容撑开(布局不写 w),所以每次布局变化后都要重新贴右边
+    var 自身 = this
+    this.mView.addOnLayoutChangeListener(new android.view.View.OnLayoutChangeListener({
+      onLayoutChange: function (v: View, l: number, t: number, r: number, b: number,
+        ol: number, ot: number, orr: number, ob: number): void {
+        自身.贴右边()
+      }
+    }))
     使触摸穿透(this.window)
   }
   /** 写文字并显示。调用方负责 ui.run(建窗与写视图都算 UI 操作) */
   显示(文字: string): void {
     this.window.计数.setText(文字)
     this.mView.setVisibility(0)
+    this.贴右边()
   }
   /** 隐藏(开关关闭时撤窗用) */
   隐藏(): void {
     this.mView.setVisibility(8)
+  }
+  /** 右边缘贴屏幕右边。宽度是内容自适应的,只能取当前实际宽度 */
+  private 贴右边(): void {
+    var 宽 = this.mView.getWidth()
+    if (宽 <= 0) return
+    var 目标x = device.width - 宽
+    // x 没变就不调 setPosition,避免无谓的重排
+    if (this.window.getX() !== 目标x) this.window.setPosition(目标x, 计数条顶部px)
   }
 }
 
