@@ -221,6 +221,15 @@ var 捕获文本 = 捕获.join('\n')
 assert(捕获文本.indexOf('日常任务 — 完成') >= 0, '整轮结束事件触发摘要打印, 实际 [' + 捕获文本 + ']')
 assert(捕获文本.indexOf('成功: 1 | 跳过: 1 | 异常: 0 | 合计: 2') >= 0, '摘要内容与汇总一致')
 
+console.log('')
+console.log('--- 开关关闭时不刷计数条 ---')
+初始化通知(false)
+var 关前 = (global as any).__计数条文字
+发布({ 类型: '任务结束', 名: '关了开关也不该动', 状态: '成功', 耗时: 1 })
+var 关后 = (global as any).__计数条文字
+assert(关前 === 关后, '开关关闭时计数条不刷新, 实际 [' + 关前 + '] → [' + 关后 + ']')
+初始化通知(true)
+
 // ---------- 渲染冒烟: 计数条 ----------
 console.log('')
 console.log('--- 渲染冒烟: 计数条 ---')
@@ -236,5 +245,28 @@ sleep(600)
 var 读回的计数文字 = (global as any).__计数条文字
 assert(读回的计数文字 === '✅ 2  ⏭ 1  ❌ 1',
   '计数条文字与汇总一致, 实际 [' + 读回的计数文字 + ']')
+
+// ---------- 渲染冒烟: 通知 ----------
+console.log('')
+console.log('--- 渲染冒烟: 通知 ---')
+发布({ 类型: '整轮结束', 结果: '完成' })
+sleep(1500)
+var nm = context.getSystemService(android.content.Context.NOTIFICATION_SERVICE)
+var 活跃 = nm.getActiveNotifications()
+var 找到 = null
+for (var ia = 0; ia < 活跃.length; ia++) {
+  if (String(活跃[ia].getId()) === '1919') 找到 = 活跃[ia]
+}
+assert(!!找到, '通知已发出(id=1919), 活跃数 ' + 活跃.length)
+if (找到) {
+  var 通知对象 = 找到.getNotification()
+  var 标题文本 = String(通知对象.extras.getString(android.app.Notification.EXTRA_TITLE))
+  assert(标题文本 === '日常完成 ✅2 ⏭1 ❌1', '通知标题正确, 实际 [' + 标题文本 + ']')
+  var 展开文本 = String(通知对象.extras.getString(android.app.Notification.EXTRA_BIG_TEXT))
+  assert(展开文本.indexOf('跳过 1 项') >= 0 && 展开文本.indexOf('冒烟-跳过任务') >= 0,
+    '展开态含跳过明细, 实际 [' + 展开文本 + ']')
+  nm.cancel(1919)
+  console.log('  已取消测试通知(id=1919)')
+}
 
 summary()
