@@ -12,13 +12,30 @@ import {
 // ./types 与 ./declarations(不含 @types/node),所以这里补一条模块内的 ambient 声明。
 declare var global: any
 
+/** 让窗口不接收触摸:计数条是只读 HUD,不能挡住小球「停止」或游戏按钮的点击。
+ *  反射改 LayoutParams.flags 的写法同 component/FloatWindow.ts:67-92 的 windowOutSideDisableFocus;
+ *  实测 updateWindowLayoutParams 必须在 UI 线程调用,否则抛 CalledFromWrongThreadException。 */
+function 使触摸穿透(win: any): void {
+  var 字段 = win.getClass().getDeclaredField('mWindow')
+  字段.setAccessible(true)
+  var mWindow = 字段.get(win)
+  var 参数字段 = mWindow.getClass().getSuperclass().getDeclaredField('mWindowLayoutParams')
+  参数字段.setAccessible(true)
+  var params = 参数字段.get(mWindow)
+  params.flags |= android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+  ui.run(() => {
+    mWindow.updateWindowLayoutParams(params)
+  })
+}
+
 /** 计数条悬浮窗(单例)。独立于 SmallWindows.ts 的 smallWindow:
- *  后者的 close() 里是 threads.shutDownAll(),共用会误杀任务线程。 */
+ *  后者的 close() 里是 threads.shutDownAll(),共用会误杀任务线程。
+ *  不可触摸(FLAG_NOT_TOUCHABLE):只读 HUD,避免遮挡小球「停止」的点击 */
 class 计数条窗口 extends FloatWindow<{ 计数: View & JsTextView }> {
   constructor() {
     super('layoutFile:../layout/status.xml', false)
     this.window.setPosition(device.width - 150, 60)
-    this.draggable()
+    使触摸穿透(this.window)
   }
   /** 写文字并显示。调用方负责 ui.run(建窗与写视图都算 UI 操作) */
   显示(文字: string): void {
