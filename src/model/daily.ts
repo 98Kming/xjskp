@@ -51,7 +51,7 @@ import { 限时活动_免费 } from "../pages/限时活动_免费"
 import { 限时活动 } from "../pages/限时活动"
 import { 限时活动_签到领取 } from "../pages/限时活动_签到领取"
 import { 道具购买Page } from "../pages/道具购买"
-import { 发布 } from '../utils/taskBus'
+import { 发布, 任务事件 } from '../utils/taskBus'
 import { 初始化通知 } from '../utils/taskNotifier'
 
 const IMG = {
@@ -114,6 +114,15 @@ function nav(target: any, lastPage?: any): boolean {
 /** 任务动作返回值:true=成功;false=跳过(原因记为"未完成");对象=按 ok 判定并携带原因 */
 type 动作返回 = boolean | { ok: boolean; 原因?: string }
 
+/** 发布事件并吞掉订阅者异常:发布不是被保护的动作,订阅者出错不该把本任务误判成失败 */
+function 安全发布(e: 任务事件): void {
+  try {
+    发布(e)
+  } catch (err: any) {
+    console.log('[日常] 事件发布异常: ' + (err && err.message ? err.message : err))
+  }
+}
+
 /** 执行一个日常任务。配置.计数 传 false 时不发布事件(用于只串接子任务、自身无独立动作的父任务) */
 function doTask(label: string, action: () => 动作返回, 配置?: { 计数?: boolean }): boolean {
   var 要计数 = !配置 || 配置.计数 !== false
@@ -127,13 +136,13 @@ function doTask(label: string, action: () => 动作返回, 配置?: { 计数?: b
     var elapsed = Number(((Date.now() - start) / 1000).toFixed(1))
     if (ok) {
       console.log('[日常] ✅ ' + label + ' (' + elapsed + 's)')
-      if (要计数) 发布({ 类型: '任务结束', 名: label, 状态: '成功', 耗时: elapsed, 服: 服 })
+      if (要计数) 安全发布({ 类型: '任务结束', 名: label, 状态: '成功', 耗时: elapsed, 服: 服 })
       return true
     }
     var serverTag = currentServer ? ' [' + currentServer + ']' : ''
     var 跳过原因 = 动作原因 ? 动作原因 : '未完成'
     console.log(serverTag + '[日常] ⏭️ ' + label + ' — 跳过[' + 跳过原因 + '] (' + elapsed + 's)')
-    if (要计数) 发布({ 类型: '任务结束', 名: label, 状态: '跳过', 原因: 跳过原因, 耗时: elapsed, 服: 服 })
+    if (要计数) 安全发布({ 类型: '任务结束', 名: label, 状态: '跳过', 原因: 跳过原因, 耗时: elapsed, 服: 服 })
     return false
   } catch (e: any) {
     // 手动停止时立即终止
@@ -142,7 +151,7 @@ function doTask(label: string, action: () => 动作返回, 配置?: { 计数?: b
     var serverTag = currentServer ? ' [' + currentServer + ']' : ''
     var 原因 = e && e.message ? String(e.message) : String(e)
     console.log(serverTag + '[日常] ❌ ' + label + ' — ' + 原因 + ' (' + elapsed + 's)')
-    if (要计数) 发布({ 类型: '任务结束', 名: label, 状态: '异常', 原因: 原因, 耗时: elapsed, 服: 服 })
+    if (要计数) 安全发布({ 类型: '任务结束', 名: label, 状态: '异常', 原因: 原因, 耗时: elapsed, 服: 服 })
     return false
   }
 }
@@ -359,7 +368,7 @@ interface 活动目标 {
   名: string
   页: BasePage
   入口图: string
-  执行: () => 动作返回   // 步骤 3 新定义的联合类型
+  执行: () => 动作返回   // true/false 或带原因的对象,由 doTask 统一判定
   计数?: boolean        // false = 本条目只是串接子任务,自身不计数
 }
 
@@ -447,7 +456,7 @@ function 批量执行活动(): void {
   var 开始 = Date.now()
   if (!nav(战斗)) {
     console.log('[日常] ❌ 战斗页活动批量 — 无法进入战斗页')
-    发布({
+    安全发布({
       类型: '任务结束', 名: '战斗页活动批量', 状态: '异常', 原因: '无法进入战斗页',
       耗时: Number(((Date.now() - 开始) / 1000).toFixed(1)), 服: currentServer ? currentServer : undefined,
     })
@@ -480,7 +489,7 @@ function 批量执行活动(): void {
       var 目标开始 = Date.now()
       if (!nav(目标.页.constructor as any)) {
         console.log('[日常] ❌ ' + 目标.名 + ' — 入口点击后未进入页面')
-        发布({
+        安全发布({
           类型: '任务结束', 名: 目标.名, 状态: '异常', 原因: '入口点击后未进入页面',
           耗时: Number(((Date.now() - 目标开始) / 1000).toFixed(1)),
           服: currentServer ? currentServer : undefined,
@@ -492,7 +501,7 @@ function 批量执行活动(): void {
       doTask(目标.名, 目标.执行, 目标.计数 === false ? { 计数: false } : undefined)
       if (!nav(战斗)) {
         console.log('[日常] ❌ 战斗页活动批量 — 无法返回战斗页')
-        发布({
+        安全发布({
           类型: '任务结束', 名: '战斗页活动批量', 状态: '异常', 原因: '无法返回战斗页',
           耗时: Number(((Date.now() - 开始) / 1000).toFixed(1)), 服: currentServer ? currentServer : undefined,
         })
@@ -509,7 +518,9 @@ function 批量执行活动(): void {
 }
 
 export function runDaily(): void {
-  // 本轮清零与摘要(临时删除,任务 7 改为发布「本轮开始」由 taskReport 清零、发布「整轮结束」输出摘要)
+  // 开关在此读一次;放 runDaily 而非 start():start 是四个入口共用的,放那里会让兑换码/探索也建计数条
+  初始化通知(isDailyEnabled('执行结果通知'))
+  安全发布({ 类型: '本轮开始' })
 
   console.log('')
   console.log('================================')
@@ -517,26 +528,31 @@ export function runDaily(): void {
   console.log('================================')
   console.log('')
 
-  executeDailyTasks()
+  var 正常结束 = false
+  try {
+    executeDailyTasks()
 
-  // 多账号：切换区服重新执行
-  if (isDailyEnabled('全部账号')) {
-    while (nav(服务器选择)) {
-      var server = 服务器选择Page.next()
-      if (!server) break
-      currentServer = server
-      console.log('')
-      console.log('--- 切换服务器: ' + server + ' ---')
-      console.log('')
-      sleep(800)
-      // 不等待加载完成：切服加载期识别不可靠，直接交给 Router 的未知页面回退机制兜底
-      executeDailyTasks()
-      sleep(1000)
+    // 多账号：切换区服重新执行
+    if (isDailyEnabled('全部账号')) {
+      while (nav(服务器选择)) {
+        var server = 服务器选择Page.next()
+        if (!server) break
+        currentServer = server
+        console.log('')
+        console.log('--- 切换服务器: ' + server + ' ---')
+        console.log('')
+        sleep(800)
+        // 不等待加载完成：切服加载期识别不可靠，直接交给 Router 的未知页面回退机制兜底
+        executeDailyTasks()
+        sleep(1000)
+      }
+      currentServer = null
     }
-    currentServer = null
+    正常结束 = true
+  } finally {
+    // 摘要与通知都由 taskReport / taskNotifier 在收到「整轮结束」时输出
+    安全发布({ 类型: '整轮结束', 结果: 正常结束 ? '完成' : '已停止' })
   }
-
-  // 摘要(临时删除,任务 7 改为 taskReport 在收到「整轮结束」时输出)
 }
 
 
