@@ -6,6 +6,10 @@ import {
   本轮汇总, 重置本轮,
   格式化计数条, 格式化通知标题, 格式化通知正文, 格式化通知明细, 格式化摘要,
 } from '../src/utils/taskReport'
+import { 初始化通知 } from '../src/utils/taskNotifier'
+
+// autojs6 类型声明里没有 global,tsconfig 的 typeRoots 不含 @types/node,这里补一条
+declare var global: any
 
 var total = 0
 var pass = 0
@@ -190,6 +194,7 @@ assert(双节.indexOf('跳过 6 项') >= 0, '跳过节标题带真实条数, 实
 assert(双节.indexOf('异常 7 项') >= 0, '异常节标题带真实条数')
 assert(双节.indexOf('… 其余 1 项见运行日志') >= 0 && 双节.indexOf('… 其余 2 项见运行日志') >= 0,
   '两节各自折叠, 实际 [' + 双节 + ']')
+assert(双节.indexOf('跳过 6 项') < 双节.indexOf('异常 7 项'), '跳过节排在异常节之前, 实际 [' + 双节 + ']')
 
 console.log('')
 console.log('--- 摘要: 整轮结束时的日志块 ---')
@@ -201,5 +206,35 @@ assert(完成摘要.indexOf('成功: 1 | 跳过: 1 | 异常: 1 | 合计: 3') >= 
 var 停止摘要 = 格式化摘要(本轮汇总(), '已停止')
 assert(停止摘要.indexOf('日常任务 — 已停止') >= 0, '已停止摘要含对应标题, 实际 [' + 停止摘要 + ']')
 assert(停止摘要.indexOf('日常任务 — 完成') < 0, '已停止摘要不含完成字样')
+
+console.log('')
+console.log('--- 摘要: 整轮结束事件真的触发了打印 ---')
+// taskReport 的「整轮结束」分支是直接 console.log 的, 不接管输出就没法断言
+var 捕获: string[] = []
+var 原捕获log = console.log
+console.log = function (): void { 捕获.push(Array.prototype.slice.call(arguments).join(' ')) }
+发布({ 类型: '本轮开始' })
+成功('A'); 跳过('B', '入口未找到')
+发布({ 类型: '整轮结束', 结果: '完成' })
+console.log = 原捕获log
+var 捕获文本 = 捕获.join('\n')
+assert(捕获文本.indexOf('日常任务 — 完成') >= 0, '整轮结束事件触发摘要打印, 实际 [' + 捕获文本 + ']')
+assert(捕获文本.indexOf('成功: 1 | 跳过: 1 | 异常: 0 | 合计: 2') >= 0, '摘要内容与汇总一致')
+
+// ---------- 渲染冒烟: 计数条 ----------
+console.log('')
+console.log('--- 渲染冒烟: 计数条 ---')
+初始化通知(true)
+发布({ 类型: '本轮开始' })
+sleep(600)
+成功('冒烟-成功A'); sleep(700)
+成功('冒烟-成功B'); sleep(700)
+跳过('冒烟-跳过任务', '入口未找到'); sleep(700)
+异常('冒烟-异常任务', 'NavigationError: 示例'); sleep(700)
+
+// 通过 global 观测点读回真实文字,和文案函数比
+var 读回的计数文字 = (global as any).__计数条文字
+assert(读回的计数文字 === '✅ 2  ⏭ 1  ❌ 1',
+  '计数条文字与汇总一致, 实际 [' + 读回的计数文字 + ']')
 
 summary()
