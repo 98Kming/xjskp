@@ -51,6 +51,9 @@ class 计数条窗口 extends FloatWindow<{ 计数: View & JsTextView }> {
   /** 写文字并显示。调用方负责 ui.run(建窗与写视图都算 UI 操作) */
   显示(文字: string): void {
     this.window.计数.setText(文字)
+    // 实测 floaty 窗口的框只增不减:文字变短不会自动缩回,需手动触发一次重新布局。
+    // 缩回后会再触发 OnLayoutChangeListener,由 贴右边 把右边缘贴齐。
+    this.mView.requestLayout()
     this.mView.setVisibility(0)
     this.贴右边()
   }
