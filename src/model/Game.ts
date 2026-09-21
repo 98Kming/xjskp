@@ -1,8 +1,10 @@
-import { GameConfig, GameType } from "../MainWindow"
+import { GameConfig, GameType, 开关已开 } from "../MainWindow"
 import { smallWindow } from "../SmallWindows"
 import { Router } from '../router/Router'
 import { screen, width, height, toScreenX, toScreenY, tryCloseModals, select_队友, createRouteAction, imageDetector } from '../utils/img'
 import { skillStrategy } from '../utils/技能策略'
+import { 发布 } from '../utils/taskBus'
+import { 初始化通知 } from '../utils/taskNotifier'
 import { 战斗中 } from '../pages/战斗中'
 import { 暂停战斗 } from '../pages/暂停战斗'
 import { 战斗结束 } from '../pages/战斗结束'
@@ -46,6 +48,9 @@ export class Game {
   private status: GameStatus = GameStatus.战斗结束
   private startTime = 0
   private 已入队 = false // 队员接受邀请成功,等待队长开战,不再执行准备导航
+  // 本局胜负是否已上报。back() 点击后页面若未在 2s 内退掉,下一轮循环会再次识别到结算页并重复上报;
+  // 复位点放在"确认已回到战斗中"(见 start 循环的 else 分支),不能放 reset() —— 它和上报在同一分支里执行
+  private 已上报本局 = false
   倍速() {
     if (this.enable_倍速) return
     if (this.倍速尝试 >= 3) return // 每局最多尝试 3 次
@@ -102,6 +107,13 @@ export class Game {
       return true
     } else if (modalPage === 战斗结束Page) {
       log("返回中")
+      // 顶层战斗才上报胜负:日常子任务(快速退出)的"失败"是预期结果,且计数条归日常所有
+      if (this.gameConfig.上报战斗结果 && !this.已上报本局) {
+        this.已上报本局 = true
+        var 本局成功 = 战斗结束Page.是成功(img)
+        log("本局结果: " + (本局成功 ? "成功" : "失败"))
+        发布({ 类型: '战斗结果', 成功: 本局成功 })
+      }
       // 快速再战会绕过外层 do-while 的局数停止判定(reset 内 runNum++ 后直接进下一局);
       // 本局结束时 runNum 尚未 +1,已是最后一局(runNum == gameConfig.runNum - 1)时不再战,否则局数配置失效无限打
       if (this.runNum < this.gameConfig.runNum - 1 && 战斗结束Page.再战()) {
@@ -243,6 +255,12 @@ export class Game {
     return false
   }
   start() {
+    // 顶层战斗自建计数条并清零;日常子任务(快速退出)共用日常计数条,不能重置也不能改其开关
+    if (this.gameConfig.上报战斗结果) {
+      初始化通知(开关已开('执行结果通知'))
+      // 模式=战斗:计数条从建起就用胜/负格式,不带 ⏭ 段
+      发布({ 类型: '本轮开始', 模式: '战斗' })
+    }
     // 每次启动重新读取技能页 seekbar 配置(拖动后再次启动要生效)并重置局内计数
     skillStrategy.resetProgress()
     do {
@@ -281,6 +299,7 @@ export class Game {
           }
         } else {
           this.status = GameStatus.战斗中
+          this.已上报本局 = false // 无弹窗无上层窗口 = 新一局已在跑,允许下一轮结算再上报
           if (this.gameConfig.timeOut && Date.now() - this.startTime > this.gameConfig.timeOut * 60 * 1000) {
             log('战斗超时 返回')
             this.status = GameStatus.退出战斗

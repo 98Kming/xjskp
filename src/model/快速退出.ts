@@ -11,6 +11,8 @@ class 快速退出配置 extends GameConfig {
   type: GameType = GameType.普通关卡
   enableStart: boolean = true // 异常回退到战斗页时由 Game 重新 go(战斗中) 兜底
   exitLevel: number = 1
+  // 日常子任务:共用日常计数条,不上报本局胜负(提前退出的"失败"是预期结果)
+  上报战斗结果 = false
   constructor(次数: number) {
     super()
     this.runNum = 次数

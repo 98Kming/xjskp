@@ -45,6 +45,8 @@ import { 接受邀请列表 } from '../pages/接受邀请列表'
 import { 组队邀请推荐 } from '../pages/组队邀请-推荐'
 import { 组队邀请好友 } from '../pages/组队邀请-好友'
 import { 丛林遗迹 } from '../pages/丛林遗迹'
+import { 天空秘境 } from '../pages/天空秘境'
+import { 薇拉的藏酒 } from '../pages/薇拉的藏酒'
 import { 限时活动 } from '../pages/限时活动'
 import { 限时活动_免费 } from '../pages/限时活动_免费'
 import { 限时活动_签到领取 } from '../pages/限时活动_签到领取'
@@ -78,8 +80,10 @@ export var 观影签到Page = new 观影签到()
 export var 观影便利店Page = new 观影便利店()
 export var 影映观礼Page = new 影映观礼()
 export var 武装降临Page = new 武装降临()
+export var 天空秘境Page = new 天空秘境()
 export var 丛林遗迹Page = new 丛林遗迹()
 export var 鎏金罗盘Page = new 鎏金罗盘()
+export var 薇拉的藏酒Page = new 薇拉的藏酒()
 export var 好友Page = new 好友()
 export var 领取体力Page = new 领取体力()
 export var 限时活动_免费Page = new 限时活动_免费()

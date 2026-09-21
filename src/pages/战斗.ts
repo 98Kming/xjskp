@@ -19,6 +19,8 @@ import { 影映观礼 } from './影映观礼'
 import { sharedImages } from '../images'
 import { 丛林遗迹 } from './丛林遗迹'
 import { 限时活动 } from './限时活动'
+import { 天空秘境 } from './天空秘境'
+import { 薇拉的藏酒 } from './薇拉的藏酒'
 
 const IMG = {
   ...sharedImages,
@@ -120,6 +122,26 @@ export class 战斗 extends BasePage {
           self.scrollUp()
           return action()
         }, imagePath: IMG.战斗鎏金罗盘
+      },
+      {
+        target: 天空秘境, action: function (): boolean {
+          var action = createRouteAction(IMG.战斗天空秘境)
+          if (action()) return true
+          self.scrollDown()
+          if (action()) return true
+          self.scrollUp()
+          return action()
+        }, imagePath: IMG.战斗天空秘境
+      },
+      {
+        target: 薇拉的藏酒, action: function (): boolean {
+          var action = createRouteAction(IMG.战斗薇拉的藏酒)
+          if (action()) return true
+          self.scrollDown()
+          if (action()) return true
+          self.scrollUp()
+          return action()
+        }, imagePath: IMG.战斗薇拉的藏酒
       },
       {
         target: 观影签到, action: function (): boolean {

@@ -78,6 +78,8 @@ export type MainWindowView = {
   武装降临_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   丛林遗迹_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   鎏金罗盘_领取: ConfigurableView<PrefSwitch> & JsCheckBox
+  天空秘境_领取: ConfigurableView<PrefSwitch> & JsCheckBox
+  薇拉的藏酒_购买红枪皮: ConfigurableView<PrefSwitch> & JsCheckBox
   执行完息屏: ConfigurableView<PrefSwitch> & JsCheckBox
   执行结果通知: ConfigurableView<PrefSwitch> & JsCheckBox
   详细日志: ConfigurableView<PrefSwitch> & JsCheckBox
@@ -113,6 +115,19 @@ ui.registerWidget("pref-spinner", () => new PrefSpinner());
 
 export const mainWindow = new MainWindow()
 
+/** 读取主窗口某个开关的勾选状态;控件不存在返回 false。
+ *  放这里而非 daily.ts:Game(战斗模式)也要读日常开关,而 daily → 快速退出 → Game 已有依赖链,
+ *  Game 反向 import daily 会成环。 */
+export function 开关已开(id: string): boolean {
+  var view = (mainWindow.window as any)[id]
+  if (!view) return false
+  var widget = view.widget
+  if (widget && typeof widget.isChecked === 'function') {
+    return widget.isChecked()
+  }
+  return false
+}
+
 export enum GameType { 普通关卡 = '普通关卡', 精英关卡 = '精英关卡', 寰球救援 = '寰球救援', 元素试炼 = '元素试炼', 寰球远征_准备 = '寰球远征_准备' }
 
 const RUN_FOREVER = -1
@@ -138,6 +153,10 @@ export abstract class GameConfig {
   teammate?: Teammate
   identifySkill = false // 识别技能
   倍速 = false // 开启 15 倍速
+  /** 顶层战斗:自建计数条、每局结算上报胜负。
+   *  日常里的快速退出是日常子任务(见 快速退出.ts),必须设 false——
+   *  否则会重置日常计数条,并把"提前退出"的失败计成负场。 */
+  上报战斗结果 = true
 }
 
 ui.run(() => {
