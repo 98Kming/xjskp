@@ -29,7 +29,12 @@ export class 战斗结束 extends BasePage {
    * 传入 img 复用调用方手上那帧——结算页刚出现时同帧内找图，既不额外截图也不会读到旧帧。
    */
   是成功(img?: ImageWrapper): boolean {
-    return imageDetector(IMG.恭喜获得, img) != null
+    if (imageDetector(IMG.恭喜获得, img)) {
+      return true
+    }
+    // TODO 临时取证：留帧确认战败是真战败还是识别错误，验证完删除本行，上面分支也可还原为单行判空
+    img && images.save(img, '/sdcard/结束' + Date.now() + '.png')
+    return false
   }
 
   routes(): Route[] {
