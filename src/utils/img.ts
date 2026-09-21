@@ -433,13 +433,17 @@ export function createPageDetector(filePath: string, skipLuminance?: boolean): P
 }
 
 /** 按钮动作：找图命中后点击按钮中心。cache=1 的区域记忆由 findRegion 维护 */
-export function createRouteAction(filePath: string): (img?: ImageWrapper) => boolean {
+export function createRouteAction(filePath: string, skipLuminance: boolean = true): (img?: ImageWrapper) => boolean {
   var template = getTemplate(filePath)
   return function (img?: ImageWrapper): boolean {
+    img || (img = screen())
     var point = findRegion(filePath, img)
     if (!point) return false
-    click(toScreenX(point.x + template.width / 2), toScreenY(point.y + template.height / 2))
-    return true
+    if(skipLuminance || luminanceOk(template, img, point.x, point.y, filePath) || pixelDiffOk(filePath, template, img, point.x, point.y)){
+      click(toScreenX(point.x + template.width / 2), toScreenY(point.y + template.height / 2))
+      return true
+    }
+    return false
   }
 }
 
@@ -520,12 +524,13 @@ export function createTicketAction(ticketPath: string, soldOutPath: string): () 
   }
 }
 
-var closeButtons: (() => boolean)[] = [
+var closeButtons: ((img?: ImageWrapper) => boolean)[] = [
   createRouteAction(sharedImages.重新连接),
   createRouteAction(sharedImages.跳过),
-  createRouteAction(sharedImages.关闭1),
+  createRouteAction(sharedImages.关闭1, false),
   createRouteAction(sharedImages.确定),
   createRouteAction(sharedImages.前往),
+  createRouteAction(sharedImages.确认2),
 ]
 const colors_关闭_无框_多点: [number, number, string][] = [[4, 13, "#fde6bc"], [6, 21, "#fce4bb"], [13, 42, "#fadda4"], [16, 48, "#fdd59d"], [-1, 24, "#fbe3ba"], [14, 22, "#fce4bb"], [21, 18, "#ffebc4"], [29, 15, "#fff8d8"], [0, 2, "#fee6bc"], [4, 7, "#fde5bb"], [2, 19, "#fde9c4"], [10, 24, "#fce4bb"], [15, 47, "#f3cb93"], [-15, 29, "#fee9c4"], [12, 23, "#fce4bb"]]
 const colors_关闭_无框_多点_exclude: [number, number, string][] = [[-8, 14, "#1b1209"], [0, 43, "#1b110a"], [26, 35, "#191009"], [14, 11, "#1b1108"]]
@@ -537,12 +542,11 @@ const colors_关闭_无框2 = "#ebdab8"
 export function tryCloseModals(): boolean {
   // 优先：图片模板匹配（重新连接、确定等已知弹窗），
   // 放在多点找色之前，避免弹窗下层按钮被误点
-  for (var k = 0; k < closeButtons.length; k++) {
-    if (closeButtons[k]()) return true
-  }
-
-  // 降级：多点找色检测无框关闭按钮（可能在弹窗下层，但无模板匹配时值得一试）
   var img = screen()
+  for (var k = 0; k < closeButtons.length; k++) {
+    if (closeButtons[k](img)) return true
+  }
+  // 降级：多点找色检测无框关闭按钮（可能在弹窗下层，但无模板匹配时值得一试）
   var point = images.findMultiColors(img, colors_关闭_无框, colors_关闭_无框_多点, {
     region: [img.width * 0.8, 0, img.width * 0.2, img.height * 0.4], threshold: 26
   })

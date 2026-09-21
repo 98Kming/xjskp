@@ -106,6 +106,13 @@
       <pref-switch id="执行结果通知" text="执行结果通知" layoutDirection="rtl" />
       <pref-switch id="详细日志" text="详细日志" layoutDirection="rtl" />
     </vertical>
+    <vertical layout_width="match_parent" layout_height="wrap_content" padding="16">
+      <text id="结果标题" layout_width="match_parent" textSize="16sp" textColor="#000000" textStyle="bold">本轮尚未执行</text>
+      <text id="结果计数" layout_width="match_parent" textSize="14sp" textColor="#333333">✅ 0  ⏭ 0  ❌ 0</text>
+      <scroll layout_width="match_parent" layout_weight="1">
+        <text id="结果明细" layout_width="match_parent" textSize="13sp" textColor="#333333">执行日常任务后，这里列出本轮的跳过与异常项</text>
+      </scroll>
+    </vertical>
   </viewpager>
   <horizontal>
     <button layout_weight="1" id="启动" text="启动" />

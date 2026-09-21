@@ -93,7 +93,7 @@ function 打印摘要(e: 整轮结束事件): void {
   console.log(格式化摘要(本轮汇总(), e.结果))
 }
 
-/** 每节最多列出的明细条数,超出折叠为一行提示 */
+/** 通知明细每节最多列出的条数,超出折叠为一行提示(结果页不受此限,见 格式化完整明细) */
 var 每节上限 = 5
 
 /** 计数条文字。
@@ -120,12 +120,22 @@ export function 格式化通知正文(汇总: 汇总结果): string {
 
 /** 通知展开态明细;无跳过与异常时返回空串(调用方据此决定是否设置 BigTextStyle) */
 export function 格式化通知明细(汇总: 汇总结果): string {
+  return 拼接明细(汇总, 每节上限)
+}
+
+/** 结果页明细:全量列出不折叠;无跳过与异常时返回空串(调用方据此显示占位文案) */
+export function 格式化完整明细(汇总: 汇总结果): string {
+  return 拼接明细(汇总, -1)
+}
+
+/** 上限为 -1 时不折叠 */
+function 拼接明细(汇总: 汇总结果, 上限: number): string {
   var 跳过项 = 取明细(汇总, '跳过')
   var 异常项 = 取明细(汇总, '异常')
   if (跳过项.length === 0 && 异常项.length === 0) return ''
   var 行: string[] = []
-  if (跳过项.length > 0) 追加节(行, '跳过', 跳过项)
-  if (异常项.length > 0) 追加节(行, '异常', 异常项)
+  if (跳过项.length > 0) 追加节(行, '跳过', 跳过项, 上限)
+  if (异常项.length > 0) 追加节(行, '异常', 异常项, 上限)
   return 行.join('\n')
 }
 
@@ -148,14 +158,14 @@ function 取明细(汇总: 汇总结果, 状态: '跳过' | '异常'): 明细项
   return 结果
 }
 
-function 追加节(行: string[], 标题: string, 项: 明细项[]): void {
+function 追加节(行: string[], 标题: string, 项: 明细项[], 上限: number): void {
   行.push(标题 + ' ' + 项.length + ' 项')
-  var 显示数 = 项.length > 每节上限 ? 每节上限 : 项.length
+  var 显示数 = 上限 < 0 || 项.length <= 上限 ? 项.length : 上限
   for (var i = 0; i < 显示数; i++) {
     行.push('· ' + 格式化明细行(项[i]))
   }
-  if (项.length > 每节上限) {
-    行.push('… 其余 ' + (项.length - 每节上限) + ' 项见运行日志')
+  if (显示数 < 项.length) {
+    行.push('… 其余 ' + (项.length - 显示数) + ' 项见「结果」页')
   }
 }
 

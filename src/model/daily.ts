@@ -231,11 +231,6 @@ function executeDailyTasks(): void {
   }
   if (isDailyEnabled('寰球远征_免费')) {
     doTask('寰球远征 免费', function (): 动作返回 {
-      var day = new Date().getDay()
-      if (day < 5 && day !== 0) {
-        console.log('[日常]   寰球远征仅周五~周末开放')
-        return false
-      }
       if (!nav(历练大厅)) return { ok: false, 原因: '导航失败' }
       if (!nav(寰球远征)) return { ok: false, 原因: '导航失败' }
       return 寰球远征Page.免费()
