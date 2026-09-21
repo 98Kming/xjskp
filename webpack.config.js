@@ -11,6 +11,7 @@ module.exports = {
     "技能策略诊断": path.resolve(__dirname, "./test/技能策略诊断.ts"),
     "详细日志诊断": path.resolve(__dirname, "./test/详细日志诊断.ts"),
     "任务通知诊断": path.resolve(__dirname, "./test/任务通知诊断.ts"),
+    "结果面板诊断": path.resolve(__dirname, "./test/结果面板诊断.ts"),
   },
 
   output: {

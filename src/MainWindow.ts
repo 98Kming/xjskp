@@ -81,6 +81,9 @@ export type MainWindowView = {
   执行完息屏: ConfigurableView<PrefSwitch> & JsCheckBox
   执行结果通知: ConfigurableView<PrefSwitch> & JsCheckBox
   详细日志: ConfigurableView<PrefSwitch> & JsCheckBox
+  结果标题: JsTextView
+  结果计数: JsTextView
+  结果明细: JsTextView
 }
 export class MainWindow extends FloatWindow<MainWindowView> {
   constructor() {
@@ -141,7 +144,7 @@ export abstract class GameConfig {
 }
 
 ui.run(() => {
-  mainWindow.window.viewPager.setTitles(['功能', '技能', '日常', '设置'])
+  mainWindow.window.viewPager.setTitles(['功能', '技能', '日常', '设置', '结果'])
   mainWindow.window.tabHost.setupWithViewPager(mainWindow.window.viewPager);
 })
 

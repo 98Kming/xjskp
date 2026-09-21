@@ -10,6 +10,7 @@ import { 组队邀请好友 } from './pages/组队邀请-好友'
 import { 接受邀请列表 } from './pages/接受邀请列表'
 import { 鹊渡仙途 } from './pages/鹊渡仙途'
 import { setupDetailLog } from './utils/logger'
+import { 绑定结果面板 } from './utils/resultPanel'
 
 // 组队邀请页实例由 pages.ts 注册表创建(识别优先级最低,不与现有页面抢识别);此处仅引用类做 Router 导航
 var 兑换码运行中 = false
@@ -211,3 +212,11 @@ function start(fun: () => void, 等待熄屏: boolean = true) {
     }
   })
 }
+
+/** 结果页判"本轮是否还在跑"用它兜底:硬杀线程时 finally 不执行,「整轮结束」事件可能不送达 */
+function 判定任务线程运行中(): boolean {
+  return !!(任务线程 && 任务线程.isAlive())
+}
+
+// 结果页装配放最后:此时 mainWindow 与 任务线程 均已就绪
+绑定结果面板(mainWindow.window, 判定任务线程运行中)
