@@ -9,24 +9,24 @@ function 读图(path: string): Tpl {
 }
 const IMG = {
   ...sharedImages,
-  炸弹: './images/探索$$炸弹_0_0.65.png',
+  炸弹: './images/探索$$炸弹_0_0.9.png',
   未知块: './images/探索$$未知块_0_0.9.png',
-  隐藏物品: './images/探索$$隐藏物品_0_0.9.png',
+  隐藏物品: './images/探索$$隐藏_0_0.9.png',
   边界_左上: './images/探索_左上角_0_0.9_73_775_109_809.png',
   边界_右下: './images/探索_右下角_0_0.9_973_1834_1007_1868.png',
-  一层储物盒: './images/探索_1层储物盒_0_0.9.png',
-  二层储物盒11: './images/探索_2层储物盒11_0_0.9.png',
-  二层储物盒12: './images/探索_2层储物盒12_0_0.9.png',
-  二层储物盒21: './images/探索_2层储物盒21_0_0.9.png',
-  二层储物盒22: './images/探索_2层储物盒22_0_0.9.png',
-  三层储物盒11: './images/探索_3层储物盒11_0_0.9.png',
-  三层储物盒12: './images/探索_3层储物盒12_0_0.9.png',
-  三层储物盒21: './images/探索_3层储物盒21_0_0.9.png',
-  三层储物盒22: './images/探索_3层储物盒22_0_0.9.png',
-  三层储物盒31: './images/探索_3层储物盒31_0_0.9.png',
-  三层储物盒32: './images/探索_3层储物盒32_0_0.9.png',
+  一层储物盒: './images/探索_1层_0_0.9.png',
+  二层储物盒11: './images/探索_2层11_0_0.9.png',
+  二层储物盒12: './images/探索_2层12_0_0.9.png',
+  二层储物盒21: './images/探索_2层21_0_0.9.png',
+  二层储物盒22: './images/探索_2层22_0_0.9.png',
+  三层储物盒11: './images/探索_3层11_0_0.9.png',
+  三层储物盒12: './images/探索_3层12_0_0.9.png',
+  三层储物盒21: './images/探索_3层21_0_0.9.png',
+  三层储物盒22: './images/探索_3层22_0_0.9.png',
+  三层储物盒31: './images/探索_3层31_0_0.9.png',
+  三层储物盒32: './images/探索_3层32_0_0.9.png',
   下一层入口: './images/探索$$下一层入口_0_0.65.png',
-  无次数: './images/探索_无次数_0_0.97_609_1937_663_1966.png',
+  无次数: './images/探索_无次数_0_0.97_792_1933_848_1960.png',
 }
 const img_炸弹 = 读图(IMG.炸弹)
 const img_未知 = 读图(IMG.未知块)
@@ -235,17 +235,12 @@ export class 探索 {
   }
   init() {
     const img = images.captureScreen();
-    let left_top = images.findImage(img, img_边界_左上.img, { threshold: img_边界_左上.threshold })
-    let right_bottom = images.findImage(img, img_边界_右下.img, { threshold: img_边界_右下.threshold })
-    if (!left_top || !right_bottom) {
-      return
-    }
     // 起点 x 在左上角图右侧(加模板宽);起点 y 在左上角图底部(加模板高);
     // 棋盘宽度再减掉模板图宽度,对齐实际格子区域
-    this.startX = left_top.x + img_边界_左上.img.getWidth()
-    this.startY = left_top.y + img_边界_左上.img.getHeight()
-    let lenX = right_bottom.x + img_边界_右下.img.getWidth() - this.startX - img_边界_左上.img.getWidth()
-    let lenY = right_bottom.y - this.startY
+    this.startX = 120
+    this.startY = 820
+    let lenX = 960-120
+    let lenY = 1845-820
     this.width = parseInt((lenX / 5 + lenY / 6) / 2 + "")
     log(this.startX, this.startY, this.width)
     for (let i = 0; i < 6; i++) {
