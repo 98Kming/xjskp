@@ -1,5 +1,5 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector, createRouteAction, imageDetector } from '../utils/img'
+import { createPageDetector, createRouteAction, imageDetector, waitScreen } from '../utils/img'
 import { 战斗中 } from './战斗中'
 import { sharedImages } from '../images'
 
@@ -31,6 +31,11 @@ export class 战斗结束 extends BasePage {
   是成功(img?: ImageWrapper): boolean {
     if (imageDetector(IMG.恭喜获得, img)) {
       return true
+    } else {
+      img = waitScreen(300)
+      if (imageDetector(IMG.恭喜获得, img)) {
+        return true
+      }
     }
     // TODO 临时取证：留帧确认战败是真战败还是识别错误，验证完删除本行，上面分支也可还原为单行判空
     img && images.save(img, '/sdcard/结束' + Date.now() + '.png')
