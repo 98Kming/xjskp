@@ -81,7 +81,8 @@ export class 随机事件 extends BasePage {
    * 出现结束、或出现焕新试剂的退出循环，这种情况随机事件的入口还会存在
    */
   领取(): boolean {
-    var found = false
+    // 初始 true:进入时已有结束按钮说明本轮无待领取内容,不该记为跳过
+    var found = true
     while (!this.hasEnded()) {
       var tmpFound = false
       if (this.焕新试剂Action() || this.委婉拒绝Action() || this.欣然接受Action()) {
@@ -104,8 +105,8 @@ export class 随机事件 extends BasePage {
       if (!tmpFound) {
         if (this.is(screen())) {
           log('[随机事件] 有未添加的按钮等待收录')
-          found = false
         }
+        found = false
         break
       }
     }
