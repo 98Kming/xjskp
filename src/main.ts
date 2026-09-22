@@ -8,14 +8,12 @@ import { Router } from './router/Router'
 import { find_队友, screenCalls, screenCaptures } from './utils/img'
 import { 组队邀请好友 } from './pages/组队邀请-好友'
 import { 接受邀请列表 } from './pages/接受邀请列表'
-import { 鹊渡仙途 } from './pages/鹊渡仙途'
 import { setupDetailLog } from './utils/logger'
 import { 绑定结果面板 } from './utils/resultPanel'
+import { 探索 } from './model/探索'
 
 // 组队邀请页实例由 pages.ts 注册表创建(识别优先级最低,不与现有页面抢识别);此处仅引用类做 Router 导航
 var 兑换码运行中 = false
-// 鹊渡仙途 extends BasePage,new 即注册;缓存实例防止重复运行触发 Router 重复注册报错
-var 鹊渡仙途Page: 鹊渡仙途 | null = null
 var 探索运行中 = false
 // 获取队友信息选中的队友(Teammate 含截图引用,每次流程重新获取覆盖)
 let teammate: Teammate | undefined
@@ -102,8 +100,8 @@ mainWindow.window.探索.setOnClickListener(new android.view.View.OnClickListene
     探索运行中 = true
     start(function () {
       try {
-        if (!鹊渡仙途Page) { 鹊渡仙途Page = new 鹊渡仙途() }
-        鹊渡仙途Page.run()
+        let t = new 探索()
+        t.start()
       } catch (e: any) {
         console.error('[探索] 异常: ' + (e.message || e))
       } finally {
