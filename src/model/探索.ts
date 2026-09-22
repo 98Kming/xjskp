@@ -1,5 +1,5 @@
 // 使用 AutoJs6 全局 API(colors/images/click 等),不依赖项目 util 模块
-import { getTemplate, imageNameParser } from '../utils/img'
+import { getTemplate, imageDetector, imageNameParser } from '../utils/img'
 import { sharedImages } from '../images'
 // 截图权限在 start() 里请求,避免模块加载(main.ts import)时就弹权限框阻塞主窗口创建
 /** 读图并按文件名解析匹配阈值(如 _0_0.65 后缀) */
@@ -12,8 +12,6 @@ const IMG = {
   炸弹: './images/探索$$炸弹_0_0.9.png',
   未知块: './images/探索$$未知块_0_0.9.png',
   隐藏物品: './images/探索$$隐藏_0_0.9.png',
-  边界_左上: './images/探索_左上角_0_0.9_73_775_109_809.png',
-  边界_右下: './images/探索_右下角_0_0.9_973_1834_1007_1868.png',
   一层储物盒: './images/探索_1层_0_0.9.png',
   二层储物盒11: './images/探索_2层11_0_0.9.png',
   二层储物盒12: './images/探索_2层12_0_0.9.png',
@@ -31,8 +29,6 @@ const IMG = {
 const img_炸弹 = 读图(IMG.炸弹)
 const img_未知 = 读图(IMG.未知块)
 const img_隐藏物品 = 读图(IMG.隐藏物品)
-const img_边界_左上 = 读图(IMG.边界_左上)
-const img_边界_右下 = 读图(IMG.边界_右下)
 const img_1层储物盒 = 读图(IMG.一层储物盒)
 const img_2层储物盒11 = 读图(IMG.二层储物盒11)
 const img_2层储物盒12 = 读图(IMG.二层储物盒12)
@@ -110,13 +106,13 @@ export class 探索 {
         sleep(800)
         continue
       }
-      point = images.findImageInRegion(images.captureScreen(), img_次数0.img, device.width * 0.5, device.height * 0.75, device.width * 0.2, device.height * 0.15, img_次数0.threshold)
+      point = imageDetector(IMG.无次数)
       if (point) {
         log("次数为0", img_次数0.threshold)
         break
       }
       // 探索页识别:棋盘左上角找不到视为遮挡/离开探索页,关闭弹窗后继续
-      if (!images.findImage(images.captureScreen(), img_边界_左上.img, { threshold: img_边界_左上.threshold })) {
+      if (!images.findColorInRegion(images.captureScreen(), '#F4EFEC', device.width * 0.3, device.height * 0.5, device.width * 0.4, device.height * 0.5, 0.9)) {
         log("遮挡")
         click(device.width - 50, device.height - 50)
         sleep(800)
