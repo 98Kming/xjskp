@@ -10,7 +10,7 @@ function 读图(path: string): Tpl {
 const IMG = {
   ...sharedImages,
   炸弹: './images/探索$$炸弹_0_0.9.png',
-  未知块: './images/探索$$未知块_0_0.9.png',
+  未知块: './images/探索$$未知块_0_0.7.png',
   隐藏物品: './images/探索$$隐藏_0_0.9.png',
   一层储物盒: './images/探索_1层_0_0.9.png',
   二层储物盒11: './images/探索_2层11_0_0.9.png',
