@@ -21,6 +21,8 @@ import { 丛林遗迹 } from './丛林遗迹'
 import { 限时活动 } from './限时活动'
 import { 天空秘境 } from './天空秘境'
 import { 薇拉的藏酒 } from './薇拉的藏酒'
+import { 拟态牌库 } from './拟态牌库'
+import { 机械震荡 } from './机械震荡'
 
 const IMG = {
   ...sharedImages,
@@ -142,6 +144,26 @@ export class 战斗 extends BasePage {
           self.scrollUp()
           return action()
         }, imagePath: IMG.战斗薇拉的藏酒
+      },
+      {
+        target: 拟态牌库, action: function (): boolean {
+          var action = createRouteAction(IMG.战斗拟态牌库)
+          if (action()) return true
+          self.scrollDown()
+          if (action()) return true
+          self.scrollUp()
+          return action()
+        }, imagePath: IMG.战斗拟态牌库
+      },
+      {
+        target: 机械震荡, action: function (): boolean {
+          var action = createRouteAction(IMG.战斗机械震荡)
+          if (action()) return true
+          self.scrollDown()
+          if (action()) return true
+          self.scrollUp()
+          return action()
+        }, imagePath: IMG.战斗机械震荡
       },
       {
         target: 观影签到, action: function (): boolean {

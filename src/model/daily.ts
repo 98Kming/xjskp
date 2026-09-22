@@ -38,6 +38,8 @@ import { 快速退出 } from "./快速退出"
 import { 丛林遗迹 } from '../pages/丛林遗迹'
 import { 碧海凉夏 } from '../pages/碧海凉夏'
 import { 天空秘境 } from '../pages/天空秘境'
+import { 拟态牌库 } from '../pages/拟态牌库'
+import { 机械震荡 } from '../pages/机械震荡'
 // 页面实例统一来自注册表 pages.ts(重复 new 会触发 Router 重复注册报错)
 import {
   战斗Page, 随机事件Page, 邮件Page, 好友Page, 领取体力Page, 巡逻车Page,
@@ -46,7 +48,7 @@ import {
   先锋宝藏Page, 碧海凉夏Page, 幸运锦鲤免费福利Page, 幸运锦鲤Page, 任务Page,
   武装降临Page, 鎏金罗盘Page, 观影签到Page, 观影便利店Page, 影映观礼Page, 服务器选择Page,
   丛林遗迹Page, 限时活动_免费Page, 限时活动_签到领取Page,
-  天空秘境Page, 薇拉的藏酒Page
+  天空秘境Page, 薇拉的藏酒Page, 拟态牌库Page, 机械震荡Page
 } from './pages'
 import { sharedImages } from '../images'
 import { 限时活动_免费 } from "../pages/限时活动_免费"
@@ -166,7 +168,8 @@ function executeDailyTasks(): void {
   if (isDailyEnabled('先锋宝藏_免费抽') || isDailyEnabled('碧海凉夏_免费抽') || isDailyEnabled('碧海凉夏_领取') || isDailyEnabled('幸运锦鲤_免费福利') ||
     isDailyEnabled('观影签到_签到') || isDailyEnabled('观影签到_观影便利店') || isDailyEnabled('影映观礼_领取') ||
     isDailyEnabled('武装降临_领取') || isDailyEnabled('鎏金罗盘_领取') || isDailyEnabled('丛林遗迹_领取') ||
-    isDailyEnabled('天空秘境_领取') || isDailyEnabled('薇拉的藏酒_购买红枪皮')) {
+    isDailyEnabled('天空秘境_领取') || isDailyEnabled('薇拉的藏酒_购买红枪皮') ||
+    isDailyEnabled('拟态牌库_领取') || isDailyEnabled('机械震荡_领取')) {
     批量执行活动()
   }
   if (isDailyEnabled('邮件')) {
@@ -417,6 +420,22 @@ function 构建活动目标列表(): 活动目标[] {
     列表.push({
       名: '天空秘境 领取', 页: 天空秘境Page, 入口图: IMG.战斗天空秘境, 执行: function (): 动作返回 {
         if (!nav(任务, 天空秘境)) return { ok: false, 原因: '导航失败' }
+        return 任务Page.领取()
+      }
+    })
+  }
+  if (isDailyEnabled('拟态牌库_领取')) {
+    列表.push({
+      名: '拟态牌库 领取', 页: 拟态牌库Page, 入口图: IMG.战斗拟态牌库, 执行: function (): 动作返回 {
+        if (!nav(任务, 拟态牌库)) return { ok: false, 原因: '导航失败' }
+        return 任务Page.领取()
+      }
+    })
+  }
+  if (isDailyEnabled('机械震荡_领取')) {
+    列表.push({
+      名: '机械震荡 领取', 页: 机械震荡Page, 入口图: IMG.战斗机械震荡, 执行: function (): 动作返回 {
+        if (!nav(任务, 机械震荡)) return { ok: false, 原因: '导航失败' }
         return 任务Page.领取()
       }
     })

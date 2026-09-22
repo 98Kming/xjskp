@@ -80,6 +80,8 @@ export type MainWindowView = {
   鎏金罗盘_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   天空秘境_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   薇拉的藏酒_购买红枪皮: ConfigurableView<PrefSwitch> & JsCheckBox
+  拟态牌库_领取: ConfigurableView<PrefSwitch> & JsCheckBox
+  机械震荡_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   执行完息屏: ConfigurableView<PrefSwitch> & JsCheckBox
   执行结果通知: ConfigurableView<PrefSwitch> & JsCheckBox
   详细日志: ConfigurableView<PrefSwitch> & JsCheckBox

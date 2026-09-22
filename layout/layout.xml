@@ -68,6 +68,8 @@
           <pref-switch id="丛林遗迹_领取" text="丛林遗迹-领取" checked="true" layoutDirection="rtl" />
           <pref-switch id="天空秘境_领取" text="天空秘境-领取" checked="true" layoutDirection="rtl" />
           <pref-switch id="薇拉的藏酒_购买红枪皮" text="薇拉的藏酒-购买红枪皮" checked="true" layoutDirection="rtl" />
+          <pref-switch id="拟态牌库_领取" text="拟态牌库-领取" checked="true" layoutDirection="rtl" />
+          <pref-switch id="机械震荡_领取" text="机械震荡-领取" checked="true" layoutDirection="rtl" />
           <pref-switch id="碧海凉夏_免费抽" text="碧海凉夏-免费抽" checked="true" layoutDirection="rtl" />
           <pref-switch id="碧海凉夏_领取" text="碧海凉夏-领取" checked="true" layoutDirection="rtl" />
           <pref-switch id="鎏金罗盘_领取" text="鎏金罗盘-领取" checked="true" layoutDirection="rtl" />
