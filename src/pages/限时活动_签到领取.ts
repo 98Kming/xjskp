@@ -4,8 +4,8 @@ import { sharedImages } from '../images'
 
 const IMG = {
   ...sharedImages,
-  页面: 'images/枪焰巡演_1_0.8_427_2348_501_2394.png',
-  签到: 'images/枪焰巡演$$可领取_0_0.9_100_686_540_2000.png',
+  页面: 'images/皓月佳期_1_0.9_46_1704_195_1755.png',
+  签到: 'images/皓月佳期$$签到_1_0.9_829_1669_938_1720.png',
 }
 
 export class 限时活动_签到领取 extends BasePage {
@@ -14,6 +14,7 @@ export class 限时活动_签到领取 extends BasePage {
   private 签到Action = createRouteAction(IMG.签到)
 
   click_签到领取(): boolean {
+    sleep(500)
     return this.签到Action() && (sleep(1600), this.back(), sleep(800), true)
   }
 

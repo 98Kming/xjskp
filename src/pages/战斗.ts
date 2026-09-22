@@ -29,7 +29,7 @@ const IMG = {
   战斗中: 'images/战斗$战斗中_1_0.9_410_1816_668_1935.png',
   侧栏: 'images/战斗$侧栏_1_0.9_974_378_1040_447.png',
   巡逻车: 'images/战斗$巡逻车_1_0.7_58_1917_169_1955.png',
-  狂欢嘉年华: 'images/战斗$狂欢嘉年华_1_0.8_36_403_100_459.png',
+  限时活动: 'images/战斗$桂韵中秋_1_0.8_24_360_86_384.png',
 }
 
 export class 战斗 extends BasePage {
@@ -175,9 +175,9 @@ export class 战斗 extends BasePage {
       },
       {
         target: 限时活动, action: function (): boolean {
-          var action = createRouteAction(IMG.狂欢嘉年华)
+          var action = createRouteAction(IMG.限时活动)
           return action()
-        }, imagePath: IMG.狂欢嘉年华
+        }, imagePath: IMG.限时活动
       },
       // 队长:组队邀请弹窗(默认推荐 tab)
       { target: 组队邀请推荐, action: createRouteAction(IMG.邀请), imagePath: IMG.邀请 },
