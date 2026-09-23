@@ -323,6 +323,13 @@ function executeDailyTasks(): void {
       sleep(1500)
       return 道具购买Page.购买()
     })
+    doTask('征途入场券 购买', function (): 动作返回 {
+      if (!nav(军团商店)) return { ok: false, 原因: '导航失败' }
+      var ticketAction = createTicketAction(IMG.寰球征途券, IMG.军团商店已售罄)
+      if (!ticketAction()) return false
+      sleep(1500)
+      return 道具购买Page.购买()
+    })
     doTask('远征入场券 购买', function (): 动作返回 {
       if (!nav(军团商店)) return { ok: false, 原因: '导航失败' }
       var ticketAction = createTicketAction(IMG.环球远征券, IMG.军团商店已售罄)

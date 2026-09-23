@@ -17,6 +17,7 @@ export class 军团商店 extends BasePage {
       // 两个入场券都点开道具购买弹窗，由道具购买的购买动作路由到对应玩法
       { target: 道具购买, action: createMirroredAction(IMG.环球救援券), imagePath: IMG.环球救援券 },
       { target: 道具购买, action: createMirroredAction(IMG.环球远征券), imagePath: IMG.环球远征券 },
+      { target: 道具购买, action: createMirroredAction(IMG.寰球征途券), imagePath: IMG.寰球征途券 },
     ]
   }
 }
