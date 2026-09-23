@@ -5,7 +5,7 @@ import { sharedImages } from '../images'
 
 const IMG = {
   ...sharedImages,
-  back: 'images/战斗结束$_back_0_0.9_400_1961_805_2154.png',
+  back: 'images/战斗结束$_back_0_0.9_268_1961_805_2154.png',
   战斗中: 'images/战斗结束$战斗中_1_0.9_228_1962_422_2010.png',
   恭喜获得: 'images/战斗结束_恭喜获得_1_0.8_456_704_634_739.png',
 }
