@@ -33,6 +33,7 @@ export class 寰球救援 extends BasePage {
   免费(): boolean {
     var point = waitForImage(IMG.免费, 2000, 600)
     if (point) {
+      sleep(100)
       click(toScreenX(point.x), toScreenY(point.y))
       if (waitObtain(1200)) {
         sleep(500)

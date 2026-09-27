@@ -33,7 +33,11 @@ export class 战斗中 extends BasePage {
 
   /** 开启倍速（找到"倍速-关闭"按钮时点击） */
   开倍速(): boolean {
-    return createRouteAction(IMG.倍速关闭)()
+    let point = imageDetector(IMG.倍速关闭)
+    if (point) {
+      return click(toScreenX(point.x + 10), toScreenY(point.y))
+    }
+    return false
   }
 
   /** 检测倍速是否已开启 */
