@@ -24,6 +24,7 @@ import { 巡逻车 } from '../pages/巡逻车'
 import { 历练大厅 } from '../pages/历练大厅'
 import { 寰球救援 } from '../pages/寰球救援'
 import { 寰球远征 } from '../pages/寰球远征'
+import { 寰球征途 } from '../pages/寰球征途'
 import { 终末危机 } from '../pages/终末危机'
 import { 食堂 } from '../pages/食堂'
 import { 观影签到 } from '../pages/观影签到'
@@ -76,6 +77,7 @@ export var 巡逻车Page = new 巡逻车()
 export var 历练大厅Page = new 历练大厅()
 export var 寰球救援Page = new 寰球救援()
 export var 寰球远征Page = new 寰球远征()
+export var 寰球征途Page = new 寰球征途()
 export var 终末危机Page = new 终末危机()
 export var 食堂Page = new 食堂()
 export var 观影签到Page = new 观影签到()

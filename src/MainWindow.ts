@@ -69,6 +69,7 @@ export type MainWindowView = {
   巡逻车_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   随机事件_领取: ConfigurableView<PrefSwitch> & JsCheckBox
   寰球远征_免费: ConfigurableView<PrefSwitch> & JsCheckBox
+  寰球征途_免费: ConfigurableView<PrefSwitch> & JsCheckBox
   终末危机_扫荡: ConfigurableView<PrefSwitch> & JsCheckBox
   限时活动_免费: ConfigurableView<PrefSwitch> & JsCheckBox
   限时活动_签到领取: ConfigurableView<PrefSwitch> & JsCheckBox

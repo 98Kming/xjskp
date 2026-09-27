@@ -88,6 +88,7 @@
           <pref-switch id="寰球救援_领票" text="寰球救援-领票" checked="true" layoutDirection="rtl" />
           <pref-switch id="寰球救援_广告门票" text="寰球救援-广告门票" checked="true" layoutDirection="rtl" />
           <pref-switch id="寰球远征_免费" text="寰球远征-免费" checked="true" layoutDirection="rtl" />
+          <pref-switch id="寰球征途_免费" text="寰球征途-免费" checked="true" layoutDirection="rtl" />
           <pref-switch id="终末危机_扫荡" text="终末危机-扫荡" checked="true" layoutDirection="rtl" />
           <pref-switch id="商店_超时空军团兵碎片" text="商店-超时空军团兵碎片" checked="true" layoutDirection="rtl" />
           <pref-switch id="食堂" text="食堂-一键领取" checked="true" layoutDirection="rtl" />

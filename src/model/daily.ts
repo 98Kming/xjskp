@@ -24,6 +24,7 @@ import { 巡逻车 } from '../pages/巡逻车'
 import { 历练大厅 } from '../pages/历练大厅'
 import { 寰球救援 } from '../pages/寰球救援'
 import { 寰球远征 } from '../pages/寰球远征'
+import { 寰球征途 } from '../pages/寰球征途'
 import { 终末危机 } from '../pages/终末危机'
 import { 食堂 } from '../pages/食堂'
 import { 好友 } from '../pages/好友'
@@ -43,7 +44,7 @@ import { 机械震荡 } from '../pages/机械震荡'
 // 页面实例统一来自注册表 pages.ts(重复 new 会触发 Router 重复注册报错)
 import {
   战斗Page, 随机事件Page, 邮件Page, 好友Page, 领取体力Page, 巡逻车Page,
-  寰球救援Page, 寰球远征Page, 终末危机Page, 食堂Page,
+  寰球救援Page, 寰球远征Page, 寰球征途Page, 终末危机Page, 食堂Page,
   玩法商店Page, 每日一刀Page, 异域挑战Page, 异域挑战军团奖励Page, 异域挑战个人奖励Page,
   先锋宝藏Page, 碧海凉夏Page, 幸运锦鲤免费福利Page, 幸运锦鲤Page, 任务Page,
   武装降临Page, 鎏金罗盘Page, 观影签到Page, 观影便利店Page, 影映观礼Page, 服务器选择Page,
@@ -237,6 +238,13 @@ function executeDailyTasks(): void {
       if (!nav(历练大厅)) return { ok: false, 原因: '导航失败' }
       if (!nav(寰球远征)) return { ok: false, 原因: '导航失败' }
       return 寰球远征Page.免费()
+    })
+  }
+  if (isDailyEnabled('寰球征途_免费')) {
+    doTask('寰球征途 免费', function (): 动作返回 {
+      if (!nav(历练大厅)) return { ok: false, 原因: '导航失败' }
+      if (!nav(寰球征途)) return { ok: false, 原因: '导航失败' }
+      return 寰球征途Page.免费()
     })
   }
   if (isDailyEnabled('终末危机_扫荡')) {
