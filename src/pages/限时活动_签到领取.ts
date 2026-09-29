@@ -4,8 +4,8 @@ import { sharedImages } from '../images'
 
 const IMG = {
   ...sharedImages,
-  页面: 'images/皓月佳期_1_0.9_46_1704_195_1755.png',
-  签到: 'images/皓月佳期$$签到_1_0.9_829_1669_938_1720.png',
+  页面: 'images/踏览神州_1_0.9_23_1708_133_1782.png',
+  签到: 'images/踏览神州$$签到_1_0.9_807_1671_943_1724.png',
 }
 
 export class 限时活动_签到领取 extends BasePage {
