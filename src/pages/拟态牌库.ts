@@ -5,7 +5,7 @@ import { sharedImages } from '../images'
 
 const IMG = {
   ...sharedImages,
-  页面: 'images/拟态牌库_1_0.9_918_1633_972_1662.png',
+  页面: 'images/拟态牌库_1_0.8_859_1698_970_1722.png',
 }
 
 export class 拟态牌库 extends BasePage {

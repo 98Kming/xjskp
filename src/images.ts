@@ -8,7 +8,7 @@ export const sharedImages = {
   一键领取: 'images/$一键领取_0_0.8_96_2005_289_2051.png',
   任务: 'images/$任务_0_0.8_51_454_114_700.png',
   免费: 'images/$免费_0_0.8_201_960_800_1926.png',
-  关闭1: 'images/$关闭1_0_0.8_800_400_1020_627.png',
+  关闭1: 'images/$关闭1_0_0.8_800_400_1034_627.png',
   关闭2: 'images/$关闭2_0_0.8_800_400_1020_600.png',
   军团未选中: 'images/$军团-未选中_0_0.8_807_2335_1080_2367.png',
   // 注意:y2=y 为非标准区域token,只能作soldOutPath用getTemplate,不可走imageNameParser

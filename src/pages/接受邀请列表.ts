@@ -1,5 +1,5 @@
 import { BasePage, Route } from './BasePage'
-import { createPageDetector } from '../utils/img'
+import { createPageDetector, createRouteAction } from '../utils/img'
 import { sharedImages } from '../images'
 
 const IMG = {
@@ -10,5 +10,7 @@ const IMG = {
 export class 接受邀请列表 extends BasePage {
   name = '接受邀请列表'
   is = createPageDetector(IMG.接受)
+
+  back = createRouteAction(IMG.关闭1)
   routes(): Route[] { return [] }
 }
