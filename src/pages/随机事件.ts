@@ -103,10 +103,14 @@ export class 随机事件 extends BasePage {
         }
       }
       if (!tmpFound) {
+        // 仍在本页却找不到任何可点按钮 = 有未收录按钮,才是真跳过;
+        // 页面已离开(领完自动关闭/跳转)说明本轮领取已结束,不算跳过
         if (this.is(screen())) {
           log('[随机事件] 有未添加的按钮等待收录')
+          found = false
+        } else {
+          log('[随机事件] 页面已离开,本轮领取结束')
         }
-        found = false
         break
       }
     }

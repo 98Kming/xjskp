@@ -11,9 +11,9 @@ import { scroll, scrollFind } from '../utils/scroll'
 const IMG = {
   ...sharedImages,
   玩法商店: 'images/历练大厅$_玩法商店_1_0.8_940_391_1005_435.png',
-  救援: 'images/历练大厅_救援_1_0.9_181_468_274_2135.png',
-  远征: 'images/历练大厅_远征_1_0.9_181_468_274_2135.png',
-  征途: 'images/历练大厅_征途_1_0.9_181_468_273_2135.png',
+  救援: 'images/历练大厅_救援_0_0.9_181_468_274_2135.png',
+  远征: 'images/历练大厅_远征_0_0.9_181_468_274_2135.png',
+  征途: 'images/历练大厅_征途_0_0.9_181_468_273_2135.png',
   征途未开启: 'images/历练大厅_征途-未开启_1_0.9_497_450_642_2150.png',
   终末危机: 'images/历练大厅_终末危机_0_0.9_88_468_275_2135.png',
   远征未开启: 'images/历练大厅_远征-未开启_1_0.9_573_450_866_2150.png',
@@ -36,6 +36,10 @@ export class 历练大厅 extends BasePage {
       },
       {
         target: 寰球征途, action: (): boolean => {
+          if (!scrollFind(IMG.征途, "top", 88, height * 0.2, 1000, height * 0.8)) {
+            return false
+          }
+          log("识别到 寰球征途")
           if (imageDetector(IMG.征途未开启)) {
             return false
           }
@@ -43,6 +47,7 @@ export class 历练大厅 extends BasePage {
             return true
           }
           scroll("top", 88, height * 0.2, 1000, height * 0.8)
+          log("识别到 寰球征途 未找到挑战")
           return !imageDetector(IMG.征途未开启) && createAnchoredAction(IMG.征途, IMG.挑战)()
         }
       },
